@@ -271,7 +271,13 @@ export interface PopulatedUser {
   platform?:   string;
   companyName?: string;
 }
-
+export interface ExploreCreatorsResponse {
+  creators: any[];
+  pagination: {
+    total: number;
+    pages: number;
+  };
+}
 export interface PopulatedCampaign {
   _id:    string;
   title:  string;
@@ -765,7 +771,12 @@ export class BrandService {
     if (!analytics.totalCollaborations) return 0;
     return Math.round((analytics.completedCollaborations / analytics.totalCollaborations) * 100);
   }
-  exploreCreators(filters: any) {
-  return this.http.post('/api/creators/explore', filters);
+  
+
+exploreCreators(filters: any): Observable<ExploreCreatorsResponse> {
+  return this.http.post<ExploreCreatorsResponse>(
+    '/api/creators/explore',
+    filters
+  );
 }
 }

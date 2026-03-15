@@ -1,0 +1,150 @@
+@import '../brand-shared.css';
+
+/* ══════════════════════════════════════════════════════════════════════
+   Brand Overview / Dashboard Home
+   ══════════════════════════════════════════════════════════════════════ */
+.ov-page { padding: 26px 30px; }
+
+.ov-loading { display: flex; align-items: center; justify-content: center; padding: 80px; }
+
+/* ── KPI Cards ──────────────────────────────────────────────────────── */
+.ov-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 22px;
+}
+.ov-kpi {
+  padding: 20px;
+  animation: scaleIn .4s var(--ou) both;
+  transition: all 220ms ease;
+  cursor: default;
+  position: relative;
+  overflow: hidden;
+}
+.ov-kpi::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, transparent 60%, rgba(251,191,36,.03));
+  pointer-events: none;
+}
+.ov-kpi:hover {
+  transform: translateY(-4px);
+  border-color: rgba(251,191,36,.25);
+  box-shadow: 0 10px 36px rgba(251,191,36,.1);
+}
+.ov-kpi:nth-child(1){animation-delay:.06s}
+.ov-kpi:nth-child(2){animation-delay:.10s}
+.ov-kpi:nth-child(3){animation-delay:.14s}
+.ov-kpi:nth-child(4){animation-delay:.18s}
+
+.ov-kpi__hd {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.ov-kpi__label {
+  font-size: .63rem; font-weight: 700; color: var(--t3);
+  text-transform: uppercase; letter-spacing: .07em;
+}
+.ov-kpi__icon {
+  width: 34px; height: 34px; border-radius: var(--r-md);
+  display: flex; align-items: center; justify-content: center;
+}
+.ov-kpi__icon svg { width: 17px; height: 17px; }
+.ov-kpi__val {
+  font-family: var(--fd); font-size: 1.8rem; font-weight: 900;
+  color: var(--t1); letter-spacing: -.04em; margin-bottom: 4px;
+}
+.ov-kpi__sub { font-size: .66rem; color: var(--t3); }
+
+/* ── Charts row ─────────────────────────────────────────────────────── */
+.ov-charts {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+.ov-chart-card  { padding: 20px; animation: fadeUp .4s var(--ou) .1s both; }
+.ov-chart-card--sm { padding: 20px; }
+.ov-chart-hd {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 18px;
+}
+.ov-chart-title {
+  font-family: var(--fd); font-size: .92rem; font-weight: 700;
+  color: var(--t1);
+}
+.ov-chart-sub  { font-size: .7rem; color: var(--t3); margin-top: 2px; }
+.ov-chart-link {
+  font-size: .72rem; font-weight: 600; color: #FBBF24;
+  text-decoration: none; white-space: nowrap;
+  transition: color 150ms;
+}
+.ov-chart-link:hover { color: #FDE68A; }
+.ov-chart-wrap {
+  width: 100%; height: 220px; position: relative;
+}
+.ov-chart-wrap--donut { height: 240px; }
+.ov-no-data {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 8px; padding: 32px; color: var(--t3); font-size: .82rem; text-align: center;
+}
+.ov-no-data a { color: #FBBF24; text-decoration: none; font-weight: 600; }
+
+/* ── Budget utilisation ─────────────────────────────────────────────── */
+.ov-budget-card {
+  padding: 22px;
+  margin-bottom: 22px;
+  animation: fadeUp .4s var(--ou) .15s both;
+}
+.ov-budget-hd {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.ov-budget-pct {
+  font-family: var(--fd); font-size: 1.6rem; font-weight: 900;
+  color: var(--t1); letter-spacing: -.03em;
+}
+.ov-budget-bar {
+  height: 10px; background: var(--bg-c2);
+  border-radius: var(--r-f); overflow: hidden; margin-bottom: 8px;
+}
+.ov-budget-fill {
+  height: 100%; border-radius: var(--r-f);
+  background: linear-gradient(90deg, #FBBF24, #D97706);
+  transition: width 1.4s var(--ou);
+}
+.ov-budget-labels {
+  display: flex; justify-content: space-between;
+  font-size: .72rem; color: var(--t3);
+}
+
+/* ── Recent campaigns ────────────────────────────────────────────────── */
+.ov-recent {
+  margin-bottom: 22px;
+  animation: fadeUp .4s var(--ou) .2s both;
+  overflow: hidden;
+}
+
+/* ── Quick action buttons ────────────────────────────────────────────── */
+.ov-actions {
+  display: flex; gap: 12px; flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.ov-action-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 11px 20px; font-size: .8rem; font-weight: 700;
+  color: #0A0800; background: var(--g-acc);
+  border: none; border-radius: var(--r-lg);
+  cursor: pointer; text-decoration: none; font-family: var(--fb);
+  box-shadow: 0 3px 12px rgba(251,191,36,.28);
+  transition: all 250ms var(--sp);
+}
+.ov-action-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(251,191,36,.45); }
+.ov-action-btn svg   { width: 15px; height: 15px; }
+
+/* ── Responsive ─────────────────────────────────────────────────────── */
+@media (max-width: 1280px) { .ov-kpis { grid-template-columns: repeat(2,1fr); } }
+@media (max-width: 1024px) { .ov-charts { grid-template-columns: 1fr; } }
+@media (max-width: 768px)  { .ov-page { padding: 16px; } }
+@media (max-width: 480px)  { .ov-kpis { grid-template-columns: 1fr 1fr; } }

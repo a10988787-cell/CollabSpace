@@ -1,8 +1,4 @@
-/* ═══════════════════════════════════════════════════════════════════════════
-   CollabSpace — Express + MongoDB Backend
-   server.js | Entry Point
-   ═══════════════════════════════════════════════════════════════════════════ */
-
+// backend/server.js
 require('dotenv').config();
 
 const express   = require('express');
@@ -10,83 +6,66 @@ const cors      = require('cors');
 const helmet    = require('helmet');
 const morgan    = require('morgan');
 const rateLimit = require('express-rate-limit');
+const path      = require('path');
+const fs        = require('fs');
 
-/* ─── Local modules ──────────────────────────────────────────────────────────
-   Folder structure expected:
-   backend/
-   ├── server.js           ← YOU ARE HERE
-   ├── .env
-   ├── package.json
-   ├── config/
-   │   └── db.js
-   ├── models/
-   │   └── User.js
-   ├── middleware/
-   │   ├── auth.js
-   │   └── validate.js
-   └── routes/
-       ├── auth.routes.js
-       └── users.routes.js
-   ─────────────────────────────────────────────────────────────────────────── */
 const connectDB   = require('./config/db');
 const authRoutes  = require('./routes/auth.routes');
 const usersRoutes = require('./routes/users.routes');
+const brandRoutes = require('./routes/brand.routes');
 
-/* ─── Connect to MongoDB ─────────────────────────────────────────────────── */
+/* ── Connect database ─────────────────────────────────────────────────── */
 connectDB();
 
-/* ─── App Setup ──────────────────────────────────────────────────────────── */
 const app = express();
 
-/* ─── Security Middleware ────────────────────────────────────────────────── */
-app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+/* ── Security ─────────────────────────────────────────────────────────── */
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' }, // allow serving uploaded files
+}));
 
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:4200',
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
+  origin:         process.env.CLIENT_URL || 'http://localhost:4200',
+  methods:        ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization'],
+  credentials:    true,
 }));
 
 app.use(rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 200,
+  windowMs:        15 * 60 * 1000,
+  max:             300,
   standardHeaders: true,
-  legacyHeaders: false,
-  message: { success: false, message: 'Too many requests. Please slow down.' },
+  legacyHeaders:   false,
+  message: { success: false, message: 'Too many requests. Please try again later.' },
 }));
 
-/* ─── Body Parsing ───────────────────────────────────────────────────────── */
+/* ── Body parsing ─────────────────────────────────────────────────────── */
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true }));
 
-/* ─── Request Logging ────────────────────────────────────────────────────── */
-if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('dev'));
-} else {
-  app.use(morgan('combined'));
-}
+/* ── Logging (dev) ────────────────────────────────────────────────────── */
+if (process.env.NODE_ENV === 'development') app.use(morgan('dev'));
 
-/* ─── Health Check ───────────────────────────────────────────────────────── */
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    success:   true,
-    status:    'healthy',
-    service:   'CollabSpace API',
-    version:   '1.0.0',
-    timestamp: new Date().toISOString(),
-    env:       process.env.NODE_ENV,
-  });
-});
+/* ── Static file serving for Multer uploads ───────────────────────────── */
+// Uploaded files are stored at: backend/uploads/
+// Accessible at: GET /uploads/assets/filename.png
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+app.use('/uploads', express.static(uploadsDir));
 
-/* ─── API Routes ─────────────────────────────────────────────────────────── */
-app.use('/api/auth',      authRoutes);
-app.use('/api/users',     usersRoutes);
-app.use('/api/campaigns', (req, res) => res.json({ message: 'Campaigns route — coming soon' }));
-app.use('/api/brands',    (req, res) => res.json({ message: 'Brands route — coming soon' }));
-app.use('/api/content',   (req, res) => res.json({ message: 'Content route — coming soon' }));
+/* ── Health check ─────────────────────────────────────────────────────── */
+app.get('/health', (_req, res) => res.json({
+  success: true, status: 'healthy', service: 'CollabSpace API', version: '1.0.0',
+}));
 
-/* ─── 404 Handler ────────────────────────────────────────────────────────── */
+/* ════════════════════════════════════════════════════════════════════════
+   ROUTES
+   ════════════════════════════════════════════════════════════════════════ */
+app.use('/api/auth',  authRoutes);
+app.use('/api/users', usersRoutes);
+app.use('/api/brand', brandRoutes);
+
+/* ── 404 ──────────────────────────────────────────────────────────────── */
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -94,46 +73,54 @@ app.use((req, res) => {
   });
 });
 
-/* ─── Global Error Handler ───────────────────────────────────────────────── */
+/* ── Global error handler ─────────────────────────────────────────────── */
 // eslint-disable-next-line no-unused-vars
-app.use((err, req, res, next) => {
-  console.error('[Server Error]', err);
-  if (err.name === 'ValidationError') {
-    const messages = Object.values(err.errors).map(e => e.message);
-    return res.status(422).json({ success: false, message: messages[0], errors: messages });
+app.use((error, req, res, next) => {
+  console.error('[Error]', error.message);
+
+  if (error.name === 'ValidationError') {
+    const msgs = Object.values(error.errors).map(e => e.message);
+    return res.status(422).json({ success: false, message: msgs[0] });
   }
-  if (err.name === 'CastError')         return res.status(400).json({ success: false, message: 'Invalid ID format.' });
-  if (err.name === 'JsonWebTokenError') return res.status(401).json({ success: false, message: 'Invalid token.' });
-  if (err.name === 'TokenExpiredError') return res.status(401).json({ success: false, message: 'Token expired.' });
-  const statusCode = err.statusCode || err.status || 500;
-  return res.status(statusCode).json({
-    success: false,
-    message: process.env.NODE_ENV === 'production' ? 'An unexpected error occurred.' : err.message || 'Internal server error',
-  });
+  if (error.name === 'CastError')
+    return res.status(400).json({ success: false, message: 'Invalid ID format.' });
+  if (error.code === 11000) {
+    const field = Object.keys(error.keyValue)[0];
+    return res.status(409).json({ success: false, message: `${field} already exists.` });
+  }
+  if (error.name === 'JsonWebTokenError')
+    return res.status(401).json({ success: false, message: 'Invalid token.' });
+  if (error.name === 'TokenExpiredError')
+    return res.status(401).json({ success: false, message: 'Session expired.' });
+
+  // Multer errors
+  if (error.code === 'LIMIT_FILE_SIZE')
+    return res.status(400).json({ success: false, message: 'File too large. Max 50MB.' });
+
+  const status  = error.statusCode || 500;
+  const message = process.env.NODE_ENV === 'production'
+    ? 'An unexpected error occurred.' : error.message;
+  res.status(status).json({ success: false, message });
 });
 
-/* ─── Start Server ───────────────────────────────────────────────────────── */
-const PORT = process.env.PORT || 5000;
+/* ── Start ────────────────────────────────────────────────────────────── */
+const PORT   = process.env.PORT || 5000;
 const server = app.listen(PORT, () => {
-  console.log(`\n🚀  CollabSpace API running on http://localhost:${PORT}`);
-  console.log(`📦  Environment : ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🗄️   MongoDB URI  : ${process.env.MONGO_URI}\n`);
+  console.log(`\n🚀  CollabSpace API → http://localhost:${PORT}`);
+  console.log(`🌍  Env      : ${process.env.NODE_ENV}`);
+  console.log(`📦  Routes   : /api/auth | /api/users | /api/brand`);
+  console.log(`📁  Uploads  : http://localhost:${PORT}/uploads/assets/<filename>`);
+  console.log(`💚  Health   : http://localhost:${PORT}/health\n`);
 });
 
-/* ─── Graceful Shutdown ──────────────────────────────────────────────────── */
-const gracefulShutdown = (signal) => {
-  console.log(`\n⚠️  ${signal} received. Shutting down gracefully…`);
+const shutdown = async (sig) => {
+  console.log(`\n${sig} — shutting down…`);
   server.close(async () => {
-    const mongoose = require('mongoose');
-    await mongoose.connection.close();
-    console.log('✅  MongoDB connection closed.');
+    await require('mongoose').connection.close();
     process.exit(0);
   });
 };
-process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-process.on('SIGINT',  () => gracefulShutdown('SIGINT'));
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('⚠️  Unhandled Rejection at:', promise, 'reason:', reason);
-});
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT',  () => shutdown('SIGINT'));
 
 module.exports = app;

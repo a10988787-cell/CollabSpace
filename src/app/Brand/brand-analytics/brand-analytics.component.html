@@ -3,12 +3,14 @@
     <div class="bp-hd__left">
       <div class="bp-eyebrow"><span class="bp-eyebrow-dot"></span>Performance Insights</div>
       <div class="bp-title">Analytics</div>
-      <div class="bp-sub">Track campaign performance, ROI and creator collaboration metrics</div>
+      <div class="bp-sub">Live data from your campaigns, collaborations, budgets and payments</div>
     </div>
     <div class="bp-hd__right">
-      <button class="btn-secondary" (click)="load()">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+      <button class="btn-secondary" (click)="loadData()" [disabled]="loading">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"
+             [ngClass]="loading ? 'icon-spin' : ''">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
         </svg>
         Refresh
       </button>
@@ -18,65 +20,123 @@
   <div *ngIf="loading" class="loading-wrap"><div class="spinner"></div></div>
 
   <div *ngIf="!loading && data">
-    <!-- KPI row -->
-    <div class="analytics-kpis">
-      <div class="card analytics-card" style="animation-delay:.06s">
-        <div class="analytics-card__label">Total Campaigns</div>
-        <div class="analytics-card__value animated-number">{{ data.totalCampaigns }}</div>
-        <div class="analytics-card__sub">{{ data.activeCampaigns }} currently active</div>
+
+    <!-- ── KPI row ──────────────────────────────────────────────────── -->
+    <div class="an-kpis">
+      <div class="card an-kpi" style="animation-delay:.04s">
+        <div class="an-kpi__label">Total Campaigns</div>
+        <div class="an-kpi__val">{{ data.totalCampaigns }}</div>
+        <div class="an-kpi__sub">{{ data.activeCampaigns }} currently active</div>
       </div>
-      <div class="card analytics-card" style="animation-delay:.10s">
-        <div class="analytics-card__label">Collaborations</div>
-        <div class="analytics-card__value animated-number">{{ data.totalCollaborations }}</div>
-        <div class="analytics-card__sub">{{ data.completedCollaborations }} completed</div>
+      <div class="card an-kpi" style="animation-delay:.08s">
+        <div class="an-kpi__label">Collaborations</div>
+        <div class="an-kpi__val">{{ data.totalCollaborations }}</div>
+        <div class="an-kpi__sub">{{ data.completedCollaborations }} completed · {{ collabSuccessRate }}% success</div>
       </div>
-      <div class="card analytics-card" style="animation-delay:.14s">
-        <div class="analytics-card__label">Total Budget</div>
-        <div class="analytics-card__value animated-number">${{ data.totalBudget | number }}</div>
-        <div class="analytics-card__sub">${{ data.allocatedBudget | number }} allocated</div>
+      <div class="card an-kpi" style="animation-delay:.12s">
+        <div class="an-kpi__label">Total Budget</div>
+        <div class="an-kpi__val">${{ data.totalBudget | number }}</div>
+        <div class="an-kpi__sub">{{ budgetUtilPct }}% allocated</div>
       </div>
-      <div class="card analytics-card" style="animation-delay:.18s">
-        <div class="analytics-card__label">Total Paid Out</div>
-        <div class="analytics-card__value animated-number" style="color:var(--jade)">${{ data.totalPaid | number }}</div>
-        <div class="analytics-card__sub">Paid to creators</div>
+      <div class="card an-kpi" style="animation-delay:.16s">
+        <div class="an-kpi__label">Total Paid Out</div>
+        <div class="an-kpi__val" style="color:var(--jade)">${{ totalRevenuePaid | number }}</div>
+        <div class="an-kpi__sub">Avg campaign: ${{ avgCampaignBudget | number }}</div>
       </div>
     </div>
 
-    <!-- Chart row -->
-    <div class="analytics-charts">
-      <div class="card card-p">
-        <div style="font-family:var(--fd);font-size:.92rem;font-weight:700;color:var(--t1);margin-bottom:6px">Budget Utilization</div>
-        <div style="font-size:.75rem;color:var(--t3);margin-bottom:16px">How much of your total budget has been allocated</div>
-        <div class="analytics-card__value animated-number">
-          {{ data.totalBudget > 0 ? ((data.allocatedBudget / data.totalBudget) * 100).toFixed(1) : 0 }}%
+    <!-- ── Utilisation bars ─────────────────────────────────────────── -->
+    <div class="an-util-row">
+      <div class="card an-util-card">
+        <div class="an-util-hd">
+          <div class="an-util-title">Budget Utilisation</div>
+          <div class="an-util-pct">{{ budgetUtilPct }}%</div>
         </div>
-        <div class="utilization-bar">
-          <div class="utilization-bar__fill" style="background:linear-gradient(90deg,#FBBF24,#D97706)"
-            [ngStyle]="{ width: (data.totalBudget > 0 ? (data.allocatedBudget / data.totalBudget) * 100 : 0) + '%' }">
-          </div>
+        <div class="an-bar">
+          <div class="an-bar__fill an-bar__fill--amber"
+               [ngStyle]="{width: budgetUtilPct + '%'}"></div>
         </div>
-        <div class="utilization-labels">
-          <span>Allocated: ${{ data.allocatedBudget | number }}</span>
-          <span>Total: ${{ data.totalBudget | number }}</span>
+        <div class="an-bar-labels">
+          <span>Allocated ${{ data.allocatedBudget | number }}</span>
+          <span>Total ${{ data.totalBudget | number }}</span>
         </div>
       </div>
-
-      <div class="card card-p">
-        <div style="font-family:var(--fd);font-size:.92rem;font-weight:700;color:var(--t1);margin-bottom:6px">Collaboration Success Rate</div>
-        <div style="font-size:.75rem;color:var(--t3);margin-bottom:16px">Percentage of collaborations completed successfully</div>
-        <div class="analytics-card__value animated-number">
-          {{ data.totalCollaborations > 0 ? ((data.completedCollaborations / data.totalCollaborations) * 100).toFixed(1) : 0 }}%
+      <div class="card an-util-card">
+        <div class="an-util-hd">
+          <div class="an-util-title">Collaboration Success Rate</div>
+          <div class="an-util-pct" style="color:var(--jade)">{{ collabSuccessRate }}%</div>
         </div>
-        <div class="utilization-bar">
-          <div class="utilization-bar__fill" style="background:linear-gradient(90deg,#34D399,#059669)"
-            [ngStyle]="{ width: (data.totalCollaborations > 0 ? (data.completedCollaborations / data.totalCollaborations) * 100 : 0) + '%' }">
-          </div>
+        <div class="an-bar">
+          <div class="an-bar__fill an-bar__fill--jade"
+               [ngStyle]="{width: collabSuccessRate + '%'}"></div>
         </div>
-        <div class="utilization-labels">
-          <span>Completed: {{ data.completedCollaborations }}</span>
-          <span>Total: {{ data.totalCollaborations }}</span>
+        <div class="an-bar-labels">
+          <span>Completed {{ data.completedCollaborations }}</span>
+          <span>Total {{ data.totalCollaborations }}</span>
         </div>
       </div>
     </div>
+
+    <!-- ── Charts grid ──────────────────────────────────────────────── -->
+    <div class="an-charts">
+
+      <!-- Chart 1: Campaign budgets horizontal bar -->
+      <div class="card an-chart-card an-chart-card--wide">
+        <div class="an-chart-hd">
+          <div class="an-chart-title">Campaign Budgets</div>
+          <div class="an-chart-sub">{{ campaigns.length }} campaigns</div>
+        </div>
+        <div class="an-chart-wrap an-chart-wrap--tall" *ngIf="campaigns.length; else noCamp">
+          <canvas #budgetChart></canvas>
+        </div>
+        <ng-template #noCamp>
+          <div class="an-empty">No campaign data available.</div>
+        </ng-template>
+      </div>
+
+      <!-- Chart 2: Collaboration status doughnut -->
+      <div class="card an-chart-card">
+        <div class="an-chart-hd">
+          <div class="an-chart-title">Collaboration Status</div>
+          <div class="an-chart-sub">{{ data.totalCollaborations }} total</div>
+        </div>
+        <div class="an-chart-wrap" *ngIf="collabs.length; else noCollab">
+          <canvas #collabPieChart></canvas>
+        </div>
+        <ng-template #noCollab>
+          <div class="an-empty">No collaboration data yet.</div>
+        </ng-template>
+      </div>
+
+      <!-- Chart 3: Campaign status breakdown -->
+      <div class="card an-chart-card">
+        <div class="an-chart-hd">
+          <div class="an-chart-title">Campaign Status</div>
+          <div class="an-chart-sub">{{ data.totalCampaigns }} campaigns</div>
+        </div>
+        <div class="an-chart-wrap" *ngIf="campaigns.length; else noCampStatus">
+          <canvas #campaignChart></canvas>
+        </div>
+        <ng-template #noCampStatus>
+          <div class="an-empty">No campaigns yet.</div>
+        </ng-template>
+      </div>
+
+      <!-- Chart 4: Payment totals bar -->
+      <div class="card an-chart-card an-chart-card--wide">
+        <div class="an-chart-hd">
+          <div class="an-chart-title">Payment Breakdown by Status</div>
+          <div class="an-chart-sub">Total paid: ${{ totalRevenuePaid | number }}</div>
+        </div>
+        <div class="an-chart-wrap" *ngIf="payments.length; else noPayments">
+          <canvas #paymentChart></canvas>
+        </div>
+        <ng-template #noPayments>
+          <div class="an-empty">No payment data yet.</div>
+        </ng-template>
+      </div>
+
+    </div>
+
   </div>
 </div>
