@@ -7,7 +7,7 @@ const {
   AudienceInsight, RevenueEntry, BrandInvitation, AiSuggestion,
   GrowthMetric, CreatorContract, Message,
 } = require('../models/Creatormodels');
-const { Collaboration } = require('../models/BrandModels');
+const { Collaboration } = require('../models/Brandmodels');
 
 const ok  = (res, data, status = 200) => res.status(status).json({ success: true, ...data });
 const err = (res, msg, status = 500)  => res.status(status).json({ success: false, message: msg });
@@ -44,6 +44,10 @@ exports.updateProfile = async (req, res) => {
     const fields = ['username','bio','niche','country','profilePicture','contactInfo'];
     const set = {};
     fields.forEach(f => { if (req.body[f] !== undefined) set[f] = req.body[f]; });
+    // contactInfo is sent as JSON string from FormData — parse it back to object
+    if (set.contactInfo && typeof set.contactInfo === 'string') {
+      try { set.contactInfo = JSON.parse(set.contactInfo); } catch (_) {}
+    }
     if (req.file) set.profilePicture = `/uploads/assets/${req.file.filename}`;
     const profile = await CreatorProfile.findOneAndUpdate(
       { owner: uid(req) }, { $set: set },

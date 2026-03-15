@@ -1,57 +1,232 @@
-<div class="pg">
-  <div class="ph">
-    <div><div class="ph-title">Campaign Applications</div><div class="ph-sub">Track and manage your campaign applications</div></div>
-    <div style="display:flex;gap:10px;align-items:center">
-      <select class="form-select" [(ngModel)]="filterStatus" (change)="load()" style="width:140px;padding:8px 12px;font-size:.82rem" title="select">
-        <option value="">All Status</option>
-        <option *ngFor="let s of statuses.slice(1)" [value]="s" style="text-transform:capitalize">{{s}}</option>
-      </select>
+<div class="ap">
+
+  <!-- Header -->
+  <div class="ap-hd">
+    <div>
+      <div class="eyebrow">Campaigns & Applications</div>
+      <h1 class="title">Browse & Apply</h1>
+      <p class="sub">Discover brand campaigns, apply, and track your submissions</p>
     </div>
   </div>
 
-  <div *ngIf="loading" style="text-align:center;padding:60px;color:var(--t3)">Loading...</div>
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab" [class.on]="tab==='browse'" (click)="tab='browse'">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+      Browse Campaigns
+    </button>
+    <button class="tab" [class.on]="tab==='mine'" (click)="tab='mine';loadApps()">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      My Applications
+      <span class="tab-badge" *ngIf="applications.length">{{applications.length}}</span>
+    </button>
+  </div>
 
-  <ng-container *ngIf="!loading">
-    <div class="empty" *ngIf="applications.length===0">
-      <div class="empty-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" style="width:28px;height:28px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div>
-      <h3>No applications found</h3><p>Browse active campaigns and start applying</p>
+  <!-- ══ BROWSE ════════════════════════════════════════════════════════ -->
+  <ng-container *ngIf="tab==='browse'">
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="search-bar">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input [(ngModel)]="search" (keyup.enter)="onSearch()" placeholder="Search campaigns…">
+        <button *ngIf="search" class="clear-btn" (click)="search='';loadCampaigns()">✕</button>
+      </div>
+      <div class="toolbar-filters">
+        <select [(ngModel)]="filterPlat" (change)="loadCampaigns()" class="fselect">
+          <option *ngFor="let p of platOptions" [value]="p">{{p || 'All Platforms'}}</option>
+        </select>
+        <select [(ngModel)]="filterNiche" (change)="loadCampaigns()" class="fselect">
+          <option *ngFor="let n of nicheOptions" [value]="n">{{n || 'All Niches'}}</option>
+        </select>
+        <button *ngIf="search||filterPlat||filterNiche" class="clear-all" (click)="clearFilters()">Clear filters</button>
+      </div>
     </div>
 
-    <div class="table-wrap" *ngIf="applications.length>0">
-      <table>
-        <thead><tr><th>Campaign</th><th>Proposal Amount</th><th>Status</th><th>Brand Response</th><th>Applied</th><th>Actions</th></tr></thead>
-        <tbody>
-          <tr *ngFor="let a of applications">
-            <td><div style="font-weight:600;color:var(--t1)">{{a.campaign?.title||'—'}}</div><div style="font-size:.75rem;color:var(--t3)">{{a.proposalMessage?.slice(0,60)}}{{a.proposalMessage?.length>60?'...':''}}</div></td>
-            <td style="color:var(--jade);font-weight:700">${{a.priceQuote|number}}</td>
-            <td><span class="pill" [ngClass]="statusPill(a.status)" style="text-transform:capitalize">{{a.status}}</span></td>
-            <td style="font-size:.8rem;max-width:200px">{{a.brandResponse||'—'}}</td>
-            <td style="font-size:.78rem;color:var(--t3)">{{a.createdAt|date:'MMM d, y'}}</td>
-            <td>
-              <div style="display:flex;gap:6px">
-                <button class="btn btn-ghost btn-sm" *ngIf="a.status==='pending'||a.status==='reviewing'" (click)="openEdit(a)">Edit</button>
-                <button class="btn btn-danger btn-sm" *ngIf="a.status==='pending'||a.status==='reviewing'" (click)="withdraw(a._id)">Withdraw</button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <!-- Loading -->
+    <div class="cen-msg" *ngIf="loadingC"><div class="spin"></div> Loading campaigns…</div>
+
+    <!-- Empty -->
+    <div class="empty-wrap" *ngIf="!loadingC && campaigns.length===0">
+      <div class="ei"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg></div>
+      <h3>No active campaigns found</h3>
+      <p>Try different filters or check back later</p>
+    </div>
+
+    <!-- Campaign grid -->
+    <div class="camp-grid" *ngIf="!loadingC && campaigns.length > 0">
+      <div class="camp-card" *ngFor="let c of campaigns; let i=index"
+        [class.was-applied]="applied(c._id)"
+        [style.animation-delay]="(i*0.04)+'s'">
+
+        <div class="cc-glow"></div>
+
+        <!-- Head -->
+        <div class="cc-head">
+          <div class="brand-av">{{(c.brand?.companyName || c.brand?.firstName || 'B')[0] | uppercase}}</div>
+          <div class="brand-info">
+            <div class="brand-name">{{c.brand?.companyName || c.brand?.firstName || 'Brand'}}</div>
+            <div class="camp-dates">{{c.startDate | date:'MMM d'}} – {{c.endDate | date:'MMM d, y'}}</div>
+          </div>
+          <div class="live-dot" [class.on]="c.status==='active'"></div>
+        </div>
+
+        <!-- Title -->
+        <h3 class="cc-title">{{c.title}}</h3>
+        <p class="cc-desc" *ngIf="c.description">{{c.description | slice:0:110}}{{c.description?.length > 110 ? '…' : ''}}</p>
+
+        <!-- Stats -->
+        <div class="cc-stats">
+          <div class="cc-stat budget">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1"/></svg>
+            {{fmt(c.budget)}}
+          </div>
+          <div class="cc-stat" *ngIf="c.slots">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            {{c.slots}} slot{{c.slots>1?'s':''}}
+          </div>
+          <div class="cc-stat" *ngIf="c.niche">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+            {{c.niche}}
+          </div>
+        </div>
+
+        <!-- Platforms -->
+        <div class="cc-plats" *ngIf="c.platforms?.length">
+          <span class="plat" *ngFor="let p of c.platforms.slice(0,4)">{{p}}</span>
+        </div>
+
+        <!-- CTA -->
+        <div class="cc-footer">
+          <button class="apply-btn" *ngIf="!applied(c._id)" (click)="openApply(c)">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+            Apply Now
+          </button>
+          <div class="applied-chip" *ngIf="applied(c._id)">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            Applied
+          </div>
+        </div>
+      </div>
     </div>
   </ng-container>
 
-  <div class="modal-backdrop" *ngIf="showModal" (click)="showModal=false">
-    <div class="modal" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <div class="modal-title">Edit Application</div>
-        <button class="modal-close" (click)="showModal=false"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" title="btn"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+  <!-- ══ MY APPLICATIONS ═══════════════════════════════════════════════ -->
+  <ng-container *ngIf="tab==='mine'">
+    <div class="mine-toolbar">
+      <div class="status-pills">
+        <button class="spill" [class.on]="filterStatus===''" (click)="filterStatus='';loadApps()">All</button>
+        <button class="spill pending" [class.on]="filterStatus==='pending'" (click)="filterStatus='pending';loadApps()">Pending</button>
+        <button class="spill accepted" [class.on]="filterStatus==='accepted'" (click)="filterStatus='accepted';loadApps()">Accepted</button>
+        <button class="spill rejected" [class.on]="filterStatus==='rejected'" (click)="filterStatus='rejected';loadApps()">Rejected</button>
       </div>
-      <div class="form-group"><label class="form-label">Proposal Message</label><textarea class="form-textarea" [(ngModel)]="form.proposalMessage" rows="4" placeholder="Describe your approach..."></textarea></div>
-      <div class="form-group"><label class="form-label">Price Quote ($)</label><input class="form-input" type="number" [(ngModel)]="form.priceQuote" title="input"></div>
-      <div class="modal-footer">
-        <button class="btn btn-ghost" (click)="showModal=false">Cancel</button>
-        <button class="btn btn-primary" (click)="save()" [disabled]="saving">{{saving?'Saving...':'Update'}}</button>
+    </div>
+
+    <div class="cen-msg" *ngIf="loadingA"><div class="spin"></div> Loading…</div>
+
+    <div class="empty-wrap" *ngIf="!loadingA && applications.length===0">
+      <div class="ei"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div>
+      <h3>No applications yet</h3>
+      <p>Browse campaigns and start applying</p>
+      <button class="apply-btn" style="margin-top:10px" (click)="tab='browse'">Browse Campaigns</button>
+    </div>
+
+    <div class="myapp-list" *ngIf="!loadingA && applications.length > 0">
+      <div class="myapp-item" *ngFor="let a of applications; let i=index" [style.animation-delay]="(i*0.05)+'s'">
+        <div class="myapp-left">
+          <div class="myapp-av">{{(a.campaign?.title||'C')[0]|uppercase}}</div>
+          <div class="myapp-body">
+            <div class="myapp-title">{{a.campaign?.title || 'Campaign'}}</div>
+            <div class="myapp-meta">
+              Applied {{a.createdAt | date:'MMM d, y'}}
+              <span *ngIf="a.campaign?.budget"> · Budget {{fmt(a.campaign.budget)}}</span>
+            </div>
+            <p class="myapp-proposal" *ngIf="a.proposalMessage">
+              {{a.proposalMessage | slice:0:130}}{{a.proposalMessage?.length > 130 ? '…' : ''}}
+            </p>
+            <div class="myapp-collab-hint" *ngIf="a.status==='accepted'">
+              <svg fill="none" stroke="#34D399" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              Accepted! Go to <strong>Collab Posts</strong> to submit your content.
+            </div>
+          </div>
+        </div>
+        <div class="myapp-right">
+          <div class="myapp-price">${{a.priceQuote | number}}</div>
+          <span class="status-badge" [ngStyle]="{ color: statusStyle(a.status).color, background: statusStyle(a.status).bg, 'border-color': statusStyle(a.status).border }">
+            {{a.status | titlecase}}
+          </span>
+          <div class="myapp-actions" *ngIf="a.status==='pending'">
+            <button class="icon-btn" (click)="openEdit(a)" title="Edit">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            </button>
+            <button class="icon-btn del" (click)="withdraw(a._id)" title="Withdraw">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- ══ APPLY MODAL ════════════════════════════════════════════════════ -->
+  <div class="overlay" *ngIf="showApply" (click)="showApply=false">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-head">
+        <div>
+          <div class="modal-eyebrow">Apply to Campaign</div>
+          <div class="modal-title">{{selCamp?.title}}</div>
+          <div class="modal-sub" *ngIf="selCamp">
+            {{fmt(selCamp.budget)}} budget
+            <span *ngIf="selCamp.platforms?.length"> · {{selCamp.platforms.join(', ')}}</span>
+          </div>
+        </div>
+        <button class="mclose" (click)="showApply=false"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+      </div>
+      <div class="camp-brief" *ngIf="selCamp?.description">
+        <div class="brief-label">Campaign Brief</div>
+        <p>{{selCamp.description}}</p>
+      </div>
+      <div class="camp-brief" *ngIf="selCamp?.contentReqs">
+        <div class="brief-label">Content Requirements</div>
+        <p>{{selCamp.contentReqs}}</p>
+      </div>
+      <div class="mfield">
+        <label>Your Proposal *</label>
+        <textarea [(ngModel)]="applyForm.proposalMessage" rows="4" placeholder="Tell the brand why you're perfect for this campaign…"></textarea>
+      </div>
+      <div class="mfield">
+        <label>Your Price Quote (USD)</label>
+        <input type="number" [(ngModel)]="applyForm.priceQuote" placeholder="500" min="0">
+      </div>
+      <div class="modal-foot">
+        <button class="mbtn ghost" (click)="showApply=false">Cancel</button>
+        <button class="mbtn primary" (click)="submitApply()" [disabled]="saving || !applyForm.proposalMessage.trim()">
+          {{saving ? 'Submitting…' : 'Submit Application'}}
+        </button>
       </div>
     </div>
   </div>
-  <div class="toast" *ngIf="toast.show" [class.success]="toast.type==='success'" [class.error]="toast.type==='error'">{{toast.msg}}</div>
+
+  <!-- ══ EDIT MODAL ════════════════════════════════════════════════════ -->
+  <div class="overlay" *ngIf="showEdit" (click)="showEdit=false">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-head">
+        <div><div class="modal-eyebrow">Edit Application</div><div class="modal-title">Update your proposal</div></div>
+        <button class="mclose" (click)="showEdit=false"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+      </div>
+      <div class="mfield"><label>Proposal Message</label><textarea [(ngModel)]="editForm.proposalMessage" rows="4"></textarea></div>
+      <div class="mfield"><label>Price Quote (USD)</label><input type="number" [(ngModel)]="editForm.priceQuote" min="0"></div>
+      <div class="modal-foot">
+        <button class="mbtn ghost" (click)="showEdit=false">Cancel</button>
+        <button class="mbtn primary" (click)="saveEdit()" [disabled]="saving">{{saving?'Saving…':'Update'}}</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" *ngIf="toast.show" [class.err]="toast.type==='error'">
+    <svg *ngIf="toast.type==='success'" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+    <svg *ngIf="toast.type==='error'"   fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+    {{toast.msg}}
+  </div>
 </div>

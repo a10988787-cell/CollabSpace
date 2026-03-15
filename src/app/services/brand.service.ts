@@ -764,19 +764,44 @@ export class BrandService {
     return Math.min(100, Math.round((budget.allocated / budget.totalAmount) * 100));
   }
 
-  /**
-   * Calculate collaboration completion rate as a percentage.
-   */
   collabCompletionRate(analytics: BrandAnalytics): number {
     if (!analytics.totalCollaborations) return 0;
     return Math.round((analytics.completedCollaborations / analytics.totalCollaborations) * 100);
   }
-  
 
-exploreCreators(filters: any): Observable<ExploreCreatorsResponse> {
-  return this.http.post<ExploreCreatorsResponse>(
-    '/api/creators/explore',
-    filters
+  /* ── Explore Creators: GET /api/users/creators ───────────────────── */
+  exploreCreators(filters: { search?: string; niche?: string; platform?: string; page?: number; limit?: number }): Observable<ExploreCreatorsResponse> {
+
+  let params: any = {};
+  if (filters.search) params['search'] = filters.search;
+  if (filters.niche) params['niche'] = filters.niche;
+  if (filters.platform) params['platform'] = filters.platform;
+  if (filters.page) params['page'] = String(filters.page);
+  params['limit'] = String(filters.limit || 12);
+
+  const queryStr = Object.keys(params)
+    .map(k => `${k}=${encodeURIComponent(params[k])}`)
+    .join('&');
+
+  const token = localStorage.getItem('token');
+
+  return this.http.get<ExploreCreatorsResponse>(
+    `/api/users/creators${queryStr ? '?' + queryStr : ''}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
   );
 }
+
+  /* ── Send invitation to a creator ───────────────────────────────── */
+  sendCreatorInvite(creatorId: string, payload: { campaignId?: string; invitationMessage: string; proposedAmount: number }): Observable<any> {
+    return this.http.post<any>(`/api/creators/${creatorId}/invite`, payload);
+  }
+
+  /* ── Get creator detail ──────────────────────────────────────────── */
+  getCreatorDetail(creatorId: string): Observable<any> {
+    return this.http.get<any>(`/api/users/creators/${creatorId}`);
+  }
 }

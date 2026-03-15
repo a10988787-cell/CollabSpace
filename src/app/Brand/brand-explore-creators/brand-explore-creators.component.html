@@ -1,225 +1,252 @@
-<div class="bp-page">
+<div class="ec-page">
 
-  <!-- ── Header ─────────────────────────────────────────────────────── -->
-  <div class="bp-hd">
-    <div class="bp-hd__left">
-      <div class="bp-eyebrow"><span class="bp-eyebrow-dot"></span>Discover</div>
-      <div class="bp-title">Explore Creators</div>
-      <div class="bp-sub">Browse creators and send collaboration invites — new invites appear as <strong>Pending</strong> in Collaborations</div>
+  <!-- Header -->
+  <div class="ec-hd">
+    <div>
+      <div class="ec-eyebrow"><span></span> Discover</div>
+      <h1 class="ec-title">Explore Creators</h1>
+      <p class="ec-sub">Browse creator profiles, view their portfolios and send collaboration invitations</p>
+    </div>
+    <div class="ec-meta" *ngIf="!loading">
+      <span class="ec-count">{{total}} creator{{total !== 1 ? 's' : ''}} found</span>
     </div>
   </div>
 
-  <!-- ── Toolbar ─────────────────────────────────────────────────────── -->
+  <!-- Toolbar -->
   <div class="ec-toolbar">
     <div class="ec-search">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-      <input [(ngModel)]="search"
-             placeholder="Search by name, bio or platform…"
-             (keyup.enter)="applySearch()"/>
-      <button *ngIf="search" class="ec-clear" (click)="search=''; applySearch()">✕</button>
+      <input [(ngModel)]="search" (keyup.enter)="applyFilters()" placeholder="Search by name, bio or niche…">
+      <button *ngIf="search" class="ec-clr" (click)="search=''; applyFilters()">✕</button>
     </div>
-
-    <select class="ec-platform-sel" [(ngModel)]="platform" (change)="applyPlatform()" title="select">
-      <option value="">All Platforms</option>
-      <option *ngFor="let p of platforms" [value]="p">{{ p }}</option>
-    </select>
-
-    <button class="btn-primary" (click)="applySearch()">Search</button>
-
-    <button *ngIf="search || platform" class="btn-secondary" (click)="clearFilters()">Clear</button>
-
-    <span *ngIf="!loading" class="ec-count">{{ total }} creator{{ total !== 1 ? 's' : '' }} found</span>
-  </div>
-
-  <!-- ── Skeleton loading ─────────────────────────────────────────────── -->
-  <div *ngIf="loading" class="ec-grid">
-    <div *ngFor="let n of [1,2,3,4,5,6,7,8,9,10,11,12]" class="card ec-skeleton">
-      <div class="sk-av"></div>
-      <div class="sk-name"></div>
-      <div class="sk-plat"></div>
-      <div class="sk-bio"></div>
+    <div class="ec-filters">
+      <select [(ngModel)]="niche" (change)="applyFilters()" class="ec-sel">
+        <option *ngFor="let n of niches" [value]="n">{{n || 'All Niches'}}</option>
+      </select>
+      <select [(ngModel)]="platform" (change)="applyFilters()" class="ec-sel">
+        <option *ngFor="let p of platforms" [value]="p">{{p || 'All Platforms'}}</option>
+      </select>
+      <button *ngIf="search || niche || platform" class="ec-clear-all" (click)="clearFilters()">Clear</button>
     </div>
   </div>
 
-  <!-- ── Creator grid ─────────────────────────────────────────────────── -->
-  <div *ngIf="!loading && creators.length" class="ec-grid">
-    <div *ngFor="let c of creators; let i = index"
-         class="card ec-card"
-         [ngStyle]="{'animation-delay': ((i % 12) * 0.05) + 's'}"
-         (click)="openDrawer(c)">
+  <!-- Loading -->
+  <div class="ec-loading" *ngIf="loading">
+    <div class="ec-spinner"></div>
+    <span>Finding creators…</span>
+  </div>
+
+  <!-- Empty -->
+  <div class="ec-empty" *ngIf="!loading && creators.length === 0">
+    <div class="ec-empty-icon">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/>
+      </svg>
+    </div>
+    <h3>No creators found</h3>
+    <p>Try adjusting your search or filters</p>
+    <button class="ec-btn-ghost" (click)="clearFilters()">Clear Filters</button>
+  </div>
+
+  <!-- Creator Grid -->
+  <div class="ec-grid" *ngIf="!loading && creators.length > 0">
+    <div class="cr-card" *ngFor="let c of creators" (click)="openDrawer(c)">
+      <div class="cr-card-glow"></div>
 
       <!-- Avatar -->
-      <div class="ec-av-wrap">
-        <div class="ec-av" [ngStyle]="{background: avatarGrad(c.firstName)}">
-          {{ c.initials }}
+      <div class="cr-av-wrap">
+        <div class="cr-av" [ngStyle]="{'background': avatarGrad(c.firstName)}">
+          <img *ngIf="c.avatar || c.profile?.profilePicture" [src]="c.avatar || c.profile?.profilePicture" alt="" (error)="$any($event.target).style.display='none'">
+          <span *ngIf="!c.avatar && !c.profile?.profilePicture">{{c.initials || (c.firstName[0] + (c.lastName?.[0] || ''))}}</span>
         </div>
-        <span *ngIf="c.platform" class="ec-av-dot"
-              [ngStyle]="{background: platformColor(c.platform)}"></span>
+        <div class="cr-verified" *ngIf="c.profile?.isVerified">
+          <svg fill="none" stroke="white" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+        </div>
       </div>
 
-      <!-- Name -->
-      <div class="ec-name">{{ c.fullName }}</div>
-
-      <!-- Platform badge -->
-      <div class="ec-plat"
-           [ngStyle]="{background: platformBg(c.platform), color: platformColor(c.platform)}">
-        {{ c.platform || 'No platform set' }}
+      <!-- Info -->
+      <div class="cr-info">
+        <div class="cr-name">{{c.firstName}} {{c.lastName}}</div>
+        <div class="cr-niche" *ngIf="c.profile?.niche || c.platform">{{c.profile?.niche || c.platform}}</div>
+        <p class="cr-bio" *ngIf="bio(c)">{{bio(c) | slice:0:90}}{{bio(c).length > 90 ? '…' : ''}}</p>
       </div>
 
-      <!-- Bio preview -->
-      <p class="ec-bio">{{ c.bio || 'No bio added yet.' }}</p>
-
-      <!-- Actions -->
-      <div class="ec-actions" (click)="$event.stopPropagation()">
-        <button class="btn-secondary ec-btn-view" (click)="openDrawer(c)">
-          View
-        </button>
-        <button class="btn-primary ec-btn-invite" (click)="openInvite(c, $event)">
-          Invite
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── Load more ─────────────────────────────────────────────────────── -->
-  <div *ngIf="!loading && creators.length && page < pages" class="ec-more">
-    <button class="btn-secondary" (click)="loadMore()" [disabled]="loadingMore">
-      {{ loadingMore ? 'Loading…' : 'Load More' }}
-    </button>
-    <span class="ec-more-count">{{ creators.length }} / {{ total }}</span>
-  </div>
-
-  <!-- ── Empty state ───────────────────────────────────────────────────── -->
-  <div *ngIf="!loading && !creators.length" class="card empty-state">
-    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-    <div class="empty-title">No creators found</div>
-    <div class="empty-sub">
-      {{ (search || platform) ? 'Try different terms or clear filters.' : 'No creators have signed up yet.' }}
-    </div>
-    <button *ngIf="search || platform" class="btn-secondary" (click)="clearFilters()">
-      Clear Filters
-    </button>
-  </div>
-
-  <!-- ══ CREATOR DETAIL DRAWER ════════════════════════════════════════ -->
-  <div *ngIf="drawer" class="ec-backdrop" (click)="closeDrawer()">
-    <div class="ec-drawer" (click)="$event.stopPropagation()">
-
-      <button class="ec-drawer-close" (click)="closeDrawer()">✕</button>
-
-      <div class="ec-drawer-av" [ngStyle]="{background: avatarGrad(drawer.firstName)}">
-        {{ drawer.initials }}
+      <!-- Stats row -->
+      <div class="cr-stats">
+        <div class="cr-stat">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          <span>{{followersTotal(c)}}</span>
+        </div>
+        <div class="cr-stat">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+          <span>{{avgEngagement(c)}}</span>
+        </div>
+        <div class="cr-stat" *ngIf="c.profile?.country">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          <span>{{c.profile.country}}</span>
+        </div>
       </div>
 
-      <div class="ec-drawer-name">{{ drawer.fullName }}</div>
-
-      <div *ngIf="drawer.platform" class="ec-drawer-plat"
-           [ngStyle]="{background: platformBg(drawer.platform), color: platformColor(drawer.platform)}">
-        {{ drawer.platform }}
+      <!-- Platforms -->
+      <div class="cr-platforms" *ngIf="c.socials?.length">
+        <div class="cr-plat" *ngFor="let s of c.socials.slice(0,4)"
+          [ngStyle]="{'color': platformColor(s.platform), 'background': 'rgba(0,0,0,.25)', 'border-color': platformColor(s.platform) + '44'}">
+          {{s.platform[0]}}
+        </div>
+        <span class="cr-plat-more" *ngIf="c.socials.length > 4">+{{c.socials.length - 4}}</span>
       </div>
 
-      <p class="ec-drawer-bio">{{ drawer.bio || 'No bio added yet.' }}</p>
-
-      <div class="ec-drawer-meta">
-        Joined {{ drawer.createdAt | date:'MMMM y' }}
-      </div>
-
-      <button class="btn-primary ec-drawer-invite-btn"
-              (click)="openInvite(drawer, $event)">
-        Send Collaboration Invite
+      <!-- Invite button -->
+      <button class="cr-invite-btn" (click)="openInvite(c, $event)">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        Invite to Collaborate
       </button>
     </div>
   </div>
 
-  <!-- ══ INVITE MODAL ═════════════════════════════════════════════════ -->
-  <div *ngIf="showModal" class="modal-backdrop" (click)="closeModal()">
-    <div class="modal-box" (click)="$event.stopPropagation()">
+  <!-- Load more -->
+  <div class="ec-load-more" *ngIf="!loading && page < pages">
+    <button class="ec-btn-ghost" (click)="loadMore()" [disabled]="loadingMore">
+      <div class="ec-spinner" *ngIf="loadingMore"></div>
+      {{loadingMore ? 'Loading…' : 'Load More Creators'}}
+    </button>
+  </div>
 
-      <div class="modal-hd">
-        <div class="modal-title">Invite {{ selectedCreator?.firstName }}</div>
-        <button class="modal-close" (click)="closeModal()" title="button">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
-      </div>
+  <!-- ══ DRAWER (profile detail) ════════════════════════════════════ -->
+  <div class="drawer-overlay" *ngIf="drawer" (click)="closeDrawer()">
+    <div class="drawer" (click)="$event.stopPropagation()">
+      <button class="drawer-close" (click)="closeDrawer()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
 
-      <!-- Creator preview strip -->
-      <div class="ec-invite-strip">
-        <div class="ec-invite-strip-av"
-             [ngStyle]="{background: avatarGrad(selectedCreator?.firstName || '')}">
-          {{ selectedCreator?.initials }}
+      <!-- Drawer header -->
+      <div class="dr-head">
+        <div class="dr-av" [ngStyle]="{'background': avatarGrad(drawer.firstName)}">
+          <img *ngIf="drawer.avatar || drawer.profile?.profilePicture" [src]="drawer.avatar || drawer.profile?.profilePicture" alt="" (error)="$any($event.target).style.display='none'">
+          <span *ngIf="!drawer.avatar && !drawer.profile?.profilePicture">{{drawer.initials || (drawer.firstName[0] + (drawer.lastName?.[0] || ''))}}</span>
         </div>
-        <div class="ec-invite-strip-info">
-          <div class="ec-invite-strip-name">{{ selectedCreator?.fullName }}</div>
-          <div class="ec-invite-strip-sub">{{ selectedCreator?.platform || 'Content Creator' }}</div>
-        </div>
-        <div class="ec-invite-strip-arrow">→ Pending in Collaborations</div>
-      </div>
-
-      <!-- Form -->
-      <div class="form-group">
-
-        <div class="form-field">
-          <label class="form-label">
-            Link to Campaign
-            <span class="ec-optional">(optional)</span>
-          </label>
-          <select class="form-input" [(ngModel)]="inviteForm.campaignId" title="select">
-            <option value="">— No specific campaign —</option>
-            <option *ngFor="let c of campaigns" [value]="c._id">
-              {{ c.title }} · ${{ c.budget | number }}
-            </option>
-          </select>
-        </div>
-
-        <div class="form-field">
-          <label class="form-label">Deliverables</label>
-          <textarea class="form-input" rows="3"
-            [(ngModel)]="inviteForm.deliverables"
-            placeholder="e.g. 3 Instagram posts, 2 Stories, 1 Reel…"></textarea>
-        </div>
-
-        <div class="form-row">
-          <div class="form-field">
-            <label class="form-label">Payment Terms</label>
-            <input class="form-input" [(ngModel)]="inviteForm.paymentTerms"
-              placeholder="50% upfront, 50% on delivery"/>
-          </div>
-          <div class="form-field">
-            <label class="form-label">Offer Amount ($)</label>
-            <input class="form-input" type="number" [(ngModel)]="inviteForm.amount"
-              placeholder="2500"/>
+        <div class="dr-name-wrap">
+          <div class="dr-name">{{drawer.firstName}} {{drawer.lastName}}</div>
+          <div class="dr-handle" *ngIf="drawer.profile?.username">&#64;{{drawer.profile.username}}</div>
+          <div class="dr-chips">
+            <span class="dr-chip niche" *ngIf="drawer.profile?.niche">{{drawer.profile.niche}}</span>
+            <span class="dr-chip country" *ngIf="drawer.profile?.country">{{drawer.profile.country}}</span>
+            <span class="dr-chip verified" *ngIf="drawer.profile?.isVerified">✓ Verified</span>
           </div>
         </div>
+      </div>
 
-        <div class="form-field">
-          <label class="form-label">Personal Message</label>
-          <textarea class="form-input" rows="3"
-            [(ngModel)]="inviteForm.message"
-            placeholder="Tell the creator why you want to work with them…"></textarea>
+      <!-- Bio -->
+      <div class="dr-section" *ngIf="bio(drawer)">
+        <div class="dr-sec-title">About</div>
+        <p class="dr-bio">{{bio(drawer)}}</p>
+      </div>
+
+      <!-- Stats -->
+      <div class="dr-stats-grid">
+        <div class="dr-stat-card">
+          <div class="dr-stat-val">{{followersTotal(drawer)}}</div>
+          <div class="dr-stat-lbl">Total Followers</div>
         </div>
-
+        <div class="dr-stat-card">
+          <div class="dr-stat-val" style="color:var(--jade)">{{avgEngagement(drawer)}}</div>
+          <div class="dr-stat-lbl">Avg Engagement</div>
+        </div>
+        <div class="dr-stat-card">
+          <div class="dr-stat-val">{{drawer.socials?.length || 0}}</div>
+          <div class="dr-stat-lbl">Platforms</div>
+        </div>
       </div>
 
-      <div class="modal-footer">
-        <button class="btn-secondary" (click)="closeModal()">Cancel</button>
-        <button class="btn-primary" (click)="sendInvite()"
-                [disabled]="saving || !inviteForm.creator">
-          <svg *ngIf="saving" class="icon-spin" fill="none" stroke="currentColor"
-               viewBox="0 0 24 24" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-          </svg>
-          {{ saving ? 'Sending…' : 'Send Invite' }}
-        </button>
+      <!-- Social accounts -->
+      <div class="dr-section" *ngIf="drawer.socials?.length">
+        <div class="dr-sec-title">Social Accounts</div>
+        <div class="dr-socials">
+          <div class="dr-social" *ngFor="let s of drawer.socials">
+            <div class="dr-soc-icon" [ngStyle]="{'color': platformColor(s.platform)}">{{s.platform[0]}}</div>
+            <div class="dr-soc-info">
+              <div class="dr-soc-plat">{{s.platform}}</div>
+              <div class="dr-soc-handle" *ngIf="s.username">&#64;{{s.username}}</div>
+            </div>
+            <div class="dr-soc-stats">
+              <span>{{s.followersCount >= 1000 ? (s.followersCount/1000).toFixed(1)+'K' : s.followersCount}} followers</span>
+              <span *ngIf="s.engagementRate">{{s.engagementRate?.toFixed(1)}}% eng.</span>
+            </div>
+          </div>
+        </div>
       </div>
 
+      <!-- Portfolio -->
+      <div class="dr-section" *ngIf="drawer.portfolio?.length">
+        <div class="dr-sec-title">Portfolio ({{drawer.portfolio.length}} items)</div>
+        <div class="dr-portfolio">
+          <div class="dr-port-item" *ngFor="let p of drawer.portfolio.slice(0,4)">
+            <div class="dr-port-thumb">
+              <img *ngIf="p.thumbnailUrl || p.contentUrl" [src]="p.thumbnailUrl || p.contentUrl" alt="" (error)="$any($event.target).style.display='none'">
+              <svg *ngIf="!p.thumbnailUrl && !p.contentUrl" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            </div>
+            <div class="dr-port-title">{{p.campaignTitle | slice:0:30}}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <button class="dr-invite-btn" (click)="openInvite(drawer, $event)">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        Send Invitation
+      </button>
     </div>
   </div>
 
-  <!-- ── Toast ─────────────────────────────────────────────────────────── -->
-  <div *ngIf="toast" class="toast"
-       [ngClass]="toast.type === 'ok' ? 'toast--ok' : 'toast--err'">
-    {{ toast.msg }}
+  <!-- ══ INVITE MODAL ════════════════════════════════════════════════ -->
+  <div class="inv-overlay" *ngIf="showInvite" (click)="showInvite=false">
+    <div class="inv-modal" (click)="$event.stopPropagation()">
+      <div class="inv-head">
+        <div>
+          <div class="inv-eyebrow">Invite Creator</div>
+          <div class="inv-title">{{selCreator?.firstName}} {{selCreator?.lastName}}</div>
+          <div class="inv-sub" *ngIf="selCreator?.profile?.niche">{{selCreator.profile.niche}} Creator</div>
+        </div>
+        <button class="inv-close" (click)="showInvite=false">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="inv-field">
+        <label>Link to Campaign (optional)</label>
+        <select [(ngModel)]="inviteForm.campaignId">
+          <option value="">No specific campaign</option>
+          <option *ngFor="let c of campaigns" [value]="c._id">{{c.title}}</option>
+        </select>
+      </div>
+      <div class="inv-field">
+        <label>Message to Creator *</label>
+        <textarea [(ngModel)]="inviteForm.invitationMessage" rows="4" placeholder="Tell them why you want to collaborate…"></textarea>
+      </div>
+      <div class="inv-field">
+        <label>Proposed Amount (USD)</label>
+        <input type="number" [(ngModel)]="inviteForm.proposedAmount" placeholder="0" min="0">
+      </div>
+
+      <div class="inv-note">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        The creator will receive a notification and can accept or decline your invite.
+      </div>
+
+      <div class="inv-foot">
+        <button class="inv-cancel" (click)="showInvite=false">Cancel</button>
+        <button class="inv-send" (click)="sendInvite()" [disabled]="inviting || !inviteForm.invitationMessage.trim()">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+          {{inviting ? 'Sending…' : 'Send Invitation'}}
+        </button>
+      </div>
+    </div>
   </div>
 
+  <!-- Toast -->
+  <div class="ec-toast" *ngIf="toast" [class.err]="toast.type === 'err'">
+    <svg *ngIf="toast.type === 'ok'" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+    <svg *ngIf="toast.type === 'err'" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+    {{toast.msg}}
+  </div>
 </div>

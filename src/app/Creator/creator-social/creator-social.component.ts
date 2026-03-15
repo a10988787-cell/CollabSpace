@@ -92,3 +92,6 @@ export class CreatorSocialComponent implements OnInit {
     setTimeout(() => this.toast.show = false, 3500);
   }
 }
+/*
+make ui of content-creator-dashboard more beautiful add transition effects animations and also in all pages of content creator and in applications page the content creator can explore campaigns created by brand that is fetched from the database the creator can apply to it and is shown in the applications page of both content creator and brand the default status is pending and if the brand accept it the content creator can add the collab post and send it to the that brand only three status pending accepted and rejected if accepted the brand can pay the content creator and in content library the upload page is not visible properly and make sure all of the pages ui is more advanced with this theme and should cover the whole screen and in my profile section the website phone no and linked in after adding the data it still shows ---- in the page the whole profile should be shown in one single card with update and discard buttons
+*/

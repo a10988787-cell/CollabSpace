@@ -129,5 +129,50 @@ router.get   ('/messages/:userId',  ctrl.getMessages);
 router.post  ('/messages',          ctrl.sendMessage);
 router.put   ('/messages/:id',      ctrl.updateMessage);
 router.delete('/messages/:id',      ctrl.deleteMessage);
+router.post("/creators/explore", async (req, res) => {
 
+  try {
+
+    const { search, niche, platform, page = 1, limit = 12 } = req.body;
+
+    const query = {
+      role: "creator"
+    };
+
+    if (search) {
+      query.$or = [
+        { firstName: { $regex: search, $options: "i" } },
+        { lastName: { $regex: search, $options: "i" } },
+        { bio: { $regex: search, $options: "i" } }
+      ];
+    }
+
+    if (niche) query.niche = niche;
+    if (platform) query.platform = platform;
+
+    const creators = await User.find(query)
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    const total = await User.countDocuments(query);
+
+    res.json({
+      creators,
+      pagination: {
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      message: "Failed to load creators"
+    });
+
+  }
+
+});
 module.exports = router;

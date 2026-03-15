@@ -3,12 +3,11 @@ const nodemailer = require('nodemailer');
 
 /* ── Create transporter ───────────────────────────────────────────────────── */
 const createTransporter = () => {
-  // Gmail SMTP (use App Password — not your real password)
   if (process.env.EMAIL_HOST && process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-    return nodemailer.createTransporter({
-      host:   process.env.EMAIL_HOST,
-      port:   Number(process.env.EMAIL_PORT) || 587,
-      secure: Number(process.env.EMAIL_PORT) === 465, // true for port 465
+    return nodemailer.createTransport({
+      host: process.env.EMAIL_HOST,
+      port: Number(process.env.EMAIL_PORT) || 587,
+      secure: Number(process.env.EMAIL_PORT) === 465,
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
@@ -16,11 +15,9 @@ const createTransporter = () => {
     });
   }
 
-  // Fallback: Ethereal (fake SMTP for development — emails visible at ethereal.email)
   console.warn('[Email] No SMTP config found — using Ethereal test account.');
   return null;
 };
-
 const getFrom = () =>
   `"CollabSpace" <${process.env.EMAIL_USER || 'noreply@collabspace.io'}>`;
 

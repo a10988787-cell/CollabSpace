@@ -166,10 +166,27 @@ PaymentSchema.index({ invoiceNumber: 1 });
 
 /* ── Exports ─────────────────────────────────────────────────────────────── */
 module.exports = {
-  Collaboration: mongoose.model('Collaboration', CollaborationSchema),
-  Budget:        mongoose.model('Budget',        BudgetSchema),
-  Asset:         mongoose.model('Asset',         AssetSchema),
-  TeamMember:    mongoose.model('TeamMember',    TeamMemberSchema),
-  Contract:      mongoose.model('Contract',      ContractSchema),
-  Payment:       mongoose.model('Payment',       PaymentSchema),
+  Collaboration:
+    mongoose.models.Collaboration ||
+    mongoose.model('Collaboration', CollaborationSchema),
+
+  Budget:
+    mongoose.models.Budget ||
+    mongoose.model('Budget', BudgetSchema),
+
+  Asset:
+    mongoose.models.Asset ||
+    mongoose.model('Asset', AssetSchema),
+
+  TeamMember:
+    mongoose.models.TeamMember ||
+    mongoose.model('TeamMember', TeamMemberSchema),
+
+  Contract:
+    mongoose.models.Contract ||
+    mongoose.model('Contract', ContractSchema),
+
+  Payment:
+    mongoose.models.Payment ||
+    mongoose.model('Payment', PaymentSchema),
 };

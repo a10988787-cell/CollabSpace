@@ -341,4 +341,15 @@ export class CreatorService {
   deleteMessage(id: string): Observable<any> {
     return this.http.delete<any>(`${BASE}/messages/${id}`).pipe(catchError(this.handleError));
   }
+
+  /* ── PUBLIC CAMPAIGNS (creator browses brand campaigns) ─────────── */
+  getPublicCampaigns(params?: { search?: string; platform?: string; niche?: string; page?: number }): Observable<any> {
+    let p = new HttpParams();
+    if (params?.search)   p = p.set('search',   params.search);
+    if (params?.platform) p = p.set('platform', params.platform);
+    if (params?.niche)    p = p.set('niche',     params.niche);
+    if (params?.page)     p = p.set('page',      String(params.page));
+    p = p.set('limit', '50');
+    return this.http.get<any>(`${API}/campaigns/browse`, { params: p }).pipe(catchError(this.handleError));
+  }
 }
