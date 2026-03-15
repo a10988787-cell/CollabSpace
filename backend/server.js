@@ -9,10 +9,12 @@ const rateLimit = require('express-rate-limit');
 const path      = require('path');
 const fs        = require('fs');
 
-const connectDB   = require('./config/db');
-const authRoutes  = require('./routes/auth.routes');
-const usersRoutes = require('./routes/users.routes');
-const brandRoutes = require('./routes/brand.routes');
+const connectDB      = require('./config/db');
+const authRoutes     = require('./routes/auth.routes');
+const usersRoutes    = require('./routes/users.routes');
+const brandRoutes    = require('./routes/brand.routes');
+const creatorRoutes  = require('./routes/creator.routes');
+const publicRoutes   = require('./routes/public.routes');
 
 /* ── Connect database ─────────────────────────────────────────────────── */
 connectDB();
@@ -61,9 +63,11 @@ app.get('/health', (_req, res) => res.json({
 /* ════════════════════════════════════════════════════════════════════════
    ROUTES
    ════════════════════════════════════════════════════════════════════════ */
-app.use('/api/auth',  authRoutes);
-app.use('/api/users', usersRoutes);
-app.use('/api/brand', brandRoutes);
+app.use('/api/auth',    authRoutes);
+app.use('/api/users',  usersRoutes);
+app.use('/api/brand',  brandRoutes);
+app.use('/api/creator', creatorRoutes);
+app.use('/api',         publicRoutes);
 
 /* ── 404 ──────────────────────────────────────────────────────────────── */
 app.use((req, res) => {

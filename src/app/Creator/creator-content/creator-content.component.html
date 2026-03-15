@@ -1,0 +1,60 @@
+<div class="pg">
+  <div class="ph">
+    <div><div class="ph-title">Content Library</div><div class="ph-sub">Manage all your content assets in one place</div></div>
+    <div style="display:flex;gap:10px">
+      <select class="form-select" [(ngModel)]="filterType" (change)="load()" style="width:130px;padding:8px 12px;font-size:.82rem" title="select"><option value="">All Types</option><option *ngFor="let t of fileTypes" [value]="t" style="text-transform:capitalize">{{t}}</option></select>
+      <button class="btn btn-primary" (click)="showUploadModal=true"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>Upload</button>
+    </div>
+  </div>
+  <div *ngIf="loading" style="text-align:center;padding:60px;color:var(--t3)">Loading...</div>
+  <div class="grid-3" *ngIf="!loading">
+    <div class="empty" *ngIf="files.length===0" style="grid-column:1/-1"><div class="empty-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" style="width:28px;height:28px"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg></div><h3>No content yet</h3><p>Upload images, videos, and other media</p></div>
+    <div class="card" *ngFor="let f of files">
+      <div style="height:130px;border-radius:var(--r-md);background:var(--bg-card2);overflow:hidden;margin-bottom:12px;display:flex;align-items:center;justify-content:center;font-size:2.5rem">
+        <img *ngIf="f.fileType==='image'" [src]="f.fileUrl" style="width:100%;height:100%;object-fit:cover" alt="" onerror="this.style.display='none'">
+        <video *ngIf="f.fileType==='video'" [src]="f.fileUrl" style="width:100%;height:100%;object-fit:cover"></video>
+        <span *ngIf="f.fileType!=='image'&&f.fileType!=='video'">{{typeIcon(f.fileType)}}</span>
+      </div>
+      <div style="font-weight:600;color:var(--t1);font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{f.fileName}}</div>
+      <div style="font-size:.75rem;color:var(--t3);margin:4px 0 8px;text-transform:capitalize">{{f.fileType}} · {{formatSize(f.fileSize||0)}}</div>
+      <p style="font-size:.78rem;color:var(--t3);margin-bottom:8px;line-height:1.4">{{f.caption?.slice(0,80)}}{{f.caption?.length>80?'...':''}}</p>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+        <span *ngFor="let h of (f.hashtags||[]).slice(0,3)" style="font-size:.68rem;color:var(--sky);background:rgba(56,189,248,.08);padding:2px 7px;border-radius:var(--r-full)">#{{h}}</span>
+      </div>
+      <div style="display:flex;gap:6px"><button class="btn btn-ghost btn-sm" style="flex:1" (click)="openEdit(f)">Edit</button><button class="btn btn-danger btn-sm" (click)="remove(f._id)">Delete</button></div>
+    </div>
+  </div>
+
+  <!-- Upload Modal -->
+  <div class="modal-backdrop" *ngIf="showUploadModal" (click)="showUploadModal=false">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header"><div class="modal-title">Upload Content</div><button class="modal-close" (click)="showUploadModal=false" title="btn"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button></div>
+      <div class="form-group"><label class="form-label">File</label>
+        <div class="upload-zone" onclick="document.getElementById('contentFile').click()">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" style="width:32px;height:32px;color:var(--t3);display:block;margin:0 auto 10px"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+          <p>{{selectedFile?.name||'Click to select file'}}</p>
+          <input id="contentFile" type="file" (change)="onFile($event)" style="display:none" accept="image/*,video/*,audio/*,.pdf,.doc,.docx">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">File Name</label><input class="form-input" [(ngModel)]="uploadForm.fileName" placeholder="My content"></div>
+        <div class="form-group"><label class="form-label">Type</label><select class="form-select" [(ngModel)]="uploadForm.fileType" title="select"><option *ngFor="let t of fileTypes" [value]="t" style="text-transform:capitalize">{{t}}</option></select></div>
+      </div>
+      <div class="form-group"><label class="form-label">Caption</label><textarea class="form-textarea" [(ngModel)]="uploadForm.caption" rows="3" title="txtarea"></textarea></div>
+      <div class="form-group"><label class="form-label">Hashtags</label><input class="form-input" [(ngModel)]="uploadForm.hashtags" placeholder="#lifestyle, #fashion"></div>
+      <div class="modal-footer"><button class="btn btn-ghost" (click)="showUploadModal=false">Cancel</button><button class="btn btn-primary" (click)="upload()" [disabled]="saving">{{saving?'Uploading...':'Upload'}}</button></div>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div class="modal-backdrop" *ngIf="showEditModal" (click)="showEditModal=false">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header"><div class="modal-title">Edit Content</div><button class="modal-close" (click)="showEditModal=false" title="button"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button></div>
+      <div class="form-group"><label class="form-label">File Name</label><input class="form-input" [(ngModel)]="editForm.fileName" title="input"></div>
+      <div class="form-group"><label class="form-label">Caption</label><textarea class="form-textarea" [(ngModel)]="editForm.caption" rows="3" title="txtarea"></textarea></div>
+      <div class="form-group"><label class="form-label">Hashtags</label><input class="form-input" [(ngModel)]="editForm.hashtags" placeholder="#lifestyle, #fashion"></div>
+      <div class="modal-footer"><button class="btn btn-ghost" (click)="showEditModal=false">Cancel</button><button class="btn btn-primary" (click)="saveEdit()" [disabled]="saving">{{saving?'Saving...':'Update'}}</button></div>
+    </div>
+  </div>
+  <div class="toast" *ngIf="toast.show" [class.success]="toast.type==='success'" [class.error]="toast.type==='error'">{{toast.msg}}</div>
+</div>

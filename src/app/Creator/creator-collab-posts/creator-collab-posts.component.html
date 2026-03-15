@@ -1,0 +1,96 @@
+<div class="pg">
+  <div class="ph">
+    <div><div class="ph-title">Collab Posts</div><div class="ph-sub">Create and submit content for your active collaborations</div></div>
+    <button class="btn btn-primary" (click)="openNew()"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>New Post</button>
+  </div>
+
+  <!-- Info banner -->
+  <div style="background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.2);border-radius:var(--r-lg);padding:14px 18px;margin-bottom:20px;font-size:.83rem;color:var(--t2);display:flex;align-items:center;gap:10px">
+    <svg fill="none" stroke="#A78BFA" viewBox="0 0 24 24" stroke-width="2" style="width:18px;height:18px;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+    Create posts for accepted collaborations. Submit them for brand review — once approved, you'll receive payment.
+  </div>
+
+  <div *ngIf="loading" style="text-align:center;padding:60px;color:var(--t3)">Loading...</div>
+
+  <div class="grid-2" *ngIf="!loading">
+    <div class="empty" *ngIf="posts.length===0" style="grid-column:1/-1">
+      <div class="empty-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" style="width:28px;height:28px"><path stroke-linecap="round" stroke-linejoin="round" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4"/></svg></div>
+      <h3>No posts yet</h3><p>Accept a collaboration invitation to start creating posts</p>
+    </div>
+
+    <div class="card" *ngFor="let p of posts">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px">
+        <div>
+          <div style="font-weight:700;color:var(--t1);font-size:.95rem">{{p.title}}</div>
+          <div style="font-size:.75rem;color:var(--t3);margin-top:3px;text-transform:capitalize">{{p.contentType}} · {{p.platform}}</div>
+        </div>
+        <span class="pill" [ngClass]="statusPill(p.status)" style="text-transform:capitalize;white-space:nowrap">{{p.status?.replace('_',' ')}}</span>
+      </div>
+
+      <p style="font-size:.83rem;color:var(--t2);line-height:1.5;margin-bottom:12px">{{p.caption?.slice(0,120)}}{{p.caption?.length>120?'...':''}}</p>
+
+      <!-- Media previews -->
+      <div *ngIf="p.mediaUrls?.length" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+        <img *ngFor="let url of p.mediaUrls.slice(0,3)" [src]="url" style="width:60px;height:60px;object-fit:cover;border-radius:var(--r-md);border:1px solid var(--bdr)" alt="">
+        <div *ngIf="p.mediaUrls.length>3" style="width:60px;height:60px;border-radius:var(--r-md);background:var(--bg-card2);display:flex;align-items:center;justify-content:center;font-size:.75rem;color:var(--t3)">+{{p.mediaUrls.length-3}}</div>
+      </div>
+
+      <div *ngIf="p.hashtags?.length" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+        <span *ngFor="let h of p.hashtags.slice(0,4)" style="font-size:.72rem;color:var(--sky);background:rgba(56,189,248,.08);padding:2px 8px;border-radius:var(--r-full)">#{{h}}</span>
+      </div>
+
+      <div *ngIf="p.isPaid" style="background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2);border-radius:var(--r-md);padding:10px;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+        <svg fill="none" stroke="#34D399" viewBox="0 0 24 24" stroke-width="2" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+        <span style="font-size:.82rem;color:#34D399;font-weight:600">Paid ${{p.paymentAmount|number}}</span>
+      </div>
+
+      <div *ngIf="p.brandNotes && (p.status==='revision_requested'||p.status==='rejected')" style="background:rgba(251,113,133,.08);border:1px solid rgba(251,113,133,.2);border-radius:var(--r-md);padding:10px;margin-bottom:12px">
+        <div style="font-size:.72rem;color:#FB7185;font-weight:700;margin-bottom:4px">Brand Notes</div>
+        <div style="font-size:.8rem;color:var(--t2)">{{p.brandNotes}}</div>
+      </div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" *ngIf="p.status==='draft'||p.status==='revision_requested'" (click)="openEdit(p)">Edit</button>
+        <button class="btn btn-primary btn-sm" *ngIf="p.status==='draft'||p.status==='revision_requested'" (click)="submit(p._id)">Submit for Review</button>
+        <button class="btn btn-danger btn-sm" *ngIf="p.status==='draft'" (click)="delete(p._id)">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" *ngIf="showModal" (click)="showModal=false">
+    <div class="modal" style="max-width:580px" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title">{{editingId?'Edit':'Create'}} Collab Post</div>
+        <button class="modal-close" (click)="showModal=false" title="btn"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+      </div>
+      <div class="form-group" *ngIf="!editingId"><label class="form-label">Collaboration ID</label><input class="form-input" [(ngModel)]="form.collaborationId" placeholder="Paste collaboration ID"></div>
+      <div class="form-group"><label class="form-label">Post Title</label><input class="form-input" [(ngModel)]="form.title" placeholder="My awesome content"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Content Type</label>
+          <select class="form-select" [(ngModel)]="form.contentType" title="select"><option *ngFor="let t of contentTypes" [value]="t" style="text-transform:capitalize">{{t}}</option></select>
+        </div>
+        <div class="form-group"><label class="form-label">Platform</label>
+          <select class="form-select" [(ngModel)]="form.platform" title="select"><option *ngFor="let p of platforms" [value]="p">{{p}}</option></select>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Caption</label><textarea class="form-textarea" [(ngModel)]="form.caption" rows="4" placeholder="Write your post caption..."></textarea></div>
+      <div class="form-group"><label class="form-label">Hashtags (comma separated)</label><input class="form-input" [(ngModel)]="form.hashtags" placeholder="#fashion, #collab, #ad"></div>
+      <div class="form-group" *ngIf="form.contentType!=='text'">
+        <label class="form-label">Media Files</label>
+        <div class="upload-zone" onclick="document.getElementById('mediaInput').click()">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+          <p><span>Click to upload</span> or drag and drop</p>
+          <input id="mediaInput" type="file" multiple [accept]="form.contentType==='image'?'image/*':'video/*'" (change)="onFiles($event)" style="display:none">
+        </div>
+        <div *ngIf="previews.length" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+          <img *ngFor="let p of previews" [src]="p" style="width:70px;height:70px;object-fit:cover;border-radius:var(--r-md)" alt="">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" (click)="showModal=false">Cancel</button>
+        <button class="btn btn-primary" (click)="save()" [disabled]="saving">{{saving?'Saving...':'Save Draft'}}</button>
+      </div>
+    </div>
+  </div>
+  <div class="toast" *ngIf="toast.show" [class.success]="toast.type==='success'" [class.error]="toast.type==='error'">{{toast.msg}}</div>
+</div>

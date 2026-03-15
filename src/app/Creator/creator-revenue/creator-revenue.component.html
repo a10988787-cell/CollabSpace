@@ -1,0 +1,30 @@
+<div class="pg">
+  <div class="ph">
+    <div><div class="ph-title">Revenue Tracking</div><div class="ph-sub">Track all your campaign earnings and payments</div></div>
+    <select class="form-select" [(ngModel)]="filterStatus" (change)="load()" style="width:140px;padding:8px 12px;font-size:.82rem" title="select"><option *ngFor="let s of statuses" [value]="s">{{s||'All Status'}}</option></select>
+  </div>
+  <div class="grid-kpi" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))">
+    <div class="kpi"><div class="kpi-icon" style="background:rgba(52,211,153,.12)"><svg fill="none" stroke="#34D399" viewBox="0 0 24 24" stroke-width="2" style="width:18px;height:18px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1"/></svg></div><div class="kpi-val" style="color:var(--jade)">${{totalReceived|number}}</div><div class="kpi-lbl">Total Received</div></div>
+    <div class="kpi"><div class="kpi-icon" style="background:rgba(251,191,36,.12)"><svg fill="none" stroke="#FBBF24" viewBox="0 0 24 24" stroke-width="2" style="width:18px;height:18px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div><div class="kpi-val" style="color:var(--amber)">${{totalPending|number}}</div><div class="kpi-lbl">Pending</div></div>
+    <div class="kpi"><div class="kpi-icon" style="background:rgba(139,92,246,.12)"><svg fill="none" stroke="#A78BFA" viewBox="0 0 24 24" stroke-width="2" style="width:18px;height:18px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-1.75L12 21l3.5-1.75L19 21z"/></svg></div><div class="kpi-val">{{entries.length}}</div><div class="kpi-lbl">Total Entries</div></div>
+  </div>
+  <div *ngIf="loading" style="text-align:center;padding:60px;color:var(--t3)">Loading...</div>
+  <ng-container *ngIf="!loading">
+    <div class="empty" *ngIf="entries.length===0"><div class="empty-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" style="width:28px;height:28px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div><h3>No revenue entries</h3><p>Earnings from approved content will appear here</p></div>
+    <div class="table-wrap" *ngIf="entries.length>0">
+      <table>
+        <thead><tr><th>Campaign</th><th>Brand</th><th>Amount</th><th>Status</th><th>Payment Date</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let e of entries">
+            <td style="font-weight:600;color:var(--t1)">{{e.campaignName}}</td>
+            <td style="color:var(--t2)">{{e.brandName||'—'}}</td>
+            <td style="font-weight:700;color:var(--jade)">${{e.amount|number}} <span style="font-size:.72rem;color:var(--t3)">{{e.currency}}</span></td>
+            <td><span class="pill" [ngClass]="statusPill(e.status)" style="text-transform:capitalize">{{e.status}}</span></td>
+            <td style="font-size:.8rem;color:var(--t3)">{{e.paymentDate?(e.paymentDate|date:'MMM d, y'):'—'}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </ng-container>
+  <div class="toast" *ngIf="toast.show" [class.success]="toast.type==='success'" [class.error]="toast.type==='error'">{{toast.msg}}</div>
+</div>

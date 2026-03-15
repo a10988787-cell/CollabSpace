@@ -1,11 +1,39 @@
+// src/app/Creator/creator-dashboard/creator-dashboard.component.ts
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { AuthService, User } from '../../services/auth.service';
+import { CreatorService } from '../../services/creator.service';
+
+import { CreatorOverviewComponent }      from '../creator-overview/creator-overview.component';
+import { CreatorProfileComponent }       from '../creator-profile/creator-profile.component';
+import { CreatorSocialComponent }        from '../creator-social/creator-social.component';
+import { CreatorPortfolioComponent }     from '../creator-portfolio/creator-portfolio.component';
+import { CreatorApplicationsComponent }  from '../creator-applications/creator-applications.component';
+import { CreatorInvitationsComponent }   from '../creator-invitations/creator-invitations.component';
+import { CreatorCollabPostsComponent }   from '../creator-collab-posts/creator-collab-posts.component';
+import { CreatorContentComponent }       from '../creator-content/creator-content.component';
+import { CreatorAiToolsComponent }       from '../creator-ai-tools/creator-ai-tools.component';
+import { CreatorAnalyticsComponent }     from '../creator-analytics/creator-analytics.component';
+import { CreatorAudienceComponent }      from '../creator-audience/creator-audience.component';
+import { CreatorGrowthComponent }        from '../creator-growth/creator-growth.component';
+import { CreatorRevenueComponent }       from '../creator-revenue/creator-revenue.component';
+import { CreatorContractsComponent }     from '../creator-contracts/creator-contracts.component';
+import { CreatorMessagesComponent }      from '../creator-messages/creator-messages.component';
+import { CreatorNotificationsComponent } from '../creator-notifications/creator-notifications.component';
 
 @Component({
   selector: 'app-creator-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [
+    CommonModule, RouterModule,
+    CreatorOverviewComponent, CreatorProfileComponent, CreatorSocialComponent,
+    CreatorPortfolioComponent, CreatorApplicationsComponent, CreatorInvitationsComponent,
+    CreatorCollabPostsComponent, CreatorContentComponent, CreatorAiToolsComponent,
+    CreatorAnalyticsComponent, CreatorAudienceComponent, CreatorGrowthComponent,
+    CreatorRevenueComponent, CreatorContractsComponent,
+    CreatorMessagesComponent, CreatorNotificationsComponent,
+  ],
   templateUrl: './creator-dashboard.component.html',
   styleUrls: ['./creator-dashboard.component.css'],
   encapsulation: ViewEncapsulation.None,
@@ -14,59 +42,58 @@ export class CreatorDashboardComponent implements OnInit {
   user: User | null = null;
   initials = 'CR';
   collapsed = false;
-  nav = 'overview';
-  range = '6M';
-  pendingCount = 3;
+  activePage = 'overview';
+  unreadNotifications = 0;
+  pendingInvitations = 0;
 
-  banStats = [
-    { lbl:'Total Earned',   val:'$12.4K', chg:'+18%',  pos:true },
-    { lbl:'Active Deals',   val:'4',       chg:'+2',    pos:true },
-    { lbl:'Engagement',     val:'7.2%',    chg:'+1.1%', pos:true },
+  navItems = [
+    { id:'overview',     label:'Overview',        icon:'grid',      section:'Main' },
+    { id:'profile',      label:'My Profile',       icon:'user',      section:'Main' },
+    { id:'social',       label:'Social Accounts',  icon:'share',     section:'Main' },
+    { id:'portfolio',    label:'Portfolio',         icon:'briefcase', section:'Work' },
+    { id:'applications', label:'Applications',      icon:'send',      section:'Work' },
+    { id:'invitations',  label:'Invitations',       icon:'mail',      section:'Work', badge:'invitations' },
+    { id:'collabposts',  label:'Collab Posts',      icon:'upload',    section:'Work' },
+    { id:'content',      label:'Content Library',   icon:'folder',    section:'Content' },
+    { id:'ai',           label:'AI Tools',          icon:'sparkles',  section:'Content' },
+    { id:'analytics',    label:'Analytics',         icon:'chart',     section:'Insights' },
+    { id:'audience',     label:'Audience',          icon:'users',     section:'Insights' },
+    { id:'growth',       label:'Growth',            icon:'trending',  section:'Insights' },
+    { id:'revenue',      label:'Revenue',           icon:'dollar',    section:'Finance' },
+    { id:'contracts',    label:'Contracts',         icon:'document',  section:'Finance' },
+    { id:'messages',     label:'Messages',          icon:'chat',      section:'Communication' },
+    { id:'notifications',label:'Notifications',     icon:'bell',      section:'Communication', badge:'unread' },
   ];
 
-  kpis = [
-    { key:'earnings',   label:'Total Earnings',   val:'$12,400', chg:'+18%',  pos:true,  ib:'rgba(139,92,246,.12)', ic:'#A78BFA', spark:[30,55,40,70,50,80,65,90,75,95,85,100] },
-    { key:'campaigns',  label:'Active Campaigns', val:'4',        chg:'+2',    pos:true,  ib:'rgba(251,191,36,.12)', ic:'#FBBF24', spark:[20,35,50,40,65,55,72,60,80,70,85,90]  },
-    { key:'followers',  label:'Total Followers',  val:'842K',     chg:'+5.4%', pos:true,  ib:'rgba(52,211,153,.12)', ic:'#34D399', spark:[40,55,45,68,58,75,65,80,72,85,78,95]  },
-    { key:'engagement', label:'Engagement Rate',  val:'7.2%',     chg:'+1.1%', pos:true,  ib:'rgba(56,189,248,.12)', ic:'#38BDF8', spark:[25,40,35,55,45,62,52,70,60,75,68,82]  },
-  ];
+  get sections(): string[] {
+    const seen = new Set<string>(); const out: string[] = [];
+    this.navItems.forEach(n => { if(!seen.has(n.section)){seen.add(n.section);out.push(n.section);} });
+    return out;
+  }
+  itemsFor(s: string) { return this.navItems.filter(n => n.section === s); }
+  badge(item: any): number {
+    if(item.badge==='unread') return this.unreadNotifications;
+    if(item.badge==='invitations') return this.pendingInvitations;
+    return 0;
+  }
 
-  private bd = [38,52,44,68,58,78,65,82,72,88,80,95];
-  private ld = [28,44,36,58,48,68,55,74,62,80,70,88];
-  xlbl = ['Jan','Feb','Mar','Apr','May','Jun'].map((t,i) => ({ x:30+i*(570/5), t }));
-
-  get bars() { const n=this.bd.length,s=570/(n-1),bw=28,b=165; return this.bd.map((v,i)=>{ const h=(v/100)*120; return{x:30+i*s-bw/2,y:b-h,w:bw,h}; }); }
-  get dots() { return this.ld.map((v,i)=>({x:30+i*(570/(this.ld.length-1)),y:165-(v/100)*120})); }
-  get linePath() { return this.dots.map((d,i)=>`${i===0?'M':'L'}${d.x},${d.y}`).join(' '); }
-  get areaPath() { const d=this.dots; return `${this.linePath} L${d[d.length-1].x},165 L${d[0].x},165 Z`; }
-
-  camps = [
-    { name:'Summer Vibes Collection', brand:'LuxeWear',   niche:'Fashion', budget:12000, status:'active',  deadline:'Jun 30', slots:3, pct:75, type:'Video', grad:'linear-gradient(135deg,#8B5CF6,#6D28D9)' },
-    { name:'Tech Unboxing Series',    brand:'Nexagen',    niche:'Tech',    budget:8500,  status:'active',  deadline:'Jul 15', slots:2, pct:40, type:'Reel',  grad:'linear-gradient(135deg,#38BDF8,#0EA5E9)' },
-    { name:'Wellness Challenge',      brand:'Aura Health',niche:'Health',  budget:9500,  status:'pending', deadline:'Jul 5',  slots:5, pct:20, type:'Story', grad:'linear-gradient(135deg,#34D399,#059669)' },
-  ];
-
-  content = [
-    { title:'Summer Lookbook 2024', type:'video', views:'284K', likes:'18K', grad:'linear-gradient(135deg,#1E0A4A,#3B1FA8)' },
-    { title:'Morning Routine GRWM', type:'reel',  views:'1.2M', likes:'94K', grad:'linear-gradient(135deg,#0A1520,#0E3460)' },
-    { title:'Tech Setup Tour',      type:'video', views:'567K', likes:'32K', grad:'linear-gradient(135deg,#0A2020,#0D4040)' },
-    { title:'Glow Skincare Review', type:'photo', views:'89K',  likes:'7K',  grad:'linear-gradient(135deg,#2A0A20,#6D1042)' },
-  ];
-
-  notifs = [
-    { type:'campaign', msg:'LuxeWear approved your application!',   time:'2m ago',    read:false, ib:'rgba(139,92,246,.12)', ic:'#A78BFA' },
-    { type:'payment',  msg:'$2,400 payment received from Nexagen.', time:'1h ago',    read:false, ib:'rgba(52,211,153,.12)',  ic:'#34D399' },
-    { type:'follower', msg:'You gained 1,200 new followers today.',  time:'3h ago',    read:true,  ib:'rgba(56,189,248,.12)',  ic:'#38BDF8' },
-    { type:'message',  msg:'New message from Aura Health team.',     time:'Yesterday', read:true,  ib:'rgba(251,191,36,.12)',  ic:'#FBBF24' },
-  ];
-
-  get unread() { return this.notifs.filter(n=>!n.read).length; }
-
-  constructor(private auth: AuthService) {}
+  constructor(private auth: AuthService, private creator: CreatorService) {}
 
   ngOnInit(): void {
     this.user = this.auth.currentUser;
-    if (this.user) this.initials = ((this.user.firstName?.[0]||'')+(this.user.lastName?.[0]||'')).toUpperCase();
+    if(this.user) this.initials = ((this.user.firstName?.[0]||'')+(this.user.lastName?.[0]||'')).toUpperCase();
+    this.loadBadges();
+  }
+
+  loadBadges(): void {
+    this.creator.getNotifications(true).subscribe({ next:r=>{ this.unreadNotifications=r.unreadCount; }, error:()=>{} });
+    this.creator.getInvitations('pending').subscribe({ next:r=>{ this.pendingInvitations=r.invitations.length; }, error:()=>{} });
+  }
+
+  navigate(page: string): void {
+    this.activePage = page;
+    if(page==='notifications') this.unreadNotifications=0;
+    if(page==='invitations') this.pendingInvitations=0;
   }
 
   logout(): void { this.auth.logout(); }

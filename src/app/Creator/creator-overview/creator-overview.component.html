@@ -1,0 +1,157 @@
+<!-- creator-overview.component.html -->
+<div class="pg">
+  <!-- Loading -->
+  <div *ngIf="loading" style="display:flex;align-items:center;justify-content:center;padding:80px;color:var(--t3);font-size:.85rem">
+    Loading overview…
+  </div>
+
+  <ng-container *ngIf="!loading">
+    <!-- Welcome header -->
+    <div class="ph">
+      <div>
+        <div class="ph-title">Welcome back, {{user?.firstName}} 👋</div>
+        <div class="ph-sub">Here's what's happening with your creator account today.</div>
+      </div>
+    </div>
+
+    <!-- KPI row -->
+    <div class="grid-kpi">
+      <div class="kpi" *ngFor="let k of kpis" (click)="go(k.nav)" style="cursor:pointer">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div class="kpi-icon" [ngStyle]="{'background': k.ib}">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" [ngStyle]="{'color':k.ic}">
+              <path *ngIf="k.icon==='dollar'" stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              <path *ngIf="k.icon==='collab'" stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+              <path *ngIf="k.icon==='users'" stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+              <path *ngIf="k.icon==='chart'" stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+          </div>
+          <span class="kpi-chg" [class.pos]="k.pos" [class.neg]="!k.pos">{{k.chg}}</span>
+        </div>
+        <div class="kpi-val">{{k.val}}</div>
+        <div class="kpi-lbl">{{k.label}}</div>
+      </div>
+    </div>
+
+    <!-- Main grid -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px">
+
+      <!-- Pending Invitations -->
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div style="font-size:.9rem;font-weight:700;color:var(--t1)">Pending Invitations</div>
+          <span class="pill pill-amber">{{recentInvitations.length}}</span>
+        </div>
+        <div *ngIf="recentInvitations.length === 0" class="empty" style="padding:24px">
+          <p>No pending invitations</p>
+        </div>
+        <div *ngFor="let inv of recentInvitations" style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--bdr)">
+          <div class="av" style="width:36px;height:36px;font-size:.75rem">{{(inv.brand?.companyName || inv.brand?.firstName || '?')[0]}}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:.83rem;font-weight:600;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{inv.brand?.companyName || inv.brand?.firstName}}</div>
+            <div style="font-size:.75rem;color:var(--t3)">${{inv.proposedAmount | number}} offered · {{timeAgo(inv.createdAt)}}</div>
+          </div>
+          <span class="pill pill-amber" style="font-size:.65rem">Pending</span>
+        </div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:14px;width:100%" (click)="go('invitations')">View All Invitations</button>
+      </div>
+
+      <!-- Recent Applications -->
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div style="font-size:.9rem;font-weight:700;color:var(--t1)">Recent Applications</div>
+          <button class="btn btn-primary btn-sm" (click)="go('applications')">Browse Campaigns</button>
+        </div>
+        <div *ngIf="recentApplications.length === 0" class="empty" style="padding:24px">
+          <p>No applications yet — start applying to campaigns!</p>
+        </div>
+        <div *ngFor="let app of recentApplications" style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--bdr)">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:.83rem;font-weight:600;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{app.campaign?.title || 'Campaign'}}</div>
+            <div style="font-size:.75rem;color:var(--t3)">${{app.priceQuote | number}} · {{timeAgo(app.createdAt)}}</div>
+          </div>
+          <span class="pill" [class.pill-jade]="app.status==='accepted'" [class.pill-amber]="app.status==='pending'" [class.pill-rose]="app.status==='rejected'" [class.pill-sky]="app.status==='reviewing'" style="font-size:.65rem;text-transform:capitalize">{{app.status}}</span>
+        </div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:14px;width:100%" (click)="go('applications')">View All Applications</button>
+      </div>
+    </div>
+
+    <!-- Collab Posts + Notifications -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px">
+
+      <!-- Collab Posts -->
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div style="font-size:.9rem;font-weight:700;color:var(--t1)">Collab Posts</div>
+          <button class="btn btn-primary btn-sm" (click)="go('collabposts')">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+            New Post
+          </button>
+        </div>
+        <div *ngIf="recentPosts.length === 0" class="empty" style="padding:24px">
+          <p>No posts yet. Accept a collab to start posting!</p>
+        </div>
+        <div *ngFor="let post of recentPosts" style="padding:10px 0;border-bottom:1px solid var(--bdr)">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:36px;height:36px;border-radius:var(--r-md);background:rgba(139,92,246,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <svg fill="none" stroke="#A78BFA" viewBox="0 0 24 24" stroke-width="2" style="width:16px;height:16px">
+                <path *ngIf="post.contentType==='image'" stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                <path *ngIf="post.contentType==='video'" stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.069A1 1 0 0121 8.845v6.31a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                <path *ngIf="post.contentType==='text'" stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+            </div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:.83rem;font-weight:600;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{post.title}}</div>
+              <div style="font-size:.75rem;color:var(--t3);text-transform:capitalize">{{post.contentType}} · {{timeAgo(post.createdAt)}}</div>
+            </div>
+            <span class="pill" [class.pill-jade]="post.status==='paid'||post.status==='approved'" [class.pill-sky]="post.status==='submitted'" [class.pill-amber]="post.status==='draft'" [class.pill-rose]="post.status==='rejected'" [class.pill-gray]="post.status==='revision_requested'" style="font-size:.65rem;text-transform:capitalize">{{post.status}}</span>
+          </div>
+          <div *ngIf="post.isPaid" style="font-size:.75rem;color:#34D399;margin-top:4px;margin-left:46px">
+            Paid ${{post.paymentAmount | number}}
+          </div>
+        </div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:14px;width:100%" (click)="go('collabposts')">View All Posts</button>
+      </div>
+
+      <!-- Notifications -->
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div style="font-size:.9rem;font-weight:700;color:var(--t1)">Notifications</div>
+          <button class="btn btn-ghost btn-sm" (click)="go('notifications')">View All</button>
+        </div>
+        <div *ngIf="recentNotifications.length === 0" class="empty" style="padding:24px">
+          <p>You're all caught up!</p>
+        </div>
+        <div *ngFor="let n of recentNotifications" style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--bdr);align-items:flex-start">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--acc);flex-shrink:0;margin-top:5px" *ngIf="!n.isRead"></div>
+          <div style="width:8px;flex-shrink:0" *ngIf="n.isRead"></div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:.83rem;font-weight:600;color:var(--t1)">{{n.title}}</div>
+            <div style="font-size:.75rem;color:var(--t3);margin-top:2px;line-height:1.4">{{n.message}}</div>
+            <div style="font-size:.7rem;color:var(--t3);margin-top:4px">{{timeAgo(n.createdAt)}}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="card">
+      <div style="font-size:.9rem;font-weight:700;color:var(--t1);margin-bottom:16px">Quick Actions</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px">
+        <button class="btn btn-ghost" *ngFor="let ql of quickLinks" (click)="go(ql.nav)" style="justify-content:flex-start;padding:14px">
+          <div style="width:28px;height:28px;border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;flex-shrink:0" [ngStyle]="{'background':'rgba('+hexToRgb(ql.color)+',.12)'}">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" style="width:14px;height:14px" [ngStyle]="{'color':ql.color}">
+              <path *ngIf="ql.icon==='search'" stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              <path *ngIf="ql.icon==='upload'" stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+              <path *ngIf="ql.icon==='mail'" stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+              <path *ngIf="ql.icon==='dollar'" stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              <path *ngIf="ql.icon==='sparkles'" stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+              <path *ngIf="ql.icon==='chat'" stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+            </svg>
+          </div>
+          <span style="font-size:.8rem;font-weight:600;color:var(--t2)">{{ql.label}}</span>
+        </button>
+      </div>
+    </div>
+  </ng-container>
+</div>

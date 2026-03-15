@@ -1,0 +1,134 @@
+<div class="pg">
+  <div class="ph">
+    <div>
+      <div class="ph-title">AI Content Tools ✨</div>
+      <div class="ph-sub">Generate captions, hashtags, and content ideas with AI</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div style="display:flex;gap:10px;margin-bottom:24px">
+    <button class="btn" [class.btn-primary]="activeTab === 'generate'" [class.btn-ghost]="activeTab !== 'generate'" (click)="activeTab='generate'">Generate</button>
+    <button class="btn" [class.btn-primary]="activeTab === 'saved'"    [class.btn-ghost]="activeTab !== 'saved'"    (click)="activeTab='saved'; load()">Saved ({{savedSuggestions.length}})</button>
+  </div>
+
+  <!-- ── Generate Tab ─────────────────────────────────────────────── -->
+  <div *ngIf="activeTab === 'generate'">
+    <div class="card" style="margin-bottom:20px">
+      <div style="font-size:.9rem;font-weight:700;color:var(--t1);margin-bottom:16px">Create New Content</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Content Type</label>
+          <select class="form-select" [(ngModel)]="form.type" title="select">
+            <option *ngFor="let t of aiTypes" [value]="t">{{t.replace('_', ' ')}}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Platform</label>
+          <select class="form-select" [(ngModel)]="form.platform" title="select">
+            <option *ngFor="let p of platforms" [value]="p">{{p}}</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Niche</label>
+        <select class="form-select" [(ngModel)]="form.niche" title="select">
+          <option *ngFor="let n of niches" [value]="n">{{n}}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Your Prompt / Topic</label>
+        <textarea class="form-textarea" [(ngModel)]="form.prompt" rows="3" placeholder="Describe what you want to create content about..."></textarea>
+      </div>
+      <button class="btn btn-primary" (click)="generate()" [disabled]="generating" style="width:100%;justify-content:center">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" style="width:15px;height:15px">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+        </svg>
+        {{generating ? 'Generating...' : 'Generate Content'}}
+      </button>
+    </div>
+
+    <!-- Recent suggestions -->
+    <div *ngIf="!loading && suggestions.length > 0">
+      <div class="sec-label" style="margin-bottom:14px">Recent Generations</div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card" *ngFor="let s of suggestions.slice(0, 5)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div style="display:flex;gap:8px;align-items:center">
+              <span class="pill pill-acc" style="font-size:.68rem">{{s.type.replace('_', ' ')}}</span>
+              <span class="pill pill-gray" style="font-size:.68rem">{{s.platform || 'General'}}</span>
+              <span *ngIf="s.isSaved" class="pill pill-jade" style="font-size:.68rem">Saved</span>
+            </div>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-ghost btn-sm" (click)="startEdit(s)" style="padding:5px 10px">Edit</button>
+              <button class="btn btn-ghost btn-sm" (click)="copy(s.editedContent || s.generatedCaption || s.contentIdea || '')" style="padding:5px 10px">Copy</button>
+              <button class="btn btn-danger btn-sm" (click)="remove(s._id)" style="padding:5px 10px">✕</button>
+            </div>
+          </div>
+
+          <!-- View mode -->
+          <ng-container *ngIf="editId !== s._id">
+            <div *ngIf="s.generatedCaption" style="font-size:.85rem;color:var(--t2);line-height:1.6;margin-bottom:10px">
+              {{s.editedContent || s.generatedCaption}}
+            </div>
+            <div *ngIf="s.contentIdea" style="font-size:.85rem;color:var(--t2);line-height:1.6;margin-bottom:10px">
+              {{s.contentIdea}}
+            </div>
+            <div *ngIf="s.hashtags?.length" style="display:flex;gap:6px;flex-wrap:wrap">
+              <span *ngFor="let h of s.hashtags" style="font-size:.72rem;color:var(--sky);background:rgba(56,189,248,.08);padding:2px 8px;border-radius:99px">{{h}}</span>
+            </div>
+          </ng-container>
+
+          <!-- Edit mode -->
+          <ng-container *ngIf="editId === s._id">
+            <textarea class="form-textarea" [(ngModel)]="editContent" rows="4" style="margin-bottom:10px" title="txtarea"></textarea>
+            <div style="display:flex;gap:8px;justify-content:flex-end">
+              <button class="btn btn-ghost btn-sm" (click)="editId = ''">Cancel</button>
+              <button class="btn btn-primary btn-sm" (click)="saveEdit()" [disabled]="saving">{{saving ? 'Saving...' : 'Save'}}</button>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Saved Tab ────────────────────────────────────────────────── -->
+  <div *ngIf="activeTab === 'saved'">
+    <div *ngIf="loading" style="text-align:center;padding:60px;color:var(--t3)">Loading...</div>
+
+    <!-- Use pre-filtered savedSuggestions — no .filter() in template -->
+    <div class="empty" *ngIf="!loading && savedSuggestions.length === 0">
+      <div class="empty-icon">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" style="width:28px;height:28px">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+        </svg>
+      </div>
+      <h3>No saved suggestions</h3>
+      <p>Save generated content to find it here</p>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:12px" *ngIf="!loading && savedSuggestions.length > 0">
+      <div class="card" *ngFor="let s of savedSuggestions">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <span class="pill pill-acc" style="font-size:.68rem">{{s.type.replace('_', ' ')}}</span>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-ghost btn-sm" (click)="copy(s.editedContent || s.generatedCaption || '')" style="padding:5px 10px">Copy</button>
+            <button class="btn btn-danger btn-sm" (click)="remove(s._id)" style="padding:5px 10px">Delete</button>
+          </div>
+        </div>
+        <div style="font-size:.85rem;color:var(--t2);line-height:1.6">
+          {{s.editedContent || s.generatedCaption || s.contentIdea}}
+        </div>
+        <div *ngIf="s.hashtags?.length" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">
+          <span *ngFor="let h of s.hashtags" style="font-size:.72rem;color:var(--sky);background:rgba(56,189,248,.08);padding:2px 8px;border-radius:99px">{{h}}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" *ngIf="toast.show"
+    [class.success]="toast.type === 'success'"
+    [class.error]="toast.type === 'error'">
+    ✨ {{toast.msg}}
+  </div>
+</div>

@@ -1,0 +1,191 @@
+<!-- brand-content-review.component.html -->
+<div class="cr-page">
+
+  <!-- Header -->
+  <div class="cr-hd">
+    <div class="cr-hd__left">
+      <div class="cr-eyebrow"><span class="cr-eyebrow-dot"></span>Review</div>
+      <div class="cr-title">Content Review</div>
+      <div class="cr-sub">Review content submitted by creators — approve, request revisions, or reject. Approved content releases payment.</div>
+    </div>
+    <div class="cr-hd__right">
+      <div class="cr-filter">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/></svg>
+        <select [(ngModel)]="filterStatus" (change)="load()" title="select">
+          <option value="">All Status</option>
+          <option value="submitted">Under Review</option>
+          <option value="approved">Approved</option>
+          <option value="revision_requested">Revision</option>
+          <option value="rejected">Rejected</option>
+          <option value="paid">Paid</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="cr-loading" *ngIf="loading">
+    <div class="cr-spinner"></div>
+    <span>Loading submissions…</span>
+  </div>
+
+  <!-- Empty -->
+  <div class="cr-empty" *ngIf="!loading && posts.length === 0">
+    <div class="cr-empty__icon">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4"/>
+      </svg>
+    </div>
+    <h3>No content submissions</h3>
+    <p>When creators submit content for review, it will appear here.</p>
+  </div>
+
+  <!-- Content Grid -->
+  <div class="cr-grid" *ngIf="!loading && posts.length > 0">
+    <div class="cr-card" *ngFor="let post of posts">
+
+      <!-- Card header -->
+      <div class="cr-card__head">
+        <div class="cr-creator">
+          <div class="cr-av">{{(post.creator?.firstName || '?')[0]}}</div>
+          <div class="cr-creator__info">
+            <div class="cr-creator__name">{{post.creator?.firstName}} {{post.creator?.lastName}}</div>
+            <div class="cr-creator__email">{{post.creator?.email}}</div>
+          </div>
+        </div>
+        <span class="cr-pill" [ngClass]="statusClass(post.status)">{{statusLabel(post.status)}}</span>
+      </div>
+
+      <!-- Content type badge -->
+      <div class="cr-type-row">
+        <span class="cr-type-badge" [attr.data-type]="post.contentType">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path *ngIf="post.contentType==='image'" stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            <path *ngIf="post.contentType==='video'" stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.069A1 1 0 0121 8.845v6.31a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+            <path *ngIf="post.contentType==='text'" stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          {{post.contentType | titlecase}}
+        </span>
+        <span class="cr-platform">{{post.platform}}</span>
+      </div>
+
+      <!-- Title & caption -->
+      <div class="cr-post-title">{{post.title}}</div>
+      <div class="cr-caption" *ngIf="post.caption">{{post.caption | slice:0:140}}{{post.caption?.length > 140 ? '…' : ''}}</div>
+
+      <!-- Media previews -->
+      <div class="cr-media" *ngIf="post.mediaUrls?.length">
+        <div class="cr-media__thumb" *ngFor="let url of post.mediaUrls.slice(0, 3)">
+          <img [src]="url" alt="" (error)="$any($event.target).style.display='none'">
+        </div>
+        <div class="cr-media__more" *ngIf="post.mediaUrls.length > 3">+{{post.mediaUrls.length - 3}}</div>
+      </div>
+
+      <!-- Hashtags -->
+      <div class="cr-tags" *ngIf="post.hashtags?.length">
+        <span *ngFor="let h of post.hashtags.slice(0, 5)" class="cr-tag">#{{h}}</span>
+      </div>
+
+      <!-- Brand notes (revision / rejection) -->
+      <div class="cr-notes" *ngIf="post.brandNotes && (post.status === 'revision_requested' || post.status === 'rejected')">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span>{{post.brandNotes}}</span>
+      </div>
+
+      <!-- Paid banner -->
+      <div class="cr-paid-banner" *ngIf="post.isPaid">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+        Paid ${{post.paymentAmount | number}} · {{formatDate(post.paidAt)}}
+      </div>
+
+      <!-- Meta -->
+      <div class="cr-meta">
+        <span>Submitted {{formatDate(post.submittedAt)}}</span>
+        <span *ngIf="post.approvedAt">Approved {{formatDate(post.approvedAt)}}</span>
+      </div>
+
+      <!-- Actions -->
+      <div class="cr-actions">
+        <button class="cr-btn cr-btn--review" *ngIf="post.status === 'submitted'" (click)="openReview(post)">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          Review Content
+        </button>
+        <button class="cr-btn cr-btn--pay" *ngIf="post.status === 'approved' && !post.isPaid" (click)="pay(post)">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Pay ${{post.paymentAmount | number}}
+        </button>
+        <button class="cr-btn cr-btn--view" *ngIf="post.status !== 'submitted' && !(post.status === 'approved' && !post.isPaid)" (click)="openReview(post)">
+          View Details
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Review Modal -->
+  <div class="cr-backdrop" *ngIf="showModal" (click)="showModal=false">
+    <div class="cr-modal" (click)="$event.stopPropagation()">
+      <div class="cr-modal__head">
+        <div class="cr-modal__title">Review Content</div>
+        <button class="cr-modal__close" (click)="showModal=false" title="btn">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Post summary -->
+      <div class="cr-modal__post">
+        <div class="cr-modal__post-title">{{selectedPost?.title}}</div>
+        <div class="cr-modal__post-creator">by {{selectedPost?.creator?.firstName}} {{selectedPost?.creator?.lastName}}</div>
+        <div class="cr-modal__post-caption" *ngIf="selectedPost?.caption">{{selectedPost?.caption}}</div>
+        <div class="cr-modal__media" *ngIf="selectedPost?.mediaUrls?.length">
+          <img *ngFor="let url of selectedPost?.mediaUrls?.slice(0, 4)" [src]="url" alt="" (error)="$any($event.target).style.display='none'">
+        </div>
+      </div>
+
+      <!-- Action selector — only for submitted posts -->
+      <ng-container *ngIf="selectedPost?.status === 'submitted'">
+        <div class="cr-modal__label">Action</div>
+        <div class="cr-action-tabs">
+          <button [class.active]="reviewForm.action==='approve'" (click)="reviewForm.action='approve'" class="cr-action-tab cr-action-tab--approve">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            Approve
+          </button>
+          <button [class.active]="reviewForm.action==='request_revision'" (click)="reviewForm.action='request_revision'" class="cr-action-tab cr-action-tab--revision">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            Request Revision
+          </button>
+          <button [class.active]="reviewForm.action==='reject'" (click)="reviewForm.action='reject'" class="cr-action-tab cr-action-tab--reject">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            Reject
+          </button>
+        </div>
+
+        <div class="cr-modal__field" *ngIf="reviewForm.action === 'approve'">
+          <label>Payment Amount ($)</label>
+          <input type="number" [(ngModel)]="reviewForm.paymentAmount" placeholder="0" min="0">
+        </div>
+
+        <div class="cr-modal__field" *ngIf="reviewForm.action !== 'approve'">
+          <label>Notes for Creator</label>
+          <textarea [(ngModel)]="reviewForm.brandNotes" rows="3" placeholder="Explain what needs to change…"></textarea>
+        </div>
+
+        <div class="cr-modal__foot">
+          <button class="cr-btn cr-btn--ghost" (click)="showModal=false">Cancel</button>
+          <button class="cr-btn" [ngClass]="reviewForm.action==='approve'?'cr-btn--pay':reviewForm.action==='reject'?'cr-btn--reject':'cr-btn--review'"
+            (click)="submit()" [disabled]="saving">
+            {{saving ? 'Processing…' : reviewForm.action === 'approve' ? 'Approve & Set Payment' : reviewForm.action === 'request_revision' ? 'Send Revision Request' : 'Reject'}}
+          </button>
+        </div>
+      </ng-container>
+
+      <div class="cr-modal__foot" *ngIf="selectedPost?.status !== 'submitted'">
+        <button class="cr-btn cr-btn--ghost" (click)="showModal=false">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="cr-toast" *ngIf="toast" [class.cr-toast--err]="toast.type==='err'">
+    {{toast.msg}}
+  </div>
+</div>

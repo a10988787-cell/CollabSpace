@@ -1,0 +1,57 @@
+<div class="pg">
+  <div class="ph">
+    <div><div class="ph-title">Campaign Applications</div><div class="ph-sub">Track and manage your campaign applications</div></div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <select class="form-select" [(ngModel)]="filterStatus" (change)="load()" style="width:140px;padding:8px 12px;font-size:.82rem" title="select">
+        <option value="">All Status</option>
+        <option *ngFor="let s of statuses.slice(1)" [value]="s" style="text-transform:capitalize">{{s}}</option>
+      </select>
+    </div>
+  </div>
+
+  <div *ngIf="loading" style="text-align:center;padding:60px;color:var(--t3)">Loading...</div>
+
+  <ng-container *ngIf="!loading">
+    <div class="empty" *ngIf="applications.length===0">
+      <div class="empty-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" style="width:28px;height:28px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div>
+      <h3>No applications found</h3><p>Browse active campaigns and start applying</p>
+    </div>
+
+    <div class="table-wrap" *ngIf="applications.length>0">
+      <table>
+        <thead><tr><th>Campaign</th><th>Proposal Amount</th><th>Status</th><th>Brand Response</th><th>Applied</th><th>Actions</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let a of applications">
+            <td><div style="font-weight:600;color:var(--t1)">{{a.campaign?.title||'—'}}</div><div style="font-size:.75rem;color:var(--t3)">{{a.proposalMessage?.slice(0,60)}}{{a.proposalMessage?.length>60?'...':''}}</div></td>
+            <td style="color:var(--jade);font-weight:700">${{a.priceQuote|number}}</td>
+            <td><span class="pill" [ngClass]="statusPill(a.status)" style="text-transform:capitalize">{{a.status}}</span></td>
+            <td style="font-size:.8rem;max-width:200px">{{a.brandResponse||'—'}}</td>
+            <td style="font-size:.78rem;color:var(--t3)">{{a.createdAt|date:'MMM d, y'}}</td>
+            <td>
+              <div style="display:flex;gap:6px">
+                <button class="btn btn-ghost btn-sm" *ngIf="a.status==='pending'||a.status==='reviewing'" (click)="openEdit(a)">Edit</button>
+                <button class="btn btn-danger btn-sm" *ngIf="a.status==='pending'||a.status==='reviewing'" (click)="withdraw(a._id)">Withdraw</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </ng-container>
+
+  <div class="modal-backdrop" *ngIf="showModal" (click)="showModal=false">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title">Edit Application</div>
+        <button class="modal-close" (click)="showModal=false"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" title="btn"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+      </div>
+      <div class="form-group"><label class="form-label">Proposal Message</label><textarea class="form-textarea" [(ngModel)]="form.proposalMessage" rows="4" placeholder="Describe your approach..."></textarea></div>
+      <div class="form-group"><label class="form-label">Price Quote ($)</label><input class="form-input" type="number" [(ngModel)]="form.priceQuote" title="input"></div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" (click)="showModal=false">Cancel</button>
+        <button class="btn btn-primary" (click)="save()" [disabled]="saving">{{saving?'Saving...':'Update'}}</button>
+      </div>
+    </div>
+  </div>
+  <div class="toast" *ngIf="toast.show" [class.success]="toast.type==='success'" [class.error]="toast.type==='error'">{{toast.msg}}</div>
+</div>

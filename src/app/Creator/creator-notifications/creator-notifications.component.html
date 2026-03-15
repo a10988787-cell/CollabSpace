@@ -1,0 +1,73 @@
+<div class="pg">
+  <div class="ph">
+    <div>
+      <div class="ph-title">
+        Notifications
+        <span *ngIf="unreadCount > 0" class="pill pill-rose" style="font-size:.7rem;margin-left:8px">{{unreadCount}} new</span>
+      </div>
+      <div class="ph-sub">Stay updated on campaigns, payments and messages</div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <label style="display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--t2);cursor:pointer">
+        <input type="checkbox" [(ngModel)]="showUnreadOnly" (change)="load()" style="accent-color:var(--acc)">
+        Unread only
+      </label>
+      <button class="btn btn-ghost btn-sm" (click)="markAll()" *ngIf="unreadCount > 0">Mark all read</button>
+    </div>
+  </div>
+
+  <div *ngIf="loading" style="text-align:center;padding:60px;color:var(--t3)">Loading...</div>
+
+  <ng-container *ngIf="!loading">
+    <div class="empty" *ngIf="notifications.length === 0">
+      <div class="empty-icon">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" style="width:28px;height:28px">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+        </svg>
+      </div>
+      <h3>All caught up!</h3>
+      <p>No notifications to show</p>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div class="card"
+        *ngFor="let n of notifications"
+        [style.border-color]="!n.isRead ? 'rgba(139,92,246,.25)' : ''"
+        [style.cursor]="!n.isRead ? 'pointer' : 'default'"
+        (click)="!n.isRead && markRead(n._id)">
+
+        <div style="display:flex;align-items:flex-start;gap:12px">
+          <!-- Icon bubble — colors computed in TS, no regex in template -->
+          <div
+            style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0"
+            [ngStyle]="{ background: typeIconBg(n.type), color: typeIconColor(n.type) }">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" style="width:16px;height:16px">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+            </svg>
+          </div>
+
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+              <div style="font-weight:700;color:var(--t1);font-size:.87rem">{{n.title}}</div>
+              <div *ngIf="!n.isRead" style="width:7px;height:7px;border-radius:50%;background:var(--acc);flex-shrink:0"></div>
+            </div>
+            <div style="font-size:.82rem;color:var(--t2);line-height:1.5">{{n.message}}</div>
+            <div style="font-size:.72rem;color:var(--t3);margin-top:5px">{{timeAgo(n.createdAt)}}</div>
+          </div>
+
+          <button class="btn btn-ghost btn-sm" (click)="remove(n._id, $event)" style="padding:5px;flex-shrink:0" title="btn">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" style="width:14px;height:14px">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <div class="toast" *ngIf="toast.show"
+    [class.success]="toast.type === 'success'"
+    [class.error]="toast.type === 'error'">
+    {{toast.msg}}
+  </div>
+</div>

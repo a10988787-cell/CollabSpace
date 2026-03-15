@@ -1,0 +1,58 @@
+<div class="pg">
+  <div class="ph">
+    <div><div class="ph-title">Brand Invitations</div><div class="ph-sub">Review and respond to brand collaboration invites</div></div>
+    <select class="form-select" [(ngModel)]="filterStatus" (change)="load()" style="width:140px;padding:8px 12px;font-size:.82rem" title="select">
+      <option value="">All</option><option value="pending">Pending</option><option value="accepted">Accepted</option><option value="rejected">Rejected</option>
+    </select>
+  </div>
+
+  <div *ngIf="loading" style="text-align:center;padding:60px;color:var(--t3)">Loading...</div>
+
+  <div class="grid-2" *ngIf="!loading">
+    <div class="empty" *ngIf="invitations.length===0" style="grid-column:1/-1">
+      <div class="empty-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" style="width:28px;height:28px"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg></div>
+      <h3>No invitations</h3><p>When brands invite you to collaborate, they'll appear here</p>
+    </div>
+
+    <div class="card" *ngFor="let inv of invitations">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="av" style="width:44px;height:44px;font-size:.9rem">{{(inv.brand?.companyName||inv.brand?.firstName||'B')[0]}}</div>
+          <div><div style="font-weight:700;color:var(--t1)">{{inv.brand?.companyName||inv.brand?.firstName}}</div><div style="font-size:.78rem;color:var(--t3)">{{inv.campaign?.title||'Direct Invite'}}</div></div>
+        </div>
+        <span class="pill" [ngClass]="statusPill(inv.status)" style="text-transform:capitalize">{{inv.status}}</span>
+      </div>
+      <div style="background:var(--bg-card2);border-radius:var(--r-md);padding:12px;margin-bottom:14px">
+        <div style="font-size:.78rem;color:var(--t3);margin-bottom:4px">Proposed Amount</div>
+        <div style="font-size:1.1rem;font-weight:800;color:var(--jade);font-family:var(--fd)">${{inv.proposedAmount|number}}</div>
+        <div style="font-size:.8rem;color:var(--t2);margin-top:8px;line-height:1.5">{{inv.invitationMessage||'No message provided.'}}</div>
+      </div>
+      <div style="font-size:.75rem;color:var(--t3);margin-bottom:14px">{{inv.createdAt|date:'MMM d, y'}}</div>
+      <div style="display:flex;gap:8px" *ngIf="inv.status==='pending'">
+        <button class="btn btn-primary btn-sm" style="flex:1" (click)="openRespond(inv)">Respond</button>
+        <button class="btn btn-danger btn-sm" (click)="remove(inv._id)">Remove</button>
+      </div>
+      <div *ngIf="inv.creatorResponse" style="font-size:.78rem;color:var(--t3);font-style:italic;margin-top:8px">"{{inv.creatorResponse}}"</div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" *ngIf="showModal" (click)="showModal=false">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title">Respond to Invitation</div>
+        <button class="modal-close" (click)="showModal=false" title="btn"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+      </div>
+      <div style="background:var(--bg-card2);border-radius:var(--r-md);padding:14px;margin-bottom:16px">
+        <div style="font-size:.8rem;color:var(--t3)">From {{selectedInv?.brand?.companyName}} · ${{selectedInv?.proposedAmount|number}}</div>
+        <div style="font-size:.85rem;color:var(--t2);margin-top:6px">{{selectedInv?.invitationMessage}}</div>
+      </div>
+      <div class="form-group"><label class="form-label">Your Response (optional)</label><textarea class="form-textarea" [(ngModel)]="responseMsg" rows="3" placeholder="Add a note..."></textarea></div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" (click)="showModal=false">Cancel</button>
+        <button class="btn btn-danger" (click)="respond('reject')" [disabled]="saving">Decline</button>
+        <button class="btn btn-primary" (click)="respond('accept')" [disabled]="saving">{{saving?'Processing...':'Accept Invitation'}}</button>
+      </div>
+    </div>
+  </div>
+  <div class="toast" *ngIf="toast.show" [class.success]="toast.type==='success'" [class.error]="toast.type==='error'">{{toast.msg}}</div>
+</div>

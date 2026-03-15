@@ -1,0 +1,156 @@
+<!-- creator-audience.component.html -->
+<div class="pg">
+  <div class="ph">
+    <div>
+      <div class="ph-title">Audience Insights</div>
+      <div class="ph-sub">Understand your audience demographics and interests</div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <select class="form-select" [(ngModel)]="platform" (change)="load()" style="width:130px;padding:8px 12px;font-size:.82rem" title="select">
+        <option *ngFor="let p of platforms" [value]="p">{{p}}</option>
+      </select>
+      <button class="btn btn-primary btn-sm" (click)="editMode=!editMode">
+        {{editMode ? 'Cancel' : 'Update Data'}}
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="loading" style="text-align:center;padding:60px;color:var(--t3)">Loading...</div>
+
+  <ng-container *ngIf="!loading">
+
+    <!-- Edit Mode -->
+    <div class="card" *ngIf="editMode" style="margin-bottom:20px">
+      <div style="font-size:.9rem;font-weight:700;color:var(--t1);margin-bottom:18px">Update Audience Data</div>
+
+      <!-- Age Groups -->
+      <div class="sec-label" style="margin-bottom:12px">Age Groups</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px">
+        <div *ngFor="let ag of form.ageGroups;let i=index" style="display:flex;align-items:center;gap:12px">
+          <input class="form-input" [(ngModel)]="ag.label" style="width:80px;flex-shrink:0" placeholder="18-24">
+          <input class="form-input" type="number" [(ngModel)]="ag.percentage" min="0" max="100" style="width:80px;flex-shrink:0" title="input">
+          <span style="font-size:.8rem;color:var(--t3)">%</span>
+          <div style="flex:1;height:6px;background:var(--bg-card2);border-radius:var(--r-full);overflow:hidden">
+            <div style="height:100%;background:var(--g-acc);transition:width 300ms;border-radius:var(--r-full)" [ngStyle]="{'width':barWidth(ag.percentage)}"></div>
+          </div>
+        </div>
+        <div style="font-size:.75rem;color:var(--t3)" [style.color]="totalAge()>100?'var(--rose)':totalAge()===100?'var(--jade)':''">
+          Total: {{totalAge()}}% {{totalAge()===100?'✓':totalAge()>100?'(exceeds 100%)':''}}
+        </div>
+      </div>
+
+      <!-- Gender -->
+      <div class="sep"></div>
+      <div class="sec-label" style="margin:14px 0 12px">Gender Distribution</div>
+      <div class="form-row" style="margin-bottom:4px">
+        <div class="form-group"><label class="form-label" style="color:#38BDF8">Male (%)</label><input class="form-input" type="number" [(ngModel)]="form.genderDistribution.male" min="0" max="100" title="input"></div>
+        <div class="form-group"><label class="form-label" style="color:#FB7185">Female (%)</label><input class="form-input" type="number" [(ngModel)]="form.genderDistribution.female" min="0" max="100" title="input"></div>
+        <div class="form-group"><label class="form-label" style="color:#A78BFA">Other (%)</label><input class="form-input" type="number" [(ngModel)]="form.genderDistribution.other" min="0" max="100" title="input"></div>
+      </div>
+      <div style="font-size:.75rem;color:var(--t3);margin-bottom:18px" [style.color]="totalGender()>100?'var(--rose)':totalGender()===100?'var(--jade)':''">
+        Total: {{totalGender()}}%
+      </div>
+
+      <!-- Top Countries -->
+      <div class="sep"></div>
+      <div class="sec-label" style="margin:14px 0 12px">Top Countries</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px">
+        <div *ngFor="let c of form.topCountries;let i=index" style="display:flex;align-items:center;gap:10px">
+          <input class="form-input" [(ngModel)]="c.country" style="flex:1" placeholder="Country">
+          <input class="form-input" type="number" [(ngModel)]="c.percentage" min="0" max="100" style="width:80px;flex-shrink:0" title="input">
+          <span style="font-size:.8rem;color:var(--t3)">%</span>
+        </div>
+      </div>
+
+      <!-- Interests -->
+      <div class="sep"></div>
+      <div class="sec-label" style="margin:14px 0 12px">Audience Interests</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+        <span *ngFor="let int of form.interests;let i=index" style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.2);border-radius:var(--r-full);font-size:.78rem;color:#C4B5FD">
+          {{int}}
+          <button (click)="removeInterest(i)" style="background:none;border:none;color:#C4B5FD;cursor:pointer;padding:0;line-height:1">✕</button>
+        </span>
+      </div>
+      <div style="display:flex;gap:8px">
+        <input class="form-input" [(ngModel)]="interestInput" placeholder="Add interest..." (keyup.enter)="addInterest()" style="flex:1">
+        <button class="btn btn-ghost btn-sm" (click)="addInterest()">Add</button>
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--bdr)">
+        <button class="btn btn-ghost" (click)="editMode=false">Cancel</button>
+        <button class="btn btn-primary" (click)="save()" [disabled]="saving">{{saving ? 'Saving...' : 'Save Insights'}}</button>
+      </div>
+    </div>
+
+    <!-- View Mode -->
+    <div *ngIf="!editMode" style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+
+      <!-- Age Groups -->
+      <div class="card">
+        <div style="font-size:.9rem;font-weight:700;color:var(--t1);margin-bottom:16px">Age Distribution</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div *ngFor="let ag of (insight?.ageGroups || form.ageGroups)">
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+              <span style="font-size:.82rem;color:var(--t2)">{{ag.label}}</span>
+              <span style="font-size:.82rem;font-weight:700;color:var(--t1)">{{ag.percentage}}%</span>
+            </div>
+            <div style="height:6px;background:var(--bg-card2);border-radius:var(--r-full);overflow:hidden">
+              <div style="height:100%;background:var(--g-acc);transition:width 600ms;border-radius:var(--r-full)" [ngStyle]="{'width':barWidth(ag.percentage)}"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gender Distribution -->
+      <div class="card">
+        <div style="font-size:.9rem;font-weight:700;color:var(--t1);margin-bottom:16px">Gender Distribution</div>
+        <ng-container *ngIf="insight?.genderDistribution || form.genderDistribution as gd">
+          <div style="display:flex;gap:6px;height:20px;border-radius:var(--r-full);overflow:hidden;margin-bottom:16px">
+            <div [ngStyle]="{'width':(gd.male||0)+'%','background':'#38BDF8'}" [title]="'Male: '+(gd.male||0)+'%'"></div>
+            <div [ngStyle]="{'width':(gd.female||0)+'%','background':'#FB7185'}" [title]="'Female: '+(gd.female||0)+'%'"></div>
+            <div [ngStyle]="{'width':(gd.other||0)+'%','background':'#A78BFA'}" [title]="'Other: '+(gd.other||0)+'%'"></div>
+          </div>
+          <div style="display:flex;gap:16px;flex-wrap:wrap">
+            <div *ngFor="let g of [['male','#38BDF8'],['female','#FB7185'],['other','#A78BFA']]" style="display:flex;align-items:center;gap:7px">
+              <div style="width:10px;height:10px;border-radius:50%" [ngStyle]="{'background':g[1]}"></div>
+              <span style="font-size:.82rem;color:var(--t2);text-transform:capitalize">{{g[0]}}</span>
+              <span style="font-size:.82rem;font-weight:700;color:var(--t1)">{{gd[g[0]]||0}}%</span>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+
+      <!-- Top Countries -->
+      <div class="card">
+        <div style="font-size:.9rem;font-weight:700;color:var(--t1);margin-bottom:16px">Top Countries</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div *ngFor="let c of (insight?.topCountries || form.topCountries);let i=index">
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="font-size:.75rem;font-weight:700;color:var(--t3);width:16px;text-align:right">{{i+1}}</span>
+                <span style="font-size:.83rem;color:var(--t2)">{{c.country}}</span>
+              </div>
+              <span style="font-size:.83rem;font-weight:700;color:var(--t1)">{{c.percentage}}%</span>
+            </div>
+            <div style="height:5px;background:var(--bg-card2);border-radius:var(--r-full);overflow:hidden">
+              <div style="height:100%;background:var(--g-jade);transition:width 600ms;border-radius:var(--r-full)" [ngStyle]="{'width':barWidth(c.percentage)}"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interests -->
+      <div class="card">
+        <div style="font-size:.9rem;font-weight:700;color:var(--t1);margin-bottom:16px">Audience Interests</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <span *ngFor="let int of (insight?.interests || form.interests)" class="pill pill-acc" style="padding:6px 14px;font-size:.8rem">
+            {{int}}
+          </span>
+          <div *ngIf="!(insight?.interests || form.interests)?.length" style="font-size:.85rem;color:var(--t3)">No interests added yet.</div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <div class="toast" *ngIf="toast.show" [class.success]="toast.type==='success'" [class.error]="toast.type==='error'">{{toast.msg}}</div>
+</div>

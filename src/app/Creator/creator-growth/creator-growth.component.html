@@ -1,0 +1,136 @@
+<!-- creator-growth.component.html -->
+<div class="pg">
+  <div class="ph">
+    <div>
+      <div class="ph-title">Growth Metrics</div>
+      <div class="ph-sub">Track your follower growth and engagement trends</div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <select class="form-select" [(ngModel)]="platform" (change)="load()" style="width:120px;padding:8px 12px;font-size:.82rem" title="select">
+        <option *ngFor="let p of platforms" [value]="p">{{p}}</option>
+      </select>
+      <select class="form-select" [(ngModel)]="period" (change)="load()" style="width:100px;padding:8px 12px;font-size:.82rem" title="select">
+        <option *ngFor="let p of periods" [value]="p">{{p}}</option>
+      </select>
+      <button class="btn btn-primary btn-sm" (click)="editMode=!editMode">{{editMode ? 'Cancel' : 'Update'}}</button>
+    </div>
+  </div>
+
+  <div *ngIf="loading" style="text-align:center;padding:60px;color:var(--t3)">Loading...</div>
+
+  <ng-container *ngIf="!loading">
+    <!-- KPI Cards -->
+    <div class="grid-kpi" style="margin-bottom:20px">
+      <div class="kpi">
+        <div class="kpi-icon" style="background:rgba(52,211,153,.12)">
+          <svg fill="none" stroke="#34D399" viewBox="0 0 24 24" stroke-width="2" style="width:18px;height:18px"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+        </div>
+        <div class="kpi-val" [ngStyle]="{'color':trendColor(form.monthlyGrowth)}">
+          {{trendArrow(form.monthlyGrowth)}} {{form.monthlyGrowth > 0 ? '+' : ''}}{{form.monthlyGrowth}}%
+        </div>
+        <div class="kpi-lbl">Monthly Growth</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-icon" style="background:rgba(56,189,248,.12)">
+          <svg fill="none" stroke="#38BDF8" viewBox="0 0 24 24" stroke-width="2" style="width:18px;height:18px"><path stroke-linecap="round" stroke-linejoin="round" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/></svg>
+        </div>
+        <div class="kpi-val" [ngStyle]="{'color':trendColor(form.weeklyGrowth)}">
+          {{trendArrow(form.weeklyGrowth)}} {{form.weeklyGrowth > 0 ? '+' : ''}}{{form.weeklyGrowth}}%
+        </div>
+        <div class="kpi-lbl">Weekly Growth</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-icon" style="background:rgba(251,191,36,.12)">
+          <svg fill="none" stroke="#FBBF24" viewBox="0 0 24 24" stroke-width="2" style="width:18px;height:18px"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+        </div>
+        <div class="kpi-val" [ngStyle]="{'color':trendColor(form.engagementTrend)}">
+          {{trendArrow(form.engagementTrend)}} {{form.engagementTrend > 0 ? '+' : ''}}{{form.engagementTrend}}%
+        </div>
+        <div class="kpi-lbl">Engagement Trend</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-icon" style="background:rgba(139,92,246,.12)">
+          <svg fill="none" stroke="#A78BFA" viewBox="0 0 24 24" stroke-width="2" style="width:18px;height:18px"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        </div>
+        <div class="kpi-val">{{form.dailyFollowers?.length || 0}}</div>
+        <div class="kpi-lbl">Data Points</div>
+      </div>
+    </div>
+
+    <!-- Bar Chart -->
+    <div class="card" style="margin-bottom:20px" *ngIf="chartBars.length > 0">
+      <div style="font-size:.9rem;font-weight:700;color:var(--t1);margin-bottom:18px">Daily Followers (Last 14 days)</div>
+      <div style="display:flex;align-items:flex-end;gap:6px;height:120px;padding-bottom:28px;position:relative">
+        <!-- Y-axis line -->
+        <div style="position:absolute;left:0;right:0;bottom:28px;height:1px;background:var(--bdr)"></div>
+        <div *ngFor="let bar of chartBars" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;position:relative">
+          <div style="position:absolute;bottom:0;width:100%;display:flex;flex-direction:column;align-items:center">
+            <div style="width:100%;max-width:28px;background:var(--g-acc);border-radius:4px 4px 0 0;transition:height 600ms;cursor:pointer;min-height:4px"
+              [ngStyle]="{'height': bar.height + 'px'}"
+              [title]="bar.label + ': ' + bar.count">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:4px;overflow-x:auto">
+        <div *ngFor="let bar of chartBars" style="flex:1;text-align:center;font-size:.6rem;color:var(--t3);white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis">
+          {{bar.label}}
+        </div>
+      </div>
+    </div>
+
+    <div class="empty" *ngIf="chartBars.length === 0 && !editMode">
+      <div class="empty-icon">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" style="width:28px;height:28px"><path stroke-linecap="round" stroke-linejoin="round" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/></svg>
+      </div>
+      <h3>No growth data yet</h3>
+      <p>Click "Update" to add your follower data</p>
+      <button class="btn btn-primary btn-sm" (click)="editMode=true">Add Data</button>
+    </div>
+
+    <!-- Edit Mode -->
+    <div class="card" *ngIf="editMode">
+      <div style="font-size:.9rem;font-weight:700;color:var(--t1);margin-bottom:16px">Update Growth Data</div>
+
+      <div class="form-row" style="margin-bottom:4px">
+        <div class="form-group">
+          <label class="form-label">Monthly Growth (%)</label>
+          <input class="form-input" type="number" step="0.1" [(ngModel)]="form.monthlyGrowth" placeholder="5.2">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Weekly Growth (%)</label>
+          <input class="form-input" type="number" step="0.1" [(ngModel)]="form.weeklyGrowth" placeholder="1.3">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Engagement Trend (%)</label>
+          <input class="form-input" type="number" step="0.1" [(ngModel)]="form.engagementTrend" placeholder="0.5">
+        </div>
+      </div>
+
+      <div class="sep"></div>
+      <div class="sec-label" style="margin:14px 0 12px">Daily Follower Data</div>
+
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px">
+        <input class="form-input" type="date" [(ngModel)]="newEntry.date" style="flex:1" title="input">
+        <input class="form-input" type="number" [(ngModel)]="newEntry.count" placeholder="Count" style="width:120px;flex-shrink:0">
+        <button class="btn btn-ghost btn-sm" (click)="addEntry()">Add</button>
+      </div>
+
+      <div style="max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:6px">
+        <div *ngFor="let d of form.dailyFollowers;let i=index" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg-card2);border-radius:var(--r-md)">
+          <span style="font-size:.82rem;color:var(--t2);flex:1">{{d.date}}</span>
+          <span style="font-size:.82rem;font-weight:700;color:var(--t1)">{{d.count | number}}</span>
+          <button (click)="removeEntry(i)" style="background:none;border:none;color:var(--rose);cursor:pointer;font-size:.85rem;padding:0">✕</button>
+        </div>
+        <div *ngIf="form.dailyFollowers.length===0" style="text-align:center;padding:20px;color:var(--t3);font-size:.82rem">No entries yet</div>
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px;padding-top:16px;border-top:1px solid var(--bdr)">
+        <button class="btn btn-ghost" (click)="editMode=false">Cancel</button>
+        <button class="btn btn-primary" (click)="save()" [disabled]="saving">{{saving ? 'Saving...' : 'Save Growth Data'}}</button>
+      </div>
+    </div>
+  </ng-container>
+
+  <div class="toast" *ngIf="toast.show" [class.success]="toast.type==='success'" [class.error]="toast.type==='error'">{{toast.msg}}</div>
+</div>
