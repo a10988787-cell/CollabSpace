@@ -1,0 +1,193 @@
+<div class="bp-page">
+  <div class="bp-hd">
+    <div class="bp-hd__left">
+      <div class="bp-eyebrow"><span class="bp-eyebrow-dot"></span>Campaign Management</div>
+      <div class="bp-title">Campaigns</div>
+      <div class="bp-sub">Create and manage your brand campaigns for creator collaboration</div>
+    </div>
+    <div class="bp-hd__right">
+      <button class="btn-primary" (click)="openModal()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+        </svg>
+        New Campaign
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats row -->
+  <div class="grid-4">
+    <div *ngFor="let s of stats" class="card kpi-card">
+      <div class="kpi-hd">
+        <span class="kpi-label">{{ s.label }}</span>
+        <div class="kpi-icon" [ngStyle]="{ background: s.ib }">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" [ngStyle]="{ color: s.ic }">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6"/>
+          </svg>
+        </div>
+      </div>
+      <div class="kpi-value">{{ s.val }}</div>
+      <div class="kpi-footer"><span class="kpi-badge kpi-badge--up">{{ s.sub }}</span></div>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="bp-toolbar">
+    <div class="filter-tabs">
+      <button *ngFor="let f of filters" class="ftab" [ngClass]="filter === f ? 'ftab--active' : ''" (click)="filter = f">
+        {{ f | titlecase }}
+        <span *ngIf="f === 'all'" class="ftab-count">({{ campaigns.length }})</span>
+      </button>
+    </div>
+    <div class="search-bar">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+      </svg>
+      <input [(ngModel)]="search" placeholder="Search campaigns…"/>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-wrap"><div class="spinner"></div></div>
+
+  <!-- Campaign Cards -->
+  <div *ngIf="!loading && filtered.length" class="campaigns-grid">
+    <div *ngFor="let c of filtered; let i = index" class="card campaign-card" [ngStyle]="{ 'animation-delay': (i * 0.07) + 's' }">
+
+      <div class="campaign-card__hd">
+        <div class="campaign-card__icon" [ngStyle]="{ background: getGrad(c.status) }">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6"/>
+          </svg>
+        </div>
+        <div class="chip" [ngClass]="'chip--' + c.status">
+          <span class="chip-dot"></span>{{ c.status }}
+        </div>
+      </div>
+
+      <div class="campaign-card__title">{{ c.title }}</div>
+      <div class="campaign-card__meta">{{ c.niche }} · {{ c.platforms?.join(', ') || 'Any platform' }}</div>
+      <div class="campaign-card__budget">
+        ${{ c.budget | number }}<span> budget</span>
+      </div>
+      <div class="campaign-card__dates">
+        <span>{{ c.startDate | date:'MMM d' }} – {{ c.endDate | date:'MMM d, y' }}</span>
+        <span>{{ c.slots }} slot{{ c.slots !== 1 ? 's' : '' }}</span>
+      </div>
+
+      <div class="campaign-card__actions" (click)="$event.stopPropagation()">
+        <button class="btn-icon" title="Edit" (click)="openModal(c)">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+          </svg>
+        </button>
+        <button class="btn-icon btn-icon--danger" title="Delete" (click)="delete(c)">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  <div *ngIf="!loading && !filtered.length" class="card empty-state">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6"/>
+    </svg>
+    <div class="empty-title">No campaigns yet</div>
+    <div class="empty-sub">Create your first campaign to start working with creators</div>
+    <button class="btn-primary" (click)="openModal()">Create Campaign</button>
+  </div>
+
+  <!-- Create / Edit Modal -->
+  <div *ngIf="modal" class="modal-backdrop" (click)="modal = false">
+    <div class="modal-box modal-box--lg" (click)="$event.stopPropagation()">
+      <div class="modal-hd">
+        <div class="modal-title">{{ editing ? 'Edit Campaign' : 'New Campaign' }}</div>
+        <button class="modal-close" (click)="modal = false" title="btn">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="form-group">
+        <div class="form-field">
+          <label class="form-label">Campaign Title *</label>
+          <input class="form-input" [(ngModel)]="form.title" placeholder="e.g. Summer Collection Launch"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Description</label>
+          <textarea class="form-input" [(ngModel)]="form.description" placeholder="What are you looking for creators to do?" rows="3"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <label class="form-label">Budget ($) *</label>
+            <input class="form-input" type="number" [(ngModel)]="form.budget" placeholder="5000"/>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Slots Available</label>
+            <input class="form-input" type="number" [(ngModel)]="form.slots" placeholder="5"/>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <label class="form-label">Start Date *</label>
+            <input class="form-input" type="date" [(ngModel)]="form.startDate" title="input"/>
+          </div>
+          <div class="form-field">
+            <label class="form-label">End Date *</label>
+            <input class="form-input" type="date" [(ngModel)]="form.endDate" title="input"/>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <label class="form-label">Niche / Category</label>
+            <input class="form-input" [(ngModel)]="form.niche" placeholder="e.g. Fashion, Tech, Food"/>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Status</label>
+            <select class="form-input" [(ngModel)]="form.status" title="select">
+              <option value="draft">Draft</option>
+              <option value="active">Active</option>
+              <option value="paused">Paused</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Required Platforms</label>
+          <div class="platform-picker">
+            <button *ngFor="let p of allPlatforms" class="platform-btn"
+              [ngClass]="form.platforms.includes(p) ? 'platform-btn--on' : ''"
+              (click)="togglePlatform(p)">
+              {{ p }}
+            </button>
+          </div>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Content Requirements</label>
+          <textarea class="form-input" [(ngModel)]="form.contentReqs" placeholder="Describe what content you need…" rows="3"></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="modal = false">Cancel</button>
+        <button class="btn-primary" (click)="save()" [disabled]="saving">
+          {{ saving ? 'Saving…' : 'Save Campaign' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div *ngIf="toast" class="toast" [ngClass]="toast.type === 'ok' ? 'toast--ok' : 'toast--err'">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+      <path *ngIf="toast.type==='ok'"  stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4"/>
+      <path *ngIf="toast.type==='err'" stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01"/>
+    </svg>
+    {{ toast.msg }}
+  </div>
+</div>

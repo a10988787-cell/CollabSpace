@@ -1,1 +1,61 @@
-/* You can add global styles to this file, and also import other style files */
+/* ══════════════════════════════════════════════════════════════════════════
+   GLOBAL STYLES — src/styles.css
+   Add this file to angular.json "styles" array:
+   "styles": ["src/styles.css"]
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Google Fonts — MUST be in global styles, not component CSS */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;0,9..40,900&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+
+/* Hard reset */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-family: 'Outfit', 'Segoe UI', system-ui, sans-serif;
+  background-color: #F0F2FF;
+  color: #1E1B4B;
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+  border: none;
+  outline: none;
+  background: none;
+}
+
+input, textarea, select {
+  font-family: inherit;
+  outline: none;
+  border: none;
+}
+
+ul, ol { list-style: none; }
+
+img { max-width: 100%; display: block; }
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: #f0eef8; }
+::-webkit-scrollbar-thumb { background: #c4b5fd; border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: #5B3DE8; }

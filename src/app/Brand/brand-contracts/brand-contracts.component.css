@@ -1,0 +1,44 @@
+@import '../brand-shared.css';
+
+/* ── Contracts Page ─────────────────────────────────────────────────────── */
+.contracts-table { animation: fadeUp .4s var(--ou) both; }
+
+.contract-title-cell { font-weight: 600; color: var(--t1); }
+.contract-file-link  {
+  font-size: .68rem;
+  margin-top: 2px;
+}
+.contract-file-link a {
+  color: var(--sky);
+  text-decoration: none;
+  transition: color 150ms;
+}
+.contract-file-link a:hover { color: #7DD3FC; text-decoration: underline; }
+
+.creator-cell      { display: flex; align-items: center; gap: 10px; }
+.creator-cell__av  { width: 28px; height: 28px; border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; font-size: .62rem; font-weight: 800; color: #fff; flex-shrink: 0; }
+.creator-cell__name{ font-weight: 600; color: var(--t1); font-size: .8rem; }
+
+.status-select {
+  padding: 4px 8px;
+  background: var(--bg-c2);
+  border: 1px solid var(--bdr);
+  border-radius: var(--r-md);
+  color: var(--t1);
+  font-size: .72rem;
+  cursor: pointer;
+  outline: none;
+  font-family: var(--fb);
+  transition: border-color 180ms;
+}
+.status-select:hover { border-color: rgba(251,191,36,.3); }
+.status-select option { background: var(--bg-c); }
+
+.contract-content-preview {
+  font-size: .72rem;
+  color: var(--t3);
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

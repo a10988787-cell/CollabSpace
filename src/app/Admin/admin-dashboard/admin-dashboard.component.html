@@ -1,0 +1,229 @@
+<div class="dr">
+
+  <!-- ══ SIDEBAR ══════════════════════════════════════════════════════════ -->
+  <aside class="sb" [ngClass]="{ col: collapsed }">
+    <div class="sb-top">
+      <div class="sb-logo">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+      </div>
+      <span class="sb-lbl">Collab<span>Space</span></span>
+      <button class="sb-tog" (click)="collapsed=!collapsed" title="btn">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>
+      </button>
+    </div>
+
+    <nav class="sb-nav">
+      <div class="sb-sec">Admin Menu</div>
+      <a class="sb-ni" [ngClass]="{'sb-ni--on':nav==='overview'}"   (click)="nav='overview'">
+        <div class="sb-ic" [ngStyle]="{background:nav==='overview'?'rgba(251,113,133,.15)':'rgba(255,255,255,.04)'}"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" [ngStyle]="{color:nav==='overview'?'#FB7185':'var(--t3)'}"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg></div>
+        <span class="sb-nm">Overview</span>
+      </a>
+      <a class="sb-ni" [ngClass]="{'sb-ni--on':nav==='users'}"      (click)="nav='users'">
+        <div class="sb-ic" [ngStyle]="{background:nav==='users'?'rgba(251,113,133,.15)':'rgba(255,255,255,.04)'}"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" [ngStyle]="{color:nav==='users'?'#FB7185':'var(--t3)'}"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
+        <span class="sb-nm">Users</span>
+        <span class="sb-bge">5</span>
+      </a>
+      <a class="sb-ni" [ngClass]="{'sb-ni--on':nav==='campaigns'}"  (click)="nav='campaigns'">
+        <div class="sb-ic" [ngStyle]="{background:nav==='campaigns'?'rgba(251,113,133,.15)':'rgba(255,255,255,.04)'}"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" [ngStyle]="{color:nav==='campaigns'?'#FB7185':'var(--t3)'}"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6"/></svg></div>
+        <span class="sb-nm">All Campaigns</span>
+      </a>
+      <a class="sb-ni" [ngClass]="{'sb-ni--on':nav==='payments'}"   (click)="nav='payments'">
+        <div class="sb-ic" [ngStyle]="{background:nav==='payments'?'rgba(251,113,133,.15)':'rgba(255,255,255,.04)'}"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" [ngStyle]="{color:nav==='payments'?'#FB7185':'var(--t3)'}"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg></div>
+        <span class="sb-nm">Payments</span>
+      </a>
+      <a class="sb-ni" [ngClass]="{'sb-ni--on':nav==='reports'}"    (click)="nav='reports'">
+        <div class="sb-ic" [ngStyle]="{background:nav==='reports'?'rgba(251,113,133,.15)':'rgba(255,255,255,.04)'}"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" [ngStyle]="{color:nav==='reports'?'#FB7185':'var(--t3)'}"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></div>
+        <span class="sb-nm">Reports</span>
+      </a>
+      <div class="sb-sep"></div>
+      <div class="sb-sec">System</div>
+      <a class="sb-ni" [ngClass]="{'sb-ni--on':nav==='settings'}"   (click)="nav='settings'">
+        <div class="sb-ic" [ngStyle]="{background:nav==='settings'?'rgba(251,113,133,.15)':'rgba(255,255,255,.04)'}"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" [ngStyle]="{color:nav==='settings'?'#FB7185':'var(--t3)'}"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3" fill="none"/></svg></div>
+        <span class="sb-nm">Platform Settings</span>
+      </a>
+      <a class="sb-ni" (click)="logout()">
+        <div class="sb-ic" style="background:rgba(251,113,133,.08)"><svg fill="none" stroke="#FB7185" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg></div>
+        <span class="sb-nm" style="color:#FB7185">Logout</span>
+      </a>
+    </nav>
+
+    <div class="sb-prof">
+      <div class="sb-av" style="background:linear-gradient(135deg,#FB7185,#E11D48)">{{ initials }}</div>
+      <div class="sb-pi">
+        <div class="sb-pname">{{ user?.firstName }} {{ user?.lastName }}</div>
+        <div class="sb-prole">Administrator</div>
+      </div>
+      <div class="sb-dot"></div>
+    </div>
+  </aside>
+
+  <!-- ══ BODY ═════════════════════════════════════════════════════════════ -->
+  <div class="db" [ngClass]="{ col: collapsed }">
+
+    <header class="tb">
+      <div>
+        <div class="tb-title">Admin Panel</div>
+        <div class="tb-bc">CollabSpace <span>/</span> Platform Overview</div>
+      </div>
+      <div class="tb-search">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input type="text" placeholder="Search users, campaigns…"/>
+      </div>
+      <div class="tb-acts">
+        <div class="rb">
+          <span class="rb-dot"></span>
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+          Admin
+        </div>
+        <button class="ib"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" title="btn"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg><span class="ib-dot"></span></button>
+        <div class="tb-av" style="background:linear-gradient(135deg,#FB7185,#E11D48)">{{ initials }}</div>
+        <button class="btn-lo" (click)="logout()"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7"/></svg>Logout</button>
+      </div>
+    </header>
+
+    <main class="main">
+
+      <!-- Banner -->
+      <div class="ban">
+        <div class="ban-orb ban-o1"></div><div class="ban-orb ban-o2"></div>
+        <div class="ban-in">
+          <div>
+            <div class="ban-ey"><span class="ban-ey-dot"></span>Admin Dashboard</div>
+            <h1 class="ban-h">Platform Overview, <em>{{ user?.firstName }}!</em></h1>
+            <p class="ban-sub">Monitor platform health and manage all users, campaigns and payments.</p>
+          </div>
+          <div class="ban-stats">
+            <div *ngFor="let s of banStats" class="bs">
+              <div class="bs-v">{{ s.val }}</div>
+              <div class="bs-l">{{ s.lbl }}</div>
+              <div class="bs-c" [ngClass]="s.pos?'up':'dn'">{{ s.chg }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="kg">
+        <div *ngFor="let k of kpis" class="cd kc">
+          <div class="kc-hd">
+            <span class="kc-l">{{ k.label }}</span>
+            <div class="ki" [ngStyle]="{background:k.ib}">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" [ngStyle]="{color:k.ic}" style="width:17px;height:17px">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+              </svg>
+            </div>
+          </div>
+          <div class="kv">{{ k.val }}</div>
+          <div class="kf">
+            <span class="kch" [ngClass]="k.pos?'kch-up':'kch-dn'">{{ k.chg }}</span>
+            <span class="kp">vs last month</span>
+          </div>
+          <div class="kspark">
+            <div *ngFor="let h of k.spark; let i=index" class="ksb" [ngStyle]="{height:h+'%',background:k.ic,'animation-delay':(i*.05)+'s'}"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Platform Stats + Recent Activity -->
+      <div class="r2">
+        <div>
+          <!-- Platform health cards -->
+          <div class="sh"><div class="st">Platform Health</div></div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px">
+            <div *ngFor="let p of platformStats" class="cd pstat">
+              <div class="pstat-label">{{ p.label }}</div>
+              <div class="pstat-val">{{ p.val }}</div>
+              <div class="pstat-bar"><div class="pstat-fill" [ngStyle]="{width:p.pct+'%',background:p.color}"></div></div>
+              <div class="pstat-sub">{{ p.pct }}% {{ p.sub }}</div>
+            </div>
+          </div>
+
+          <!-- Chart -->
+          <div class="cd cp">
+            <div class="ch">
+              <div><div class="ct">Platform Revenue</div><div class="cs">Monthly GMV and commission</div></div>
+              <div class="ctabs">
+                <button *ngFor="let r of ['1M','3M','6M','1Y']" class="ctb" [ngClass]="range===r?'ctb-on':''" (click)="range=r">{{ r }}</button>
+              </div>
+            </div>
+            <div class="cleg">
+              <div class="cli"><div class="cld" style="background:#FB7185"></div>Revenue</div>
+              <div class="cli"><div class="cld" style="background:#34D399"></div>Payouts</div>
+            </div>
+            <div class="cwrap">
+              <svg viewBox="0 0 620 200" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="adB" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FB7185" stop-opacity=".75"/><stop offset="100%" stop-color="#E11D48" stop-opacity=".2"/></linearGradient>
+                  <linearGradient id="adL" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#34D399" stop-opacity=".18"/><stop offset="100%" stop-color="#34D399" stop-opacity="0"/></linearGradient>
+                </defs>
+                <line *ngFor="let y of [40,80,120,160]" [attr.x1]="30" [attr.y1]="y" [attr.x2]="600" [attr.y2]="y" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+                <rect *ngFor="let b of bars" [attr.x]="b.x" [attr.y]="b.y" [attr.width]="b.w" [attr.height]="b.h" rx="4" fill="url(#adB)"/>
+                <path [attr.d]="areaPath" fill="url(#adL)"/>
+                <path [attr.d]="linePath" fill="none" stroke="#34D399" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle *ngFor="let d of dots" [attr.cx]="d.x" [attr.cy]="d.y" r="4" fill="#34D399" stroke="#07080F" stroke-width="2.5"/>
+                <text *ngFor="let l of xlbl" [attr.x]="l.x" y="196" text-anchor="middle" fill="rgba(188,144,152,.5)" font-size="10" font-family="DM Sans,sans-serif">{{ l.t }}</text>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent activity -->
+        <div class="cd cp">
+          <div class="ch"><div class="ct">Recent Activity</div><button class="btn-g" style="padding:5px 10px;font-size:.7rem">View All</button></div>
+          <div class="nl">
+            <div *ngFor="let a of activity; let i=index" class="ni" [ngStyle]="{'animation-delay':(i*.06)+'s'}">
+              <div class="ni-ic" [ngStyle]="{background:a.ib}">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" [ngStyle]="{color:a.ic}" style="width:14px;height:14px">
+                  <path *ngIf="a.type==='user'"     stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                  <path *ngIf="a.type==='campaign'" stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6"/>
+                  <path *ngIf="a.type==='payment'"  stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V7m0 1v8m0 0v1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  <path *ngIf="a.type==='report'"   stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+              </div>
+              <div class="ni-b">
+                <p class="ni-m ni-mb">{{ a.msg }}</p>
+                <span class="ni-t">{{ a.time }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Users Table -->
+      <div class="sh">
+        <div><div class="st">Recent Users</div><div class="ss">Latest registrations on the platform</div></div>
+        <button class="btn-g"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>Export</button>
+      </div>
+      <div class="cd tw" style="margin-bottom:22px">
+        <table class="tbl">
+          <thead><tr><th>User</th><th>Role</th><th>Platform / Company</th><th>Status</th><th>Joined</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let u of users; let i=index" [ngStyle]="{'animation-delay':(i*.04)+'s'}">
+              <td>
+                <div class="cu">
+                  <div class="cav" [ngStyle]="{background:u.grad}">{{ u.init }}</div>
+                  <div><div class="cn">{{ u.name }}</div><div class="ck">{{ u.email }}</div></div>
+                </div>
+              </td>
+              <td>
+                <div class="chip" [ngClass]="u.role==='creator'?'ch-cr':u.role==='brand'?'ch-br':'ch-ad'">
+                  <span class="chip-dot" [ngStyle]="{background:u.role==='creator'?'#FB7185':u.role==='brand'?'#FBBF24':'#FCA5A5'}"></span>
+                  {{ u.role }}
+                </div>
+              </td>
+              <td style="color:var(--t2)">{{ u.detail }}</td>
+              <td>
+                <div class="chip" [ngClass]="u.verified?'ch-act':'ch-drf'">
+                  <span class="chip-dot" [ngStyle]="{background:u.verified?'#34D399':'var(--t3)'}"></span>
+                  {{ u.verified ? 'Verified' : 'Pending' }}
+                </div>
+              </td>
+              <td style="color:var(--t3)">{{ u.joined }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </main>
+  </div>
+</div>

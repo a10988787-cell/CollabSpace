@@ -1,0 +1,82 @@
+<div class="bp-page">
+  <div class="bp-hd">
+    <div class="bp-hd__left">
+      <div class="bp-eyebrow"><span class="bp-eyebrow-dot"></span>Performance Insights</div>
+      <div class="bp-title">Analytics</div>
+      <div class="bp-sub">Track campaign performance, ROI and creator collaboration metrics</div>
+    </div>
+    <div class="bp-hd__right">
+      <button class="btn-secondary" (click)="load()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        </svg>
+        Refresh
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading-wrap"><div class="spinner"></div></div>
+
+  <div *ngIf="!loading && data">
+    <!-- KPI row -->
+    <div class="analytics-kpis">
+      <div class="card analytics-card" style="animation-delay:.06s">
+        <div class="analytics-card__label">Total Campaigns</div>
+        <div class="analytics-card__value animated-number">{{ data.totalCampaigns }}</div>
+        <div class="analytics-card__sub">{{ data.activeCampaigns }} currently active</div>
+      </div>
+      <div class="card analytics-card" style="animation-delay:.10s">
+        <div class="analytics-card__label">Collaborations</div>
+        <div class="analytics-card__value animated-number">{{ data.totalCollaborations }}</div>
+        <div class="analytics-card__sub">{{ data.completedCollaborations }} completed</div>
+      </div>
+      <div class="card analytics-card" style="animation-delay:.14s">
+        <div class="analytics-card__label">Total Budget</div>
+        <div class="analytics-card__value animated-number">${{ data.totalBudget | number }}</div>
+        <div class="analytics-card__sub">${{ data.allocatedBudget | number }} allocated</div>
+      </div>
+      <div class="card analytics-card" style="animation-delay:.18s">
+        <div class="analytics-card__label">Total Paid Out</div>
+        <div class="analytics-card__value animated-number" style="color:var(--jade)">${{ data.totalPaid | number }}</div>
+        <div class="analytics-card__sub">Paid to creators</div>
+      </div>
+    </div>
+
+    <!-- Chart row -->
+    <div class="analytics-charts">
+      <div class="card card-p">
+        <div style="font-family:var(--fd);font-size:.92rem;font-weight:700;color:var(--t1);margin-bottom:6px">Budget Utilization</div>
+        <div style="font-size:.75rem;color:var(--t3);margin-bottom:16px">How much of your total budget has been allocated</div>
+        <div class="analytics-card__value animated-number">
+          {{ data.totalBudget > 0 ? ((data.allocatedBudget / data.totalBudget) * 100).toFixed(1) : 0 }}%
+        </div>
+        <div class="utilization-bar">
+          <div class="utilization-bar__fill" style="background:linear-gradient(90deg,#FBBF24,#D97706)"
+            [ngStyle]="{ width: (data.totalBudget > 0 ? (data.allocatedBudget / data.totalBudget) * 100 : 0) + '%' }">
+          </div>
+        </div>
+        <div class="utilization-labels">
+          <span>Allocated: ${{ data.allocatedBudget | number }}</span>
+          <span>Total: ${{ data.totalBudget | number }}</span>
+        </div>
+      </div>
+
+      <div class="card card-p">
+        <div style="font-family:var(--fd);font-size:.92rem;font-weight:700;color:var(--t1);margin-bottom:6px">Collaboration Success Rate</div>
+        <div style="font-size:.75rem;color:var(--t3);margin-bottom:16px">Percentage of collaborations completed successfully</div>
+        <div class="analytics-card__value animated-number">
+          {{ data.totalCollaborations > 0 ? ((data.completedCollaborations / data.totalCollaborations) * 100).toFixed(1) : 0 }}%
+        </div>
+        <div class="utilization-bar">
+          <div class="utilization-bar__fill" style="background:linear-gradient(90deg,#34D399,#059669)"
+            [ngStyle]="{ width: (data.totalCollaborations > 0 ? (data.completedCollaborations / data.totalCollaborations) * 100 : 0) + '%' }">
+          </div>
+        </div>
+        <div class="utilization-labels">
+          <span>Completed: {{ data.completedCollaborations }}</span>
+          <span>Total: {{ data.totalCollaborations }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

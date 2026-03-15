@@ -1,0 +1,144 @@
+<div class="bp-page">
+  <div class="bp-hd">
+    <div class="bp-hd__left">
+      <div class="bp-eyebrow"><span class="bp-eyebrow-dot"></span>Finance</div>
+      <div class="bp-title">Payments &amp; Invoices</div>
+      <div class="bp-sub">Manage creator payouts, generate invoices and track payment history</div>
+    </div>
+    <div class="bp-hd__right">
+      <button class="btn-primary" (click)="openModal()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+        Create Invoice
+      </button>
+    </div>
+  </div>
+
+  <!-- Summary row -->
+  <div class="payments-summary">
+    <div class="card kpi-card" style="animation-delay:.06s">
+      <div class="kpi-label">Total Invoices</div>
+      <div class="kpi-value" style="margin-top:8px">{{ payments.length }}</div>
+    </div>
+    <div class="card kpi-card" style="animation-delay:.10s">
+      <div class="kpi-label">Total Paid</div>
+      <div class="kpi-value" style="margin-top:8px;color:var(--jade)">${{ totalPaid | number }}</div>
+    </div>
+    <div class="card kpi-card" style="animation-delay:.14s">
+      <div class="kpi-label">Pending</div>
+      <div class="kpi-value" style="margin-top:8px;color:#FBBF24">${{ totalPending | number }}</div>
+    </div>
+    <div class="card kpi-card" style="animation-delay:.18s">
+      <div class="kpi-label">Creators Paid</div>
+      <div class="kpi-value" style="margin-top:8px">{{ paidPaymentsCount }}</div>
+    </div>
+  </div>
+
+  <div class="filter-tabs">
+    <button *ngFor="let f of filters" class="ftab" [ngClass]="filter === f ? 'ftab--active' : ''" (click)="filter = f">
+      {{ f === 'all' ? 'All' : (f | titlecase) }}
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="loading-wrap"><div class="spinner"></div></div>
+
+  <div *ngIf="!loading" class="card table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Invoice #</th>
+          <th>Creator</th>
+          <th>Amount</th>
+          <th>Status</th>
+          <th>Due Date</th>
+          <th>Paid At</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of filtered; let i = index" [ngStyle]="{ 'animation-delay': (i * 0.04) + 's' }">
+          <td><span class="invoice-number">{{ p.invoiceNumber }}</span></td>
+          <td>
+            <div *ngIf="p.creator" class="creator-cell">
+              <div class="creator-cell__av" style="background:linear-gradient(135deg,#FBBF24,#D97706)">
+                {{ (p.creator.firstName?.[0] || '') + (p.creator.lastName?.[0] || '') }}
+              </div>
+              <div>
+                <div class="creator-cell__name">{{ p.creator.firstName }} {{ p.creator.lastName }}</div>
+                <div class="creator-cell__mail">{{ p.creator.email }}</div>
+              </div>
+            </div>
+            <span *ngIf="!p.creator" class="cell-muted">—</span>
+          </td>
+          <td>
+            <span class="amount-cell">${{ p.amount | number }}</span>
+            <span class="currency-badge">{{ p.currency }}</span>
+          </td>
+          <td>
+            <div class="chip" [ngClass]="'chip--' + p.status">
+              <span class="chip-dot"></span>{{ p.status }}
+            </div>
+          </td>
+          <td class="cell-muted">{{ p.dueDate ? (p.dueDate | date:'MMM d, y') : '—' }}</td>
+          <td class="cell-muted">{{ p.paidAt ? (p.paidAt | date:'MMM d, y') : '—' }}</td>
+          <td>
+            <div style="display:flex;gap:6px;align-items:center">
+              <select class="status-select" [(ngModel)]="p.status" (change)="updateStatus(p)" title="select">
+                <option *ngFor="let s of statuses" [value]="s">{{ s }}</option>
+              </select>
+              <button class="btn-icon btn-icon--danger" (click)="delete(p)" title="btn">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6"/></svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="!filtered.length">
+          <td colspan="7" class="empty-row">No payments found.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal -->
+  <div *ngIf="modal" class="modal-backdrop" (click)="modal = false">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-hd">
+        <div class="modal-title">Create Invoice</div>
+        <button class="modal-close" (click)="modal = false" title="btn">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="form-group">
+        <div class="form-field">
+          <label class="form-label">Creator ID *</label>
+          <input class="form-input" [(ngModel)]="form.creator" placeholder="MongoDB user ID"/>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <label class="form-label">Amount ($) *</label>
+            <input class="form-input" type="number" [(ngModel)]="form.amount" placeholder="2500"/>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Currency</label>
+            <input class="form-input" [(ngModel)]="form.currency" placeholder="USD"/>
+          </div>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Due Date</label>
+          <input class="form-input" type="date" [(ngModel)]="form.dueDate" title="input"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Notes</label>
+          <textarea class="form-input" [(ngModel)]="form.notes" placeholder="Payment for Summer Vibes campaign…" rows="3"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="modal = false">Cancel</button>
+        <button class="btn-primary" (click)="save()" [disabled]="saving">
+          {{ saving ? 'Saving…' : 'Create Invoice' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="toast" class="toast" [ngClass]="toast.type === 'ok' ? 'toast--ok' : 'toast--err'">{{ toast.msg }}</div>
+</div>

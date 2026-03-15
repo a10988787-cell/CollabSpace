@@ -1,0 +1,102 @@
+<div class="bp-page">
+  <div class="bp-hd">
+    <div class="bp-hd__left">
+      <div class="bp-eyebrow"><span class="bp-eyebrow-dot"></span>Team Management</div>
+      <div class="bp-title">Brand Team</div>
+      <div class="bp-sub">Manage your marketing managers, campaign managers and content strategists</div>
+    </div>
+    <div class="bp-hd__right">
+      <button class="btn-primary" (click)="openModal()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+        </svg>
+        Add Member
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading-wrap"><div class="spinner"></div></div>
+
+  <div *ngIf="!loading && team.length" class="team-grid">
+    <div *ngFor="let m of team; let i = index" class="card team-card" [ngStyle]="{ 'animation-delay': (i * 0.07) + 's' }">
+      <div class="team-card__avatar">{{ initials(m.name) }}</div>
+      <div class="team-card__name">{{ m.name }}</div>
+      <div class="team-card__role"><div class="chip chip--pending">{{ m.role }}</div></div>
+      <div class="team-card__email">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+        </svg>
+        {{ m.email }}
+      </div>
+      <div class="team-card__phone" *ngIf="m.phone">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+        </svg>
+        {{ m.phone }}
+      </div>
+      <div class="team-card__actions">
+        <button class="btn-secondary" style="flex:1;justify-content:center" (click)="openModal(m)">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+          </svg>
+          Edit
+        </button>
+        <button class="btn-danger" style="flex:1;justify-content:center" (click)="remove(m)">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6"/>
+          </svg>
+          Remove
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && !team.length" class="card empty-state">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+    </svg>
+    <div class="empty-title">No team members yet</div>
+    <div class="empty-sub">Add your marketing managers, campaign managers and content strategists</div>
+    <button class="btn-primary" (click)="openModal()">Add First Member</button>
+  </div>
+
+  <!-- Modal -->
+  <div *ngIf="modal" class="modal-backdrop" (click)="modal = false">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-hd">
+        <div class="modal-title">{{ editing ? 'Edit Member' : 'Add Team Member' }}</div>
+        <button class="modal-close" (click)="modal = false" title="btn">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="form-group">
+        <div class="form-field">
+          <label class="form-label">Full Name *</label>
+          <input class="form-input" [(ngModel)]="form.name" placeholder="Jane Smith"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Email *</label>
+          <input class="form-input" type="email" [(ngModel)]="form.email" placeholder="jane@brand.com"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Role</label>
+          <select class="form-input" [(ngModel)]="form.role" title="select">
+            <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Phone</label>
+          <input class="form-input" [(ngModel)]="form.phone" placeholder="+1 (555) 000-0000"/>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="modal = false">Cancel</button>
+        <button class="btn-primary" (click)="save()" [disabled]="saving">
+          {{ saving ? 'Saving…' : (editing ? 'Update Member' : 'Add Member') }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="toast" class="toast" [ngClass]="toast.type === 'ok' ? 'toast--ok' : 'toast--err'">{{ toast.msg }}</div>
+</div>

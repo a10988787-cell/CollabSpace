@@ -1,0 +1,63 @@
+@import '../brand-shared.css';
+
+/* ── Team Page ──────────────────────────────────────────────────────────── */
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.team-card {
+  padding: 22px;
+  transition: all 230ms ease;
+  animation: scaleIn .4s var(--ou) both;
+  cursor: default;
+}
+.team-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(251,191,36,.3);
+  box-shadow: 0 10px 32px rgba(251,191,36,.1);
+}
+
+.team-card__avatar {
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+  background: var(--g-acc);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .95rem;
+  font-weight: 800;
+  color: #0A0800;
+  margin-bottom: 14px;
+  border: 2px solid rgba(251,191,36,.28);
+  transition: transform 250ms var(--sp), border-color 200ms;
+  box-shadow: 0 4px 14px rgba(251,191,36,.18);
+}
+.team-card:hover .team-card__avatar { transform: scale(1.07); border-color: rgba(251,191,36,.55); }
+
+.team-card__name  { font-family: var(--fd); font-size: .95rem; font-weight: 700; color: var(--t1); margin-bottom: 6px; }
+.team-card__role  { margin-bottom: 10px; }
+.team-card__email {
+  font-size: .73rem;
+  color: var(--t2);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 4px;
+}
+.team-card__email svg  { width: 12px; height: 12px; flex-shrink: 0; color: var(--t3); }
+.team-card__phone      { font-size: .72rem; color: var(--t3); margin-bottom: 14px; display: flex; align-items: center; gap: 5px; }
+.team-card__phone svg  { width: 12px; height: 12px; flex-shrink: 0; }
+
+.team-card__actions {
+  display: flex;
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--bdr);
+}
+
+@media (max-width: 1280px) { .team-grid { grid-template-columns: repeat(2,1fr); } }
+@media (max-width: 640px)  { .team-grid { grid-template-columns: 1fr; } }

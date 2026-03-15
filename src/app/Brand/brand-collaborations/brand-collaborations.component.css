@@ -1,0 +1,34 @@
+@import '../brand-shared.css';
+
+/* ── Collaborations Page ────────────────────────────────────────────────── */
+.collab-table-wrap { animation: fadeUp .4s var(--ou) both; }
+
+.status-select {
+  padding: 4px 8px;
+  background: var(--bg-c2);
+  border: 1px solid var(--bdr);
+  border-radius: var(--r-md);
+  color: var(--t1);
+  font-size: .72rem;
+  cursor: pointer;
+  outline: none;
+  font-family: var(--fb);
+  transition: border-color 180ms;
+}
+.status-select:hover  { border-color: rgba(251,191,36,.3); }
+.status-select:focus  { border-color: rgba(251,191,36,.5); }
+.status-select option { background: var(--bg-c); }
+
+.creator-info       { display: flex; align-items: center; gap: 10px; }
+.creator-info__av   { width: 30px; height: 30px; border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; font-size: .63rem; font-weight: 800; color: #fff; flex-shrink: 0; }
+.creator-info__name { font-weight: 600; color: var(--t1); font-size: .8rem; }
+.creator-info__mail { font-size: .65rem; color: var(--t3); margin-top: 1px; }
+
+.deliverables-cell {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--t3);
+  font-size: .75rem;
+}

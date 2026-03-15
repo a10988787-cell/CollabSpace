@@ -1,0 +1,111 @@
+<div class="bp-page">
+  <div class="bp-hd">
+    <div class="bp-hd__left">
+      <div class="bp-eyebrow"><span class="bp-eyebrow-dot"></span>Media Library</div>
+      <div class="bp-title">Brand Assets</div>
+      <div class="bp-sub">Store logos, brand guidelines, product images and promotional videos</div>
+    </div>
+    <div class="bp-hd__right">
+      <button class="btn-primary" (click)="openModal()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+        </svg>
+        Upload Asset
+      </button>
+    </div>
+  </div>
+
+  <div class="bp-toolbar">
+    <div class="filter-tabs">
+      <button *ngFor="let f of typeFilters" class="ftab" [ngClass]="typeFilter === f ? 'ftab--active' : ''" (click)="typeFilter = f">
+        {{ f === 'all' ? 'All' : (f.replace('_', ' ') | titlecase) }}
+      </button>
+    </div>
+    <div class="search-bar">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+      </svg>
+      <input [(ngModel)]="search" placeholder="Search assets…"/>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading-wrap"><div class="spinner"></div></div>
+
+  <div *ngIf="!loading && filtered.length" class="assets-grid">
+    <div *ngFor="let a of filtered; let i = index" class="card asset-card" [ngStyle]="{ 'animation-delay': (i * 0.06) + 's' }">
+      <div class="asset-card__icon" [ngClass]="getIconBgClass(a.type)">
+        {{ getIcon(a.type) }}
+      </div>
+      <div class="asset-card__name">{{ a.name }}</div>
+      <div class="asset-card__type">{{ a.type.replace('_', ' ') }}</div>
+      <a class="asset-card__url" [href]="a.url" target="_blank" (click)="$event.stopPropagation()">
+        {{ a.url.length > 38 ? (a.url.slice(0, 38) + '…') : a.url }}
+      </a>
+      <div class="asset-card__actions">
+        <button class="btn-icon" style="flex:1" title="Edit" (click)="openModal(a)">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+          </svg>
+        </button>
+        <button class="btn-icon btn-icon--danger" style="flex:1" title="Delete" (click)="delete(a)">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && !filtered.length" class="card empty-state">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+    </svg>
+    <div class="empty-title">No assets uploaded</div>
+    <div class="empty-sub">Upload brand logos, guidelines, product images and promo videos</div>
+    <button class="btn-primary" (click)="openModal()">Upload Asset</button>
+  </div>
+
+  <!-- Modal -->
+  <div *ngIf="modal" class="modal-backdrop" (click)="modal = false">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-hd">
+        <div class="modal-title">{{ editing ? 'Edit Asset' : 'Upload Asset' }}</div>
+        <button class="modal-close" (click)="modal = false" title="btn">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="form-group">
+        <div class="form-field">
+          <label class="form-label">Asset Name *</label>
+          <input class="form-input" [(ngModel)]="form.name" placeholder="e.g. Main Brand Logo 2024"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Asset Type</label>
+          <select class="form-input" [(ngModel)]="form.type" title="select">
+            <option value="logo">Logo</option>
+            <option value="guideline">Brand Guideline</option>
+            <option value="product_image">Product Image</option>
+            <option value="promo_video">Promo Video</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Asset URL *</label>
+          <input class="form-input" [(ngModel)]="form.url" placeholder="https://storage.example.com/logo.png"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">MIME Type</label>
+          <input class="form-input" [(ngModel)]="form.mimeType" placeholder="image/png, video/mp4…"/>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="modal = false">Cancel</button>
+        <button class="btn-primary" (click)="save()" [disabled]="saving">
+          {{ saving ? 'Saving…' : (editing ? 'Update' : 'Upload') }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="toast" class="toast" [ngClass]="toast.type === 'ok' ? 'toast--ok' : 'toast--err'">{{ toast.msg }}</div>
+</div>

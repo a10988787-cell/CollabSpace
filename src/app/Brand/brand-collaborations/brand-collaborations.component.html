@@ -1,0 +1,122 @@
+<div class="bp-page">
+  <div class="bp-hd">
+    <div class="bp-hd__left">
+      <div class="bp-eyebrow"><span class="bp-eyebrow-dot"></span>Collaboration Requests</div>
+      <div class="bp-title">Collaborations</div>
+      <div class="bp-sub">Send invites, manage partnership requests and track collaboration status</div>
+    </div>
+    <div class="bp-hd__right">
+      <button class="btn-primary" (click)="openModal()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+        Send Invite
+      </button>
+    </div>
+  </div>
+
+  <div class="filter-tabs">
+    <button *ngFor="let f of filters" class="ftab" [ngClass]="filter === f ? 'ftab--active' : ''" (click)="filter = f">
+      {{ f | titlecase }}
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="loading-wrap"><div class="spinner"></div></div>
+
+  <div *ngIf="!loading" class="card table-wrap collab-table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Creator</th>
+          <th>Campaign</th>
+          <th>Amount</th>
+          <th>Status</th>
+          <th>Deliverables</th>
+          <th>Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let c of filtered; let i = index" [ngStyle]="{ 'animation-delay': (i * 0.04) + 's' }">
+          <td>
+            <div class="creator-info">
+              <div class="creator-info__av" [ngStyle]="{ background: getAvatarGrad(c.creator?.firstName) }">
+                {{ getInit(c.creator) }}
+              </div>
+              <div>
+                <div class="creator-info__name">{{ c.creator?.firstName }} {{ c.creator?.lastName }}</div>
+                <div class="creator-info__mail">{{ c.creator?.email }}</div>
+              </div>
+            </div>
+          </td>
+          <td class="cell-muted">{{ c.campaign?.title || '—' }}</td>
+          <td class="cell-amount">${{ c.amount | number }}</td>
+          <td>
+            <div class="chip" [ngClass]="'chip--' + c.status">
+              <span class="chip-dot"></span>{{ c.status }}
+            </div>
+          </td>
+          <td class="deliverables-cell">{{ c.deliverables || '—' }}</td>
+          <td class="cell-muted">{{ c.createdAt | date:'MMM d, y' }}</td>
+          <td>
+            <div style="display:flex;gap:6px;align-items:center">
+              <select class="status-select" [(ngModel)]="c.status" (change)="updateStatus(c)" title="select">
+                <option *ngFor="let s of statuses" [value]="s">{{ s }}</option>
+              </select>
+              <button class="btn-icon btn-icon--danger" (click)="delete(c)" title="btn">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="!filtered.length">
+          <td colspan="7" class="empty-row">No collaborations found.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Create Modal -->
+  <div *ngIf="modal" class="modal-backdrop" (click)="modal = false">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-hd">
+        <div class="modal-title">Send Collaboration Invite</div>
+        <button class="modal-close" (click)="modal = false" title="btn">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="form-group">
+        <div class="form-field">
+          <label class="form-label">Creator ID (MongoDB ID)</label>
+          <input class="form-input" [(ngModel)]="form.creator" placeholder="Paste creator user ID"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Deliverables</label>
+          <textarea class="form-input" [(ngModel)]="form.deliverables" placeholder="3 Instagram posts, 1 reel…" rows="3"></textarea>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Payment Terms</label>
+          <textarea class="form-input" [(ngModel)]="form.paymentTerms" placeholder="50% upfront, 50% on delivery…" rows="2"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <label class="form-label">Amount ($)</label>
+            <input class="form-input" type="number" [(ngModel)]="form.amount" placeholder="2500"/>
+          </div>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Message to Creator</label>
+          <textarea class="form-input" [(ngModel)]="form.message" placeholder="Hi! We'd love to work with you on…" rows="3"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="modal = false">Cancel</button>
+        <button class="btn-primary" (click)="save()" [disabled]="saving">
+          {{ saving ? 'Sending…' : 'Send Invite' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="toast" class="toast" [ngClass]="toast.type === 'ok' ? 'toast--ok' : 'toast--err'">{{ toast.msg }}</div>
+</div>

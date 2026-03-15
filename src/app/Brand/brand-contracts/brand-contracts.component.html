@@ -1,0 +1,126 @@
+<div class="bp-page">
+  <div class="bp-hd">
+    <div class="bp-hd__left">
+      <div class="bp-eyebrow"><span class="bp-eyebrow-dot"></span>Legal</div>
+      <div class="bp-title">Contracts</div>
+      <div class="bp-sub">Create and manage creator contracts and legal agreements</div>
+    </div>
+    <div class="bp-hd__right">
+      <button class="btn-primary" (click)="openModal()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+        New Contract
+      </button>
+    </div>
+  </div>
+
+  <div class="filter-tabs">
+    <button *ngFor="let f of filters" class="ftab" [ngClass]="filter === f ? 'ftab--active' : ''" (click)="filter = f">
+      {{ f === 'all' ? 'All' : (f | titlecase) }}
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="loading-wrap"><div class="spinner"></div></div>
+
+  <div *ngIf="!loading" class="card table-wrap contracts-table">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Contract</th>
+          <th>Creator</th>
+          <th>Status</th>
+          <th>Signed At</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let c of filtered; let i = index" [ngStyle]="{ 'animation-delay': (i * 0.04) + 's' }">
+          <td>
+            <div class="contract-title-cell">{{ c.title }}</div>
+            <div *ngIf="c.fileUrl" class="contract-file-link">
+              <a [href]="c.fileUrl" target="_blank" (click)="$event.stopPropagation()">View file →</a>
+            </div>
+          </td>
+          <td>
+            <div *ngIf="c.creator" class="creator-cell">
+              <div class="creator-cell__av" style="background:linear-gradient(135deg,#FBBF24,#D97706)">
+                {{ (c.creator.firstName?.[0] || '') + (c.creator.lastName?.[0] || '') }}
+              </div>
+              <span class="creator-cell__name">{{ c.creator.firstName }} {{ c.creator.lastName }}</span>
+            </div>
+            <span *ngIf="!c.creator" class="cell-muted">—</span>
+          </td>
+          <td>
+            <div class="chip" [ngClass]="'chip--' + c.status">
+              <span class="chip-dot"></span>{{ c.status }}
+            </div>
+          </td>
+          <td class="cell-muted">{{ c.signedAt ? (c.signedAt | date:'MMM d, y') : '—' }}</td>
+          <td class="cell-muted">{{ c.createdAt | date:'MMM d, y' }}</td>
+          <td>
+            <div style="display:flex;gap:6px;align-items:center" title="select">
+              <select class="status-select" [(ngModel)]="c.status" (change)="updateStatus(c)" title="select">
+                <option *ngFor="let s of statuses" [value]="s">{{ s }}</option>
+              </select>
+              <button class="btn-icon" (click)="openModal(c)" title="btn">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+              </button>
+              <button class="btn-icon btn-icon--danger" (click)="delete(c)" title="btn">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6"/></svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="!filtered.length">
+          <td colspan="6" class="empty-row">No contracts found.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal -->
+  <div *ngIf="modal" class="modal-backdrop" (click)="modal = false">
+    <div class="modal-box modal-box--lg" (click)="$event.stopPropagation()">
+      <div class="modal-hd">
+        <div class="modal-title">{{ editing ? 'Edit Contract' : 'New Contract' }}</div>
+        <button class="modal-close" (click)="modal = false" title="btn">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="form-group">
+        <div class="form-field">
+          <label class="form-label">Contract Title *</label>
+          <input class="form-input" [(ngModel)]="form.title" placeholder="e.g. Summer Campaign Agreement"/>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <label class="form-label">Creator ID</label>
+            <input class="form-input" [(ngModel)]="form.creator" placeholder="MongoDB user ID"/>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Status</label>
+            <select class="form-input" [(ngModel)]="form.status" title="select">
+              <option *ngFor="let s of statuses" [value]="s">{{ s }}</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-field">
+          <label class="form-label">File URL</label>
+          <input class="form-input" [(ngModel)]="form.fileUrl" placeholder="https://storage.example.com/contract.pdf"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Contract Content</label>
+          <textarea class="form-input" [(ngModel)]="form.content" placeholder="Contract terms and conditions…" rows="6"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="modal = false">Cancel</button>
+        <button class="btn-primary" (click)="save()" [disabled]="saving">
+          {{ saving ? 'Saving…' : (editing ? 'Update Contract' : 'Create Contract') }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="toast" class="toast" [ngClass]="toast.type === 'ok' ? 'toast--ok' : 'toast--err'">{{ toast.msg }}</div>
+</div>

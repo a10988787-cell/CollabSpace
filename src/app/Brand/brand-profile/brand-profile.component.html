@@ -1,0 +1,142 @@
+<div class="bp-page">
+  <div class="bp-hd">
+    <div class="bp-hd__left">
+      <div class="bp-eyebrow"><span class="bp-eyebrow-dot"></span>Brand Management</div>
+      <div class="bp-title">Brand Profile</div>
+      <div class="bp-sub">Manage your brand identity, contact info and social presence</div>
+    </div>
+    <div class="bp-hd__right">
+      <button class="btn-primary" (click)="save()" [disabled]="saving">
+        <svg *ngIf="!saving" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+        </svg>
+        <svg *ngIf="saving" class="icon-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        </svg>
+        {{ saving ? 'Saving…' : 'Save Profile' }}
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading-wrap"><div class="spinner"></div></div>
+
+  <div *ngIf="!loading" class="profile-grid">
+
+    <!-- Logo + Quick Info -->
+    <div class="card profile-logo-card">
+      <div class="profile-logo">{{ initials }}</div>
+      <div class="profile-name">{{ profile.brandName || 'Your Brand' }}</div>
+      <div class="chip chip--pending">{{ profile.industry || 'Industry' }}</div>
+      <div class="profile-since">Member since {{ createdAt }}</div>
+    </div>
+
+    <!-- Forms -->
+    <div class="profile-form-stack">
+
+      <!-- Brand Info -->
+      <div class="card card-p">
+        <div class="section-title">Brand Information</div>
+        <div class="form-group">
+          <div class="form-row">
+            <div class="form-field">
+              <label class="form-label">Brand Name *</label>
+              <input class="form-input" [(ngModel)]="profile.brandName" placeholder="e.g. LuxeWear"/>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Industry</label>
+              <select class="form-input" [(ngModel)]="profile.industry" title="select">
+                <option value="">Select industry…</option>
+                <option *ngFor="let i of industries" [value]="i">{{ i }}</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Brand Website</label>
+            <input class="form-input" [(ngModel)]="profile.website" placeholder="https://yourbrand.com"/>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Brand Description</label>
+            <textarea class="form-input" [(ngModel)]="profile.description" placeholder="Tell creators about your brand…" rows="4"></textarea>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Logo URL</label>
+            <input class="form-input" [(ngModel)]="profile.logo" placeholder="https://example.com/logo.png"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact Person -->
+      <div class="card card-p">
+        <div class="section-title">Contact Person</div>
+        <div class="form-group">
+          <div class="form-row">
+            <div class="form-field">
+              <label class="form-label">Contact Name</label>
+              <input class="form-input" [(ngModel)]="profile.contactName" placeholder="Full name"/>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Contact Email</label>
+              <input class="form-input" type="email" [(ngModel)]="profile.contactEmail" placeholder="contact@brand.com"/>
+            </div>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Contact Phone</label>
+            <input class="form-input" [(ngModel)]="profile.contactPhone" placeholder="+1 (555) 000-0000"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Social Links -->
+      <div class="card card-p">
+        <div class="section-title">Social Media Links</div>
+        <div class="social-grid">
+          <div class="social-field">
+            <label class="form-label">Instagram</label>
+            <div class="social-input-wrap">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" style="color:#E1306C">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/>
+              </svg>
+              <input [(ngModel)]="profile.socialLinks.instagram" placeholder="@yourbrand"/>
+            </div>
+          </div>
+          <div class="social-field">
+            <label class="form-label">YouTube</label>
+            <div class="social-input-wrap">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" style="color:#FF0000">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 10l-5 3 5 3V10z"/><rect x="2" y="5" width="20" height="14" rx="3"/>
+              </svg>
+              <input [(ngModel)]="profile.socialLinks.youtube" placeholder="youtube.com/c/yourbrand"/>
+            </div>
+          </div>
+          <div class="social-field">
+            <label class="form-label">TikTok</label>
+            <div class="social-input-wrap">
+              <svg fill="currentColor" viewBox="0 0 24 24" style="width:14px;height:14px;color:#69C9D0">
+                <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V9.02a8.16 8.16 0 004.77 1.52V7.1a4.85 4.85 0 01-1-.41z"/>
+              </svg>
+              <input [(ngModel)]="profile.socialLinks.tiktok" placeholder="@yourbrand"/>
+            </div>
+          </div>
+          <div class="social-field">
+            <label class="form-label">Twitter / X</label>
+            <div class="social-input-wrap">
+              <svg fill="currentColor" viewBox="0 0 24 24" style="width:14px;height:14px;color:var(--t2)">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+              </svg>
+              <input [(ngModel)]="profile.socialLinks.twitter" placeholder="@yourbrand"/>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div *ngIf="toast" class="toast" [ngClass]="toast.type==='ok' ? 'toast--ok' : 'toast--err'">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+      <path *ngIf="toast.type==='ok'"  stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      <path *ngIf="toast.type==='err'" stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg>
+    {{ toast.msg }}
+  </div>
+</div>

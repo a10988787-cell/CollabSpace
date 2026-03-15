@@ -1,0 +1,829 @@
+<div class="cs-app">
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       TOP NAVIGATION BAR
+       ═══════════════════════════════════════════════════════════════ -->
+  <header class="top-nav">
+
+    <!-- Brand -->
+    <div class="top-nav__brand">
+      <div class="top-nav__logo">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+        </svg>
+      </div>
+      <span class="top-nav__wordmark">Collab<span>Space</span></span>
+    </div>
+
+    <!-- Navigation Pills -->
+    <nav class="top-nav__menu">
+      <a *ngFor="let item of navItems"
+         class="nav-pill"
+         [ngClass]="activeSection() === item.key ? 'nav-pill--active' : ''"
+         (click)="scrollTo(item.key)">
+        <!-- Dashboard -->
+        <svg *ngIf="item.key==='dashboard'" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+          <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+          <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+          <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+        </svg>
+        <!-- Campaigns -->
+        <svg *ngIf="item.key==='campaigns'" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
+        </svg>
+        <!-- Creators -->
+        <svg *ngIf="item.key==='creators'" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+        <!-- Brands -->
+        <svg *ngIf="item.key==='brands'" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+        </svg>
+        <!-- Content -->
+        <svg *ngIf="item.key==='content'" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/>
+        </svg>
+        <!-- Analytics -->
+        <svg *ngIf="item.key==='analytics'" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+        </svg>
+        {{ item.label }}
+        <span *ngIf="item.badge" class="nav-pill__badge">{{ item.badge }}</span>
+      </a>
+    </nav>
+
+    <!-- Right Actions -->
+    <div class="top-nav__actions">
+      <!-- Search -->
+      <button class="nav-icon-btn" title="btn">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+      </button>
+      <!-- Notifications -->
+      <button class="nav-icon-btn" title="btn">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+        </svg>
+        <span class="nav-icon-btn__dot"></span>
+      </button>
+      <!-- Upgrade -->
+      <button class="btn-upgrade" (click)="onUpgrade()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/>
+        </svg>
+        Upgrade
+      </button>
+      <!-- Avatar -->
+      <div class="nav-avatar">AR</div>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       PAGE CONTENT
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="page-content">
+
+    <!-- ════════════════════════════════════════════════════════════
+         SECTION 1 — DASHBOARD
+         ════════════════════════════════════════════════════════════ -->
+    <section class="page-section section-anchor" id="dashboard">
+
+      <!-- Hero Banner -->
+      <div class="hero-banner">
+        <div class="hero-orb hero-orb--1"></div>
+        <div class="hero-orb hero-orb--2"></div>
+        <div class="hero-orb hero-orb--3"></div>
+
+        <div class="hero-text">
+          <div class="hero-pill">
+            <span class="hero-pill__dot"></span>
+            Creator × Brand Platform
+          </div>
+          <h1 class="hero-title">
+            Where <em>Creators Meet</em><br>Great Brands
+          </h1>
+          <p class="hero-sub">
+            Discover, pitch, and manage brand collaborations — all in one intelligent workspace built for the modern creator economy.
+          </p>
+          <div class="hero-cta">
+            <button class="btn-primary" (click)="onFindCampaigns()">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+              Find Campaigns
+            </button>
+            <button class="btn-ghost" (click)="onViewDemo()">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <polygon fill="currentColor" points="5,3 19,12 5,21"/>
+              </svg>
+              Watch Demo
+            </button>
+          </div>
+        </div>
+
+        <div class="hero-stats">
+          <div *ngFor="let stat of heroStats" class="hero-stat-card">
+            <div class="hero-stat-card__label">{{ stat.label }}</div>
+            <div class="hero-stat-card__val">{{ stat.value }}</div>
+            <div class="hero-stat-card__change"
+              [ngClass]="stat.positive ? 'hero-stat-card__change--up' : 'hero-stat-card__change--down'">
+              <svg *ngIf="stat.positive" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+              </svg>
+              <svg *ngIf="!stat.positive" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+              </svg>
+              {{ stat.change }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPI Metrics -->
+      <div class="kpi-grid">
+        <div *ngFor="let kpi of kpiMetrics" class="kpi-card">
+          <div class="kpi-card__top">
+            <span class="kpi-card__label">{{ kpi.label }}</span>
+            <div class="kpi-icon" [ngStyle]="{ background: kpi.iconBg }">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" [ngStyle]="{ color: kpi.iconColor }">
+                <path *ngIf="kpi.key==='revenue'" stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                <path *ngIf="kpi.key==='campaigns'" stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
+                <path *ngIf="kpi.key==='creators'" stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path *ngIf="kpi.key==='brands'" stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+              </svg>
+            </div>
+          </div>
+          <div class="kpi-card__val">{{ kpi.value }}</div>
+          <div class="kpi-card__bottom">
+            <span class="kpi-chip" [ngClass]="kpi.positive ? 'kpi-chip--up' : 'kpi-chip--down'">
+              {{ kpi.change }}
+            </span>
+            <span class="kpi-card__period">vs last month</span>
+          </div>
+          <div class="kpi-spark">
+            <div *ngFor="let h of kpi.spark; let i = index"
+              class="kpi-spark__bar"
+              [ngStyle]="{ height: h + '%', background: kpi.sparkColor, 'animation-delay': (i * 0.05) + 's' }">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart Row -->
+      <div class="chart-row">
+        <div class="chart-card">
+          <div class="chart-hd">
+            <div>
+              <div class="chart-title">Revenue &amp; Engagement</div>
+              <div class="chart-sub">Creator earnings vs brand spend over time</div>
+            </div>
+            <div class="range-tabs">
+              <button *ngFor="let r of chartRanges"
+                class="range-tab"
+                [ngClass]="chartRange() === r ? 'range-tab--active' : ''"
+                (click)="setRange(r)">{{ r }}</button>
+            </div>
+          </div>
+          <div class="chart-legend">
+            <div *ngFor="let lg of chartLegend" class="legend-item">
+              <div class="legend-dot" [ngStyle]="{ background: lg.color }"></div>{{ lg.label }}
+            </div>
+          </div>
+          <div class="chart-svg">
+            <svg viewBox="0 0 640 200" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="violetBar" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#8B5CF6" stop-opacity="0.75"/>
+                  <stop offset="100%" stop-color="#6D28D9" stop-opacity="0.25"/>
+                </linearGradient>
+                <linearGradient id="amberArea" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#FBBF24" stop-opacity="0.2"/>
+                  <stop offset="100%" stop-color="#FBBF24" stop-opacity="0"/>
+                </linearGradient>
+                <linearGradient id="jadeArea" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#34D399" stop-opacity="0.18"/>
+                  <stop offset="100%" stop-color="#34D399" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <line *ngFor="let y of gridY" [attr.x1]="40" [attr.y1]="y" [attr.x2]="620" [attr.y2]="y"
+                stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+              <text *ngFor="let yl of yLabels" [attr.x]="34" [attr.y]="yl.y" text-anchor="end"
+                fill="rgba(155,153,184,0.5)" font-size="10" font-family="DM Sans,sans-serif">{{ yl.label }}</text>
+              <rect *ngFor="let bar of chartBars"
+                [attr.x]="bar.x" [attr.y]="bar.y" [attr.width]="bar.w" [attr.height]="bar.h"
+                rx="4" fill="url(#violetBar)"/>
+              <path [attr.d]="lineAreaPath1" fill="url(#amberArea)"/>
+              <path [attr.d]="linePath1" fill="none" stroke="#FBBF24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path [attr.d]="lineAreaPath2" fill="url(#jadeArea)"/>
+              <path [attr.d]="linePath2" fill="none" stroke="#34D399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="6 3"/>
+              <circle *ngFor="let d of lineDots1" [attr.cx]="d.x" [attr.cy]="d.y" r="4" fill="#FBBF24" stroke="#0A0B0F" stroke-width="2.5"/>
+              <text *ngFor="let xl of xLabels" [attr.x]="xl.x" y="196" text-anchor="middle"
+                fill="rgba(155,153,184,0.5)" font-size="10" font-family="DM Sans,sans-serif">{{ xl.text }}</text>
+            </svg>
+          </div>
+        </div>
+
+        <div class="donut-card">
+          <div class="chart-title">Deal Types</div>
+          <div class="chart-sub" style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">Campaign category split</div>
+          <div class="donut-wrap">
+            <svg viewBox="0 0 160 160">
+              <circle cx="80" cy="80" r="58" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="20"/>
+              <circle *ngFor="let s of donutSegs" cx="80" cy="80" r="58" fill="none"
+                [attr.stroke]="s.color" stroke-width="20"
+                [attr.stroke-dasharray]="s.dash" [attr.stroke-dashoffset]="s.offset"/>
+            </svg>
+            <div class="donut-center">
+              <div class="donut-center__val">{{ totalDeals }}</div>
+              <div class="donut-center__sub">Total Deals</div>
+            </div>
+          </div>
+          <div class="donut-legend">
+            <div *ngFor="let d of dealTypes" class="donut-row">
+              <div class="donut-dot" [ngStyle]="{ background: d.color }"></div>
+              <div class="donut-name">{{ d.label }}</div>
+              <div class="donut-pct">{{ d.pct }}%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- ════════════════════════════════════════════════════════════
+         SECTION 2 — CAMPAIGNS
+         ════════════════════════════════════════════════════════════ -->
+    <section class="page-section section-anchor" id="campaigns">
+      <div class="section-hd">
+        <div class="section-hd__left">
+          <div class="section-eyebrow">Active Collaborations</div>
+          <div class="section-title">Campaigns</div>
+          <div class="section-sub">Brand partnership opportunities and active deals</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-ghost" (click)="onFilterCampaigns()">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" style="width:15px;height:15px;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+            </svg>
+            Filter
+          </button>
+          <button class="btn-primary" (click)="onNewCampaign()">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5" style="width:15px;height:15px;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+            </svg>
+            New Campaign
+          </button>
+        </div>
+      </div>
+
+      <!-- Campaign cards grid -->
+      <div class="campaigns-grid">
+        <div *ngFor="let c of campaigns; let i = index"
+          class="campaign-card"
+          [ngStyle]="{ 'animation-delay': (i * 0.07) + 's' }"
+          (click)="onCampaignClick(c)">
+          <div class="campaign-card__header">
+            <div>
+              <div class="brand-logo" [ngStyle]="{ background: c.brandGrad }">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+              </div>
+            </div>
+            <div class="chip"
+              [ngClass]="{
+                'chip--active':    c.status === 'active',
+                'chip--pending':   c.status === 'pending',
+                'chip--completed': c.status === 'completed',
+                'chip--draft':     c.status === 'draft'
+              }">
+              <span class="chip__dot"></span>{{ c.status }}
+            </div>
+          </div>
+          <div class="campaign-card__name">{{ c.name }}</div>
+          <div class="campaign-card__brand">{{ c.brand }} · {{ c.niche }}</div>
+          <div style="margin: 14px 0 10px;">
+            <div class="campaign-card__budget">${{ c.budget | number }}<span> budget</span></div>
+          </div>
+          <div class="campaign-card__meta">
+            <div class="meta-item">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+              {{ c.deadline }}
+            </div>
+            <div class="meta-item">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+              {{ c.slots }} slots
+            </div>
+            <div class="meta-item">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/>
+              </svg>
+              {{ c.contentType }}
+            </div>
+          </div>
+          <div class="campaign-card__progress">
+            <div class="progress-label">
+              <span>Filled</span><strong>{{ c.filled }}%</strong>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-bar__fill" [ngStyle]="{ width: c.filled + '%', background: c.brandGrad }"></div>
+            </div>
+          </div>
+          <div class="campaign-card__footer">
+            <div class="creator-avatars">
+              <div *ngFor="let av of c.avatars" class="creator-avatar-sm"
+                [ngStyle]="{ background: av.color }">{{ av.init }}</div>
+              <span class="creator-count">+{{ c.total }} applied</span>
+            </div>
+            <button class="btn-sm btn-sm--violet" (click)="applyToCampaign(c); $event.stopPropagation()">
+              Apply
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Campaigns table -->
+      <div class="table-card">
+        <div class="table-toolbar">
+          <div class="table-toolbar__left">
+            <span class="tbl-title">All Campaigns</span>
+            <span class="tbl-count">{{ allCampaigns.length }}</span>
+          </div>
+          <div class="table-toolbar__right">
+            <div class="search-box">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+              <input type="text" placeholder="Search campaigns…" [(ngModel)]="campaignSearch"/>
+            </div>
+            <button class="btn-sm btn-sm--ghost">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+              </svg>
+              Filter
+            </button>
+            <button class="btn-sm btn-sm--ghost">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+              </svg>
+              Export
+            </button>
+          </div>
+        </div>
+        <div class="filter-bar">
+          <button *ngFor="let f of campaignFilters"
+            class="filter-tab"
+            [ngClass]="campaignFilter() === f.key ? 'filter-tab--active' : ''"
+            (click)="setCampaignFilter(f.key)">
+            {{ f.label }}
+            <span class="filter-tab__count">{{ f.count }}</span>
+          </button>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Campaign</th>
+              <th>Brand</th>
+              <th>Budget</th>
+              <th>Status</th>
+              <th>Progress</th>
+              <th>Deadline</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of filteredCampaignRows; let i = index"
+              [ngStyle]="{ 'animation-delay': (i * 0.04) + 's' }">
+              <td>
+                <div class="thumb-cell">
+                  <div class="thumb" [ngStyle]="{ background: row.brandGrad }">
+                    <svg fill="none" stroke="white" viewBox="0 0 24 24" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <div style="font-weight:600;color:var(--text-primary);font-size:0.82rem;">{{ row.name }}</div>
+                    <div style="font-size:0.7rem;color:var(--text-muted);">{{ row.niche }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>{{ row.brand }}</td>
+              <td><span class="amount-cell">${{ row.budget | number }}</span></td>
+              <td>
+                <div class="chip"
+                  [ngClass]="{
+                    'chip--active':    row.status === 'active',
+                    'chip--pending':   row.status === 'pending',
+                    'chip--completed': row.status === 'completed',
+                    'chip--draft':     row.status === 'draft'
+                  }">
+                  <span class="chip__dot"></span>{{ row.status }}
+                </div>
+              </td>
+              <td>
+                <div class="progress-cell">
+                  <div class="progress-track">
+                    <div class="progress-fill" [ngStyle]="{ width: row.filled + '%', background: row.brandGrad }"></div>
+                  </div>
+                  <span class="progress-pct">{{ row.filled }}%</span>
+                </div>
+              </td>
+              <td style="color:var(--text-muted);">{{ row.deadline }}</td>
+              <td>
+                <div class="row-actions">
+                  <button class="row-action-btn" title="btn">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                  </button>
+                  <button class="row-action-btn" title="btn">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                  </button>
+                  <button class="row-action-btn" title="btn">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"/></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- ════════════════════════════════════════════════════════════
+         SECTION 3 — CREATORS
+         ════════════════════════════════════════════════════════════ -->
+    <section class="page-section section-anchor" id="creators">
+      <div class="section-hd">
+        <div class="section-hd__left">
+          <div class="section-eyebrow">Talent Network</div>
+          <div class="section-title">Creators</div>
+          <div class="section-sub">Discover and manage top creator talent</div>
+        </div>
+        <button class="btn-primary" (click)="onInviteCreator()">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5" style="width:15px;height:15px;">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+          </svg>
+          Invite Creator
+        </button>
+      </div>
+
+      <div class="table-card">
+        <div class="table-toolbar">
+          <div class="table-toolbar__left">
+            <span class="tbl-title">Creator Roster</span>
+            <span class="tbl-count">{{ creators.length }}</span>
+          </div>
+          <div class="table-toolbar__right">
+            <div class="search-box">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+              <input type="text" placeholder="Search creators…" [(ngModel)]="creatorSearch"/>
+            </div>
+            <button class="btn-sm btn-sm--ghost">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+              </svg>
+              Filter
+            </button>
+          </div>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Creator</th>
+              <th>Niche</th>
+              <th>Platform</th>
+              <th>Followers</th>
+              <th>Eng. Rate</th>
+              <th>Avg. Deal</th>
+              <th>Status</th>
+              <th>Rating</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let cr of creators; let i = index"
+              [ngStyle]="{ 'animation-delay': (i * 0.04) + 's' }">
+              <td>
+                <div class="cell-user">
+                  <div class="cell-avatar" [ngStyle]="{ background: cr.avatarGrad }">{{ cr.initials }}</div>
+                  <div>
+                    <div class="cell-name">{{ cr.name }}</div>
+                    <div class="cell-handle">{{ cr.handle }}</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="tag">{{ cr.niche }}</span></td>
+              <td>
+                <div class="cell-platform">
+                  <div class="platform-dot" [ngStyle]="{ background: cr.platformColor }"></div>
+                  <span class="platform-name">{{ cr.platform }}</span>
+                </div>
+              </td>
+              <td style="font-weight:700;color:var(--text-primary);">{{ cr.followers }}</td>
+              <td>
+                <span [ngStyle]="{ color: cr.engRate > 5 ? 'var(--jade-400)' : 'var(--text-secondary)', fontWeight: '700' }">
+                  {{ cr.engRate }}%
+                </span>
+              </td>
+              <td><span class="amount-cell">${{ cr.avgDeal | number }}</span></td>
+              <td>
+                <div class="chip"
+                  [ngClass]="{
+                    'chip--active':  cr.status === 'active',
+                    'chip--live':    cr.status === 'live',
+                    'chip--pending': cr.status === 'pending',
+                    'chip--draft':   cr.status === 'inactive'
+                  }">
+                  <span class="chip__dot"></span>{{ cr.status }}
+                </div>
+              </td>
+              <td>
+                <div class="stars">
+                  <svg *ngFor="let s of getStars(cr.rating)" fill="currentColor" viewBox="0 0 24 24"
+                    [ngStyle]="{ color: s ? '#FBBF24' : 'rgba(255,255,255,0.12)' }">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  </svg>
+                  <span style="font-size:0.7rem;color:var(--text-muted);margin-left:4px;">{{ cr.rating }}</span>
+                </div>
+              </td>
+              <td>
+                <div class="row-actions">
+                  <button class="row-action-btn" title="btn">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                  </button>
+                  <button class="row-action-btn" title="btn">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- ════════════════════════════════════════════════════════════
+         SECTION 4 — BRANDS
+         ════════════════════════════════════════════════════════════ -->
+    <section class="page-section section-anchor" id="brands">
+      <div class="section-hd">
+        <div class="section-hd__left">
+          <div class="section-eyebrow">Brand Partners</div>
+          <div class="section-title">Brands</div>
+          <div class="section-sub">Partner brands available for creator collaborations</div>
+        </div>
+        <button class="btn-primary" (click)="onAddBrand()">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5" style="width:15px;height:15px;">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+          </svg>
+          Add Brand
+        </button>
+      </div>
+
+      <div class="brands-grid">
+        <div *ngFor="let b of brands; let i = index"
+          class="brand-card"
+          [ngStyle]="{ 'animation-delay': (i * 0.06) + 's' }"
+          (click)="onBrandClick(b)">
+          <div class="brand-card__logo" [ngStyle]="{ background: b.gradient }">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+            </svg>
+          </div>
+          <div class="brand-card__name">{{ b.name }}</div>
+          <div class="brand-card__niche">{{ b.niche }}</div>
+          <div class="brand-card__stats">
+            <div class="brand-stat">
+              <div class="brand-stat__val">{{ b.campaigns }}</div>
+              <div class="brand-stat__label">Campaigns</div>
+            </div>
+            <div class="brand-stat">
+              <div class="brand-stat__val">{{ b.spent }}</div>
+              <div class="brand-stat__label">Total Spent</div>
+            </div>
+            <div class="brand-stat">
+              <div class="brand-stat__val">{{ b.creators }}</div>
+              <div class="brand-stat__label">Creators</div>
+            </div>
+          </div>
+          <div class="brand-card__divider"></div>
+          <button class="btn-connect"
+            [ngClass]="b.connected ? 'btn-connect--outline' : 'btn-connect--violet'"
+            (click)="toggleBrandConnect(b); $event.stopPropagation()">
+            {{ b.connected ? 'Connected' : 'Connect' }}
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- ════════════════════════════════════════════════════════════
+         SECTION 5 — CONTENT
+         ════════════════════════════════════════════════════════════ -->
+    <section class="page-section section-anchor" id="content">
+      <div class="section-hd">
+        <div class="section-hd__left">
+          <div class="section-eyebrow">Content Management</div>
+          <div class="section-title">Content Library</div>
+          <div class="section-sub">Manage posts, videos, and sponsored content</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <div class="search-box" style="border-color:var(--border-subtle);">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <input type="text" placeholder="Search content…" [(ngModel)]="contentSearch"/>
+          </div>
+          <button class="btn-primary" (click)="onUploadContent()">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5" style="width:15px;height:15px;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+            </svg>
+            Upload
+          </button>
+        </div>
+      </div>
+
+      <!-- Content type filter -->
+      <div class="filter-bar" style="border:1px solid var(--border-subtle);border-radius:var(--r-xl);margin-bottom:16px;background:var(--bg-card);">
+        <button *ngFor="let ct of contentTypes"
+          class="filter-tab"
+          [ngClass]="contentFilter() === ct.key ? 'filter-tab--active' : ''"
+          (click)="setContentFilter(ct.key)">
+          {{ ct.label }}<span class="filter-tab__count">{{ ct.count }}</span>
+        </button>
+      </div>
+
+      <div class="content-masonry">
+        <div *ngFor="let item of filteredContent; let i = index"
+          class="content-item"
+          [ngStyle]="{ 'animation-delay': (i * 0.05) + 's' }">
+          <div class="content-item__thumb" [ngStyle]="{ background: item.gradient }">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"
+              style="color:rgba(255,255,255,0.4)">
+              <path *ngIf="item.type==='video'" stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.26a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+              <path *ngIf="item.type==='photo'" stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              <path *ngIf="item.type==='story'" stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+              <path *ngIf="item.type==='reel'" stroke-linecap="round" stroke-linejoin="round" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/>
+            </svg>
+            <div class="content-item__overlay">
+              <div class="content-item__overlay-text">{{ item.title }}</div>
+            </div>
+            <div *ngIf="item.type==='video' || item.type==='reel'" class="content-item__play">
+              <div class="play-btn">
+                <svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+              </div>
+            </div>
+          </div>
+          <div class="content-item__body">
+            <div class="content-item__title">{{ item.title }}</div>
+            <div class="content-item__meta">
+              <span class="content-item__type-badge"
+                [ngStyle]="{ background: item.badgeBg, color: item.badgeColor }">
+                {{ item.type }}
+              </span>
+              <div class="content-item__stats">
+                <div class="content-stat">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                  </svg>
+                  {{ item.views }}
+                </div>
+                <div class="content-stat">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                  </svg>
+                  {{ item.likes }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- ════════════════════════════════════════════════════════════
+         SECTION 6 — ANALYTICS
+         ════════════════════════════════════════════════════════════ -->
+    <section class="page-section section-anchor" id="analytics">
+      <div class="section-hd">
+        <div class="section-hd__left">
+          <div class="section-eyebrow">Performance Insights</div>
+          <div class="section-title">Analytics</div>
+          <div class="section-sub">Deep-dive into your collaboration performance</div>
+        </div>
+        <button class="btn-ghost" (click)="onExportReport()">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" style="width:15px;height:15px;">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+          </svg>
+          Export Report
+        </button>
+      </div>
+
+      <div class="analytics-grid">
+        <div *ngFor="let a of analyticsCards" class="analytics-mini">
+          <div class="analytics-mini__hd">
+            <div class="analytics-mini__title">{{ a.title }}</div>
+            <div class="analytics-mini__trend" [ngClass]="a.positive ? 'analytics-mini__trend--up' : 'analytics-mini__trend--down'">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                <path *ngIf="a.positive" stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+                <path *ngIf="!a.positive" stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+              </svg>
+              {{ a.change }}
+            </div>
+          </div>
+          <div class="analytics-mini__chart">
+            <svg viewBox="0 0 200 70" preserveAspectRatio="none">
+              <defs>
+                <linearGradient [attr.id]="'ag' + a.key" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" [attr.stop-color]="a.color" stop-opacity="0.25"/>
+                  <stop offset="100%" [attr.stop-color]="a.color" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <path [attr.d]="a.areaPath" [attr.fill]="'url(#ag' + a.key + ')'"/>
+              <path [attr.d]="a.linePath" fill="none" [attr.stroke]="a.color" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="analytics-mini__val">{{ a.value }}</div>
+          <div class="analytics-mini__label">{{ a.label }}</div>
+        </div>
+      </div>
+
+      <!-- Analytics full table -->
+      <div class="table-card">
+        <div class="table-toolbar">
+          <div class="table-toolbar__left">
+            <span class="tbl-title">Campaign Performance</span>
+            <span class="tbl-count">{{ analyticsRows.length }}</span>
+          </div>
+          <div class="table-toolbar__right">
+            <button class="btn-sm btn-sm--ghost">Last 30 days</button>
+            <button class="btn-sm btn-sm--ghost">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+              </svg>
+              Export
+            </button>
+          </div>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Campaign</th>
+              <th>Creator</th>
+              <th>Impressions</th>
+              <th>Clicks</th>
+              <th>CTR</th>
+              <th>Conversions</th>
+              <th>Revenue</th>
+              <th>ROI</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of analyticsRows; let i = index"
+              [ngStyle]="{ 'animation-delay': (i * 0.04) + 's' }">
+              <td style="font-weight:600;color:var(--text-primary);">{{ row.campaign }}</td>
+              <td>
+                <div class="cell-user">
+                  <div class="cell-avatar" [ngStyle]="{ background: row.avatarGrad, width:'28px', height:'28px', fontSize:'0.62rem' }">{{ row.initials }}</div>
+                  <span>{{ row.creator }}</span>
+                </div>
+              </td>
+              <td>{{ row.impressions }}</td>
+              <td>{{ row.clicks }}</td>
+              <td>
+                <span [ngStyle]="{ color: parseFloat(row.ctr) > 3 ? 'var(--jade-400)' : 'var(--text-secondary)', fontWeight:'700' }">
+                  {{ row.ctr }}
+                </span>
+              </td>
+              <td>{{ row.conversions }}</td>
+              <td><span class="amount-cell">${{ row.revenue | number }}</span></td>
+              <td>
+                <span class="kpi-chip"
+                  [ngClass]="row.roiPositive ? 'kpi-chip--up' : 'kpi-chip--down'">
+                  {{ row.roi }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+</div>
