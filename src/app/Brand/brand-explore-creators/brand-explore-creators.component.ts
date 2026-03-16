@@ -106,7 +106,7 @@ export class BrandExploreCreatorsComponent implements OnInit {
   sendInvite(): void {
     if (!this.selCreator) return;
     this.inviting = true;
-    this.svc.sendCreatorInvite(this.selCreator._id, {
+    this.svc.sendCreatorInvite(this.selCreator.id || this.selCreator._id, {
       campaignId:        this.inviteForm.campaignId || undefined,
       invitationMessage: this.inviteForm.invitationMessage,
       proposedAmount:    this.inviteForm.proposedAmount,

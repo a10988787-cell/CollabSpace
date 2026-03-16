@@ -11,7 +11,7 @@
     <div class="cr-hd__right">
       <div class="cr-filter">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/></svg>
-        <select [(ngModel)]="filterStatus" (change)="load()" title="select">
+        <select [(ngModel)]="filterStatus" (change)="load()">
           <option value="">All Status</option>
           <option value="submitted">Under Review</option>
           <option value="approved">Approved</option>
@@ -95,13 +95,13 @@
       <!-- Paid banner -->
       <div class="cr-paid-banner" *ngIf="post.isPaid">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
-        Paid ${{post.paymentAmount | number}} · {{formatDate(post.paidAt)}}
+        Paid ${{post.paymentAmount | number}} · {{fmtDate(post.paidAt)}}
       </div>
 
       <!-- Meta -->
       <div class="cr-meta">
-        <span>Submitted {{formatDate(post.submittedAt)}}</span>
-        <span *ngIf="post.approvedAt">Approved {{formatDate(post.approvedAt)}}</span>
+        <span>Submitted {{fmtDate(post.submittedAt)}}</span>
+        <span *ngIf="post.approvedAt">Approved {{fmtDate(post.approvedAt)}}</span>
       </div>
 
       <!-- Actions -->
@@ -126,7 +126,7 @@
     <div class="cr-modal" (click)="$event.stopPropagation()">
       <div class="cr-modal__head">
         <div class="cr-modal__title">Review Content</div>
-        <button class="cr-modal__close" (click)="showModal=false" title="btn">
+        <button class="cr-modal__close" (click)="showModal=false">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>

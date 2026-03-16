@@ -1,96 +1,178 @@
-<div class="pg">
-  <div class="ph">
-    <div><div class="ph-title">Collab Posts</div><div class="ph-sub">Create and submit content for your active collaborations</div></div>
-    <button class="btn btn-primary" (click)="openNew()"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>New Post</button>
-  </div>
+<div class="cp-page">
 
-  <!-- Info banner -->
-  <div style="background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.2);border-radius:var(--r-lg);padding:14px 18px;margin-bottom:20px;font-size:.83rem;color:var(--t2);display:flex;align-items:center;gap:10px">
-    <svg fill="none" stroke="#A78BFA" viewBox="0 0 24 24" stroke-width="2" style="width:18px;height:18px;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-    Create posts for accepted collaborations. Submit them for brand review — once approved, you'll receive payment.
-  </div>
-
-  <div *ngIf="loading" style="text-align:center;padding:60px;color:var(--t3)">Loading...</div>
-
-  <div class="grid-2" *ngIf="!loading">
-    <div class="empty" *ngIf="posts.length===0" style="grid-column:1/-1">
-      <div class="empty-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" style="width:28px;height:28px"><path stroke-linecap="round" stroke-linejoin="round" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4"/></svg></div>
-      <h3>No posts yet</h3><p>Accept a collaboration invitation to start creating posts</p>
+  <!-- Header -->
+  <div class="cp-hd">
+    <div>
+      <div class="cp-eyebrow"><span></span>Content</div>
+      <h1 class="cp-title">Collab Posts</h1>
+      <p class="cp-sub">Upload and submit content for your accepted brand collaborations</p>
     </div>
+  </div>
 
-    <div class="card" *ngFor="let p of posts">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px">
+  <!-- ── ACCEPTED APPLICATIONS — pick one to upload content ───────── -->
+  <div class="cp-section-label" *ngIf="!loadingApps">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+    Accepted Campaigns
+  </div>
+
+  <div *ngIf="loadingApps" class="cp-loading"><div class="cp-spin"></div></div>
+
+  <div class="cp-empty-apps" *ngIf="!loadingApps && acceptedApps.length === 0">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M15.182 16.318A4.486 4.486 0 0012.016 15a4.486 4.486 0 00-3.198 1.318M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z"/>
+    </svg>
+    <p>No accepted campaigns yet. Apply to brand campaigns and wait for approval.</p>
+  </div>
+
+  <div class="cp-accepted-grid" *ngIf="!loadingApps && acceptedApps.length > 0">
+    <div class="cp-acc-card" *ngFor="let a of acceptedApps">
+      <div class="cp-acc-left">
+        <div class="cp-acc-av">{{(a.campaign?.title || 'C')[0] | uppercase}}</div>
         <div>
-          <div style="font-weight:700;color:var(--t1);font-size:.95rem">{{p.title}}</div>
-          <div style="font-size:.75rem;color:var(--t3);margin-top:3px;text-transform:capitalize">{{p.contentType}} · {{p.platform}}</div>
+          <div class="cp-acc-title">{{a.campaign?.title || 'Campaign'}}</div>
+          <div class="cp-acc-meta">
+            Accepted ·
+            <span *ngIf="a.campaign?.budget"> ${{a.campaign.budget | number}} budget</span>
+          </div>
         </div>
-        <span class="pill" [ngClass]="statusPill(p.status)" style="text-transform:capitalize;white-space:nowrap">{{p.status?.replace('_',' ')}}</span>
+      </div>
+      <button class="cp-upload-btn" (click)="openNew(a)">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+        Upload Content
+      </button>
+    </div>
+  </div>
+
+  <!-- ── MY POSTS ──────────────────────────────────────────────────── -->
+  <div class="cp-section-label" style="margin-top:28px">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4"/></svg>
+    My Posts
+  </div>
+
+  <div class="cp-loading" *ngIf="loading"><div class="cp-spin"></div> Loading posts…</div>
+
+  <div class="cp-empty" *ngIf="!loading && posts.length === 0">
+    <div class="cp-empty-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4"/></svg></div>
+    <h3>No posts yet</h3>
+    <p>Click "Upload Content" on an accepted campaign above to get started.</p>
+  </div>
+
+  <div class="cp-grid" *ngIf="!loading && posts.length > 0">
+    <div class="cp-card" *ngFor="let p of posts; let i=index" [style.animation-delay]="(i*0.05)+'s'">
+      <div class="cp-ribbon" [class]="statusClass(p.status)">{{statusLabel(p.status)}}</div>
+
+      <div class="cp-media">
+        <img *ngIf="p.mediaUrls?.[0] && p.contentType==='image'" [src]="p.mediaUrls[0]" alt="" (error)="$any($event.target).style.display='none'">
+        <video *ngIf="p.mediaUrls?.[0] && p.contentType==='video'" [src]="p.mediaUrls[0]" preload="none"></video>
+        <div class="cp-media-icon" *ngIf="!p.mediaUrls?.[0]">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        </div>
+        <div class="cp-media-count" *ngIf="p.mediaUrls?.length > 1">+{{p.mediaUrls.length - 1}}</div>
       </div>
 
-      <p style="font-size:.83rem;color:var(--t2);line-height:1.5;margin-bottom:12px">{{p.caption?.slice(0,120)}}{{p.caption?.length>120?'...':''}}</p>
-
-      <!-- Media previews -->
-      <div *ngIf="p.mediaUrls?.length" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
-        <img *ngFor="let url of p.mediaUrls.slice(0,3)" [src]="url" style="width:60px;height:60px;object-fit:cover;border-radius:var(--r-md);border:1px solid var(--bdr)" alt="">
-        <div *ngIf="p.mediaUrls.length>3" style="width:60px;height:60px;border-radius:var(--r-md);background:var(--bg-card2);display:flex;align-items:center;justify-content:center;font-size:.75rem;color:var(--t3)">+{{p.mediaUrls.length-3}}</div>
+      <div class="cp-info">
+        <div class="cp-post-title">{{p.title}}</div>
+        <div class="cp-post-plat">{{p.platform}} · {{p.contentType | titlecase}}</div>
+        <p class="cp-caption" *ngIf="p.caption">{{p.caption | slice:0:80}}{{p.caption?.length > 80 ? '…' : ''}}</p>
+        <div class="cp-brand-notes" *ngIf="p.brandNotes && (p.status==='revision_requested'||p.status==='rejected')">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span>{{p.brandNotes}}</span>
+        </div>
+        <div class="cp-paid-row" *ngIf="p.isPaid">
+          <svg fill="none" stroke="#34D399" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V7m0 1v8m0 0v1"/></svg>
+          Paid ${{p.paymentAmount | number}}
+        </div>
+        <div class="cp-tags" *ngIf="p.hashtags?.length">
+          <span *ngFor="let h of p.hashtags.slice(0,4)" class="cp-tag">#{{h}}</span>
+        </div>
       </div>
 
-      <div *ngIf="p.hashtags?.length" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
-        <span *ngFor="let h of p.hashtags.slice(0,4)" style="font-size:.72rem;color:var(--sky);background:rgba(56,189,248,.08);padding:2px 8px;border-radius:var(--r-full)">#{{h}}</span>
-      </div>
-
-      <div *ngIf="p.isPaid" style="background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2);border-radius:var(--r-md);padding:10px;margin-bottom:12px;display:flex;align-items:center;gap:8px">
-        <svg fill="none" stroke="#34D399" viewBox="0 0 24 24" stroke-width="2" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
-        <span style="font-size:.82rem;color:#34D399;font-weight:600">Paid ${{p.paymentAmount|number}}</span>
-      </div>
-
-      <div *ngIf="p.brandNotes && (p.status==='revision_requested'||p.status==='rejected')" style="background:rgba(251,113,133,.08);border:1px solid rgba(251,113,133,.2);border-radius:var(--r-md);padding:10px;margin-bottom:12px">
-        <div style="font-size:.72rem;color:#FB7185;font-weight:700;margin-bottom:4px">Brand Notes</div>
-        <div style="font-size:.8rem;color:var(--t2)">{{p.brandNotes}}</div>
-      </div>
-
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn btn-ghost btn-sm" *ngIf="p.status==='draft'||p.status==='revision_requested'" (click)="openEdit(p)">Edit</button>
-        <button class="btn btn-primary btn-sm" *ngIf="p.status==='draft'||p.status==='revision_requested'" (click)="submit(p._id)">Submit for Review</button>
-        <button class="btn btn-danger btn-sm" *ngIf="p.status==='draft'" (click)="delete(p._id)">Delete</button>
+      <div class="cp-actions">
+        <button class="cp-action-btn submit" *ngIf="p.status==='draft'" (click)="submitPost(p._id)">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+          Submit to Brand
+        </button>
+        <button class="cp-action-btn edit" *ngIf="p.status==='draft'||p.status==='revision_requested'" (click)="openEdit(p)">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+          Edit
+        </button>
+        <button class="cp-action-btn del" *ngIf="p.status==='draft'" (click)="deletePost(p._id)">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        </button>
       </div>
     </div>
   </div>
 
-  <div class="modal-backdrop" *ngIf="showModal" (click)="showModal=false">
-    <div class="modal" style="max-width:580px" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <div class="modal-title">{{editingId?'Edit':'Create'}} Collab Post</div>
-        <button class="modal-close" (click)="showModal=false" title="btn"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+  <!-- ══ UPLOAD MODAL ═════════════════════════════════════════════════ -->
+  <div class="cp-overlay" *ngIf="showModal" (click)="showModal=false">
+    <div class="cp-modal" (click)="$event.stopPropagation()">
+      <div class="cp-modal-head">
+        <div>
+          <div class="cp-modal-eyebrow">{{editingId ? 'Edit Post' : 'Upload Content'}}</div>
+          <div class="cp-modal-title">
+            {{editingId ? 'Update your submission' : 'For: ' + (selApp?.campaign?.title || 'Campaign')}}
+          </div>
+        </div>
+        <button class="cp-modal-x" (click)="showModal=false">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
       </div>
-      <div class="form-group" *ngIf="!editingId"><label class="form-label">Collaboration ID</label><input class="form-input" [(ngModel)]="form.collaborationId" placeholder="Paste collaboration ID"></div>
-      <div class="form-group"><label class="form-label">Post Title</label><input class="form-input" [(ngModel)]="form.title" placeholder="My awesome content"></div>
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">Content Type</label>
-          <select class="form-select" [(ngModel)]="form.contentType" title="select"><option *ngFor="let t of contentTypes" [value]="t" style="text-transform:capitalize">{{t}}</option></select>
+
+      <!-- Media upload zone (for image/video) -->
+      <label class="cp-drop" [class.has-files]="selectedFiles.length > 0" *ngIf="form.contentType !== 'text'">
+        <input type="file" multiple (change)="onFiles($event)" [accept]="form.contentType==='video' ? 'video/*' : 'image/*'" style="display:none">
+        <ng-container *ngIf="selectedFiles.length === 0">
+          <div class="cp-drop-icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+          </div>
+          <span class="cp-drop-main">Click to select {{form.contentType === 'video' ? 'videos' : 'images'}}</span>
+          <span class="cp-drop-sub">Multiple files allowed · Max 100MB each</span>
+        </ng-container>
+        <div class="cp-previews" *ngIf="previews.length > 0">
+          <img *ngFor="let prev of previews" [src]="prev" alt="">
+          <div class="cp-preview-count" *ngIf="previews.length > 1">{{previews.length}} files selected</div>
         </div>
-        <div class="form-group"><label class="form-label">Platform</label>
-          <select class="form-select" [(ngModel)]="form.platform" title="select"><option *ngFor="let p of platforms" [value]="p">{{p}}</option></select>
+      </label>
+
+      <!-- Form fields — NO manual collaborationId input -->
+      <div class="cp-form">
+        <div class="cp-form-row">
+          <div class="cp-field">
+            <label>Content Type</label>
+            <select [(ngModel)]="form.contentType">
+              <option *ngFor="let t of contentTypes" [value]="t">{{t | titlecase}}</option>
+            </select>
+          </div>
+          <div class="cp-field">
+            <label>Platform</label>
+            <select [(ngModel)]="form.platform">
+              <option *ngFor="let p of platforms" [value]="p">{{p}}</option>
+            </select>
+          </div>
+        </div>
+        <div class="cp-field">
+          <label>Post Title *</label>
+          <input [(ngModel)]="form.title" placeholder="e.g. Summer Collection Reel">
+        </div>
+        <div class="cp-field">
+          <label>Caption</label>
+          <textarea [(ngModel)]="form.caption" rows="3" placeholder="Write your post caption…"></textarea>
+        </div>
+        <div class="cp-field">
+          <label>Hashtags (comma separated)</label>
+          <input [(ngModel)]="form.hashtags" placeholder="#fashion, #summer, #collab">
         </div>
       </div>
-      <div class="form-group"><label class="form-label">Caption</label><textarea class="form-textarea" [(ngModel)]="form.caption" rows="4" placeholder="Write your post caption..."></textarea></div>
-      <div class="form-group"><label class="form-label">Hashtags (comma separated)</label><input class="form-input" [(ngModel)]="form.hashtags" placeholder="#fashion, #collab, #ad"></div>
-      <div class="form-group" *ngIf="form.contentType!=='text'">
-        <label class="form-label">Media Files</label>
-        <div class="upload-zone" onclick="document.getElementById('mediaInput').click()">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
-          <p><span>Click to upload</span> or drag and drop</p>
-          <input id="mediaInput" type="file" multiple [accept]="form.contentType==='image'?'image/*':'video/*'" (change)="onFiles($event)" style="display:none">
-        </div>
-        <div *ngIf="previews.length" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
-          <img *ngFor="let p of previews" [src]="p" style="width:70px;height:70px;object-fit:cover;border-radius:var(--r-md)" alt="">
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-ghost" (click)="showModal=false">Cancel</button>
-        <button class="btn btn-primary" (click)="save()" [disabled]="saving">{{saving?'Saving...':'Save Draft'}}</button>
+
+      <div class="cp-modal-foot">
+        <button class="cp-btn-ghost" (click)="showModal=false">Cancel</button>
+        <button class="cp-btn-save" (click)="save()" [disabled]="saving || !form.title.trim()">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+          {{saving ? 'Saving…' : 'Save Draft'}}
+        </button>
       </div>
     </div>
   </div>
-  <div class="toast" *ngIf="toast.show" [class.success]="toast.type==='success'" [class.error]="toast.type==='error'">{{toast.msg}}</div>
+
+  <div class="cp-toast" *ngIf="toast.show" [class.err]="toast.type==='error'">{{toast.msg}}</div>
 </div>

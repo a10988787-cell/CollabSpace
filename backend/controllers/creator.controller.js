@@ -6,8 +6,8 @@ const {
   CollabPost, ContentLibrary, CreatorNotification, PerformanceAnalytics,
   AudienceInsight, RevenueEntry, BrandInvitation, AiSuggestion,
   GrowthMetric, CreatorContract, Message,
-} = require('../models/Creatormodels');
-const { Collaboration } = require('../models/Brandmodels');
+} = require('../models/CreatorModels');
+const { Collaboration } = require('../models/BrandModels');
 
 const ok  = (res, data, status = 200) => res.status(status).json({ success: true, ...data });
 const err = (res, msg, status = 500)  => res.status(status).json({ success: false, message: msg });
@@ -237,9 +237,36 @@ exports.getCollabPosts = async (req, res) => {
 
 exports.createCollabPost = async (req, res) => {
   try {
-    const { collaborationId, title, caption, contentType, hashtags, platform } = req.body;
-    const collab = await Collaboration.findOne({ _id: collaborationId, creator: uid(req), status: 'active' });
-    if (!collab) return err(res, 'Active collaboration not found.', 404);
+    const { collaborationId, applicationId, title, caption, contentType, hashtags, platform } = req.body;
+    let collab = null;
+
+    if (collaborationId && collaborationId.length === 24) {
+      // Direct collaboration ID provided
+      collab = await Collaboration.findOne({ _id: collaborationId, creator: uid(req), status: 'active' });
+    }
+
+    if (!collab && applicationId) {
+      // Look up collaboration via accepted application
+      const { CampaignApplication } = require('../models/CreatorModels');
+      const app = await CampaignApplication.findOne({ _id: applicationId, creator: uid(req), status: 'accepted' })
+        .populate('campaign', 'brand title');
+      if (app) {
+        // Find existing collab or auto-create one
+        collab = await Collaboration.findOne({ creator: uid(req), campaign: app.campaign?._id, status: 'active' });
+        if (!collab && app.campaign?.brand) {
+          collab = await Collaboration.create({
+            brand: app.campaign.brand,
+            creator: uid(req),
+            campaign: app.campaign._id,
+            status: 'active',
+            amount: app.priceQuote || 0,
+            deliverables: app.proposalMessage || '',
+          });
+        }
+      }
+    }
+
+    if (!collab) return err(res, 'No active collaboration found. Make sure your application was accepted.', 404);
 
     const mediaUrls = req.files ? req.files.map(f => `/uploads/assets/${f.filename}`) : (req.body.mediaUrls || []);
 
@@ -614,9 +641,27 @@ exports.respondToInvitation = async (req, res) => {
       `${req.user.firstName} ${action === 'accept' ? 'accepted' : 'declined'} your collaboration invite.`,
       inv._id, 'BrandInvitation'
     );
-    // Update collaboration status if accepted
-    if (action === 'accept' && inv.collaboration) {
-      await Collaboration.findByIdAndUpdate(inv.collaboration, { status: 'active' });
+    // When accepted: ensure an active Collaboration exists so creator can post content
+    if (action === 'accept') {
+      if (inv.collaboration) {
+        await Collaboration.findByIdAndUpdate(inv.collaboration, { status: 'active' });
+      } else {
+        // Auto-create a Collaboration linked to this invitation
+        try {
+          const collab = await Collaboration.create({
+            brand:    inv.brand,
+            creator:  uid(req),
+            campaign: inv.campaign || null,
+            status:   'active',
+            amount:   inv.proposedAmount || 0,
+            deliverables: inv.invitationMessage || '',
+          });
+          inv.collaboration = collab._id;
+          await inv.save();
+        } catch (collabErr) {
+          console.warn('[invite accept] collab create failed:', collabErr.message);
+        }
+      }
     }
     ok(res, { invitation: inv });
   } catch (e) { err(res, e.message); }

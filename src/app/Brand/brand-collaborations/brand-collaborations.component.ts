@@ -1,117 +1,116 @@
-// src/app/brand/brand-collaborations/brand-collaborations.component.ts
+// src/app/Brand/brand-collaborations/brand-collaborations.component.ts
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
-import { CommonModule }  from '@angular/common';
-import { FormsModule }   from '@angular/forms';
-import { RouterLink }    from '@angular/router';
-import { BrandService, CollabStatus }  from '../../services/brand.service';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { BrandService } from '../../services/brand.service';
 
 @Component({
   selector: 'app-brand-collaborations',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './brand-collaborations.component.html',
-  styleUrls:   ['./brand-collaborations.component.css'],
+  styleUrls: ['./brand-collaborations.component.css'],
   encapsulation: ViewEncapsulation.None,
 })
 export class BrandCollaborationsComponent implements OnInit {
 
-  collabs:  any[] = [];
-  loading   = true;
-  saving    = false;
+  // Tabs
+  tab: 'invitations' | 'collaborations' = 'invitations';
 
-  /* ── Three main tabs + All ─────────────────────────────────────────── */
-  activeTab: 'all' | 'pending' | 'accepted' | 'rejected' = 'all';
+  // Invitations sent by brand
+  invitations: any[] = [];
+  loadingInv  = true;
+  filterInvStatus = '';
 
-  readonly tabs = [
-    { key: 'all',      label: 'All',      color: '' },
-    { key: 'pending',  label: 'Pending',  color: 'amber' },
-    { key: 'accepted', label: 'Accepted', color: 'jade'  },
-    { key: 'rejected', label: 'Rejected', color: 'rose'  },
-  ];
+  // Active collaborations
+  collabs: any[] = [];
+  loadingCollabs = true;
+  filterCollabStatus = '';
 
-  /* ── Toast ──────────────────────────────────────────────────────────── */
-  toast: { msg: string; type: 'ok' | 'err' } | null = null;
+  toast: { msg: string; type: 'ok'|'err' } | null = null;
   private tt: any;
 
   constructor(private svc: BrandService) {}
 
-  ngOnInit(): void { this.load(); }
-
-  /* ── Computed list for active tab ───────────────────────────────────── */
-  get filtered(): any[] {
-    return this.activeTab === 'all'
-      ? this.collabs
-      : this.collabs.filter(c => c.status === this.activeTab);
+  ngOnInit(): void {
+    this.loadInvitations();
+    this.loadCollaborations();
   }
 
-  /* ── Count badges per tab ───────────────────────────────────────────── */
-  count(key: string): number {
-    return key === 'all'
-      ? this.collabs.length
-      : this.collabs.filter(c => c.status === key).length;
-  }
-
-  /* ── Load from backend ──────────────────────────────────────────────── */
-  load(): void {
-    this.loading = true;
-    this.svc.getCollaborations().subscribe({
-      next:  r  => { this.collabs = r.collaborations || []; this.loading = false; },
-      error: () => { this.loading = false; },
+  /* ── Invitations ───────────────────────────────────────────────── */
+  loadInvitations(): void {
+    this.loadingInv = true;
+    this.svc.getBrandInvitations(this.filterInvStatus || undefined).subscribe({
+      next: (r: any) => { this.invitations = r.invitations || []; this.loadingInv = false; },
+      error: () => { this.loadingInv = false; },
     });
   }
 
-  /* ── Update status (accept / reject / cancel) ───────────────────────── */
-  setStatus(c: any, status: CollabStatus): void {
-    const prev = c.status;
-    c.status = status;                       // optimistic update
-    this.svc.updateCollaboration(c._id, { status }).subscribe({
-      next:  () => this.showToast(`Status updated to "${status}".`),
-      error: e  => {
-        c.status = prev;                     // revert on error
-        this.showToast(e?.friendlyMessage ?? 'Failed to update.', 'err');
-      },
+  get invCounts() {
+    return {
+      all:      this.invitations.length,
+      pending:  this.invitations.filter(i => i.status === 'pending').length,
+      accepted: this.invitations.filter(i => i.status === 'accepted').length,
+      rejected: this.invitations.filter(i => i.status === 'rejected').length,
+    };
+  }
+
+  /* ── Collaborations ────────────────────────────────────────────── */
+  loadCollaborations(): void {
+    this.loadingCollabs = true;
+    this.svc.getCollaborations(this.filterCollabStatus as any || undefined).subscribe({
+      next: (r: any) => { this.collabs = r.collaborations || []; this.loadingCollabs = false; },
+      error: () => { this.loadingCollabs = false; },
     });
   }
 
-  /* ── Delete / cancel ────────────────────────────────────────────────── */
-  cancel(c: any): void {
+  get collabCounts() {
+    return {
+      all:    this.collabs.length,
+      active: this.collabs.filter(c => c.status === 'active').length,
+      completed: this.collabs.filter(c => c.status === 'completed').length,
+    };
+  }
+
+  cancelCollab(c: any): void {
     if (!confirm('Cancel this collaboration?')) return;
     this.svc.deleteCollaboration(c._id).subscribe({
-      next:  () => { this.load(); this.showToast('Collaboration cancelled.'); },
+      next: () => { this.loadCollaborations(); this.showToast('Collaboration cancelled.'); },
       error: () => this.showToast('Failed to cancel.', 'err'),
     });
   }
 
-  /* ── Helpers ─────────────────────────────────────────────────────────── */
-  initials(c: any): string {
-    if (!c) return '?';
-    return ((c.firstName?.[0] ?? '') + (c.lastName?.[0] ?? '')).toUpperCase() || '?';
+  /* ── Helpers ───────────────────────────────────────────────────── */
+  fmtDate(d: string): string {
+    return d ? new Date(d).toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
   }
 
-  avatarGrad(name = ''): string {
-    const g = [
-      'linear-gradient(135deg,#8B5CF6,#6D28D9)',
-      'linear-gradient(135deg,#FBBF24,#D97706)',
-      'linear-gradient(135deg,#34D399,#059669)',
-      'linear-gradient(135deg,#38BDF8,#0EA5E9)',
-    ];
-    return g[(name.charCodeAt(0) ?? 0) % g.length];
+  invStatusColor(s: string): string {
+    const m: any = { pending:'#FBBF24', accepted:'#34D399', rejected:'#FB7185', expired:'#3A385C' };
+    return m[s] || '#3A385C';
+  }
+  invStatusBg(s: string): string {
+    const m: any = { pending:'rgba(251,191,36,.12)', accepted:'rgba(52,211,153,.12)', rejected:'rgba(251,113,133,.12)', expired:'rgba(255,255,255,.04)' };
+    return m[s] || 'rgba(255,255,255,.04)';
+  }
+  collabStatusColor(s: string): string {
+    const m: any = { active:'#34D399', pending:'#FBBF24', completed:'#8B5CF6', cancelled:'#FB7185' };
+    return m[s] || '#9896BC';
+  }
+  collabStatusBg(s: string): string {
+    const m: any = { active:'rgba(52,211,153,.12)', pending:'rgba(251,191,36,.12)', completed:'rgba(139,92,246,.12)', cancelled:'rgba(251,113,133,.12)' };
+    return m[s] || 'rgba(255,255,255,.04)';
   }
 
-  statusChipClass(s: string): string {
-    return ({
-      pending:   'cl-chip cl-chip--pending',
-      accepted:  'cl-chip cl-chip--accepted',
-      rejected:  'cl-chip cl-chip--rejected',
-      active:    'cl-chip cl-chip--active',
-      completed: 'cl-chip cl-chip--completed',
-      cancelled: 'cl-chip cl-chip--cancelled',
-    })[s] ?? 'cl-chip';
+  initials(u: any): string {
+    if (!u) return '?';
+    return ((u.firstName?.[0] || '') + (u.lastName?.[0] || '')).toUpperCase() || '?';
   }
 
-  private showToast(msg: string, type: 'ok' | 'err' = 'ok'): void {
+  private showToast(msg: string, type: 'ok'|'err' = 'ok'): void {
     clearTimeout(this.tt);
     this.toast = { msg, type };
-    this.tt = setTimeout(() => this.toast = null, 3200);
+    this.tt = setTimeout(() => this.toast = null, 3500);
   }
 }

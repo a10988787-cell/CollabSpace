@@ -1,173 +1,178 @@
-<div class="bp-page">
+<div class="bc-page">
 
-  <!-- ── Header ─────────────────────────────────────────────────────── -->
-  <div class="bp-hd">
-    <div class="bp-hd__left">
-      <div class="bp-eyebrow"><span class="bp-eyebrow-dot"></span>Collaboration Requests</div>
-      <div class="bp-title">Collaborations</div>
-      <div class="bp-sub">Manage invites sent to creators — use Explore Creators to send new ones</div>
+  <!-- Header -->
+  <div class="bc-hd">
+    <div>
+      <div class="bc-eyebrow"><span></span>Outreach</div>
+      <h1 class="bc-title">Collaborations</h1>
+      <p class="bc-sub">Track invitations sent to creators and manage active collaborations</p>
     </div>
-    <div class="bp-hd__right">
-      <a routerLink="/dashboard/brand/explore-creators" class="btn-primary">
-        Find Creators
-      </a>
-    </div>
-  </div>
-
-  <!-- ── Summary stats ───────────────────────────────────────────────── -->
-  <div *ngIf="!loading" class="cl-stats">
-    <div class="cl-stat">
-      <div class="cl-stat__num">{{ count('all') }}</div>
-      <div class="cl-stat__lbl">Total</div>
-    </div>
-    <div class="cl-stat cl-stat--pending">
-      <div class="cl-stat__num">{{ count('pending') }}</div>
-      <div class="cl-stat__lbl">Pending</div>
-    </div>
-    <div class="cl-stat cl-stat--accepted">
-      <div class="cl-stat__num">{{ count('accepted') }}</div>
-      <div class="cl-stat__lbl">Accepted</div>
-    </div>
-    <div class="cl-stat cl-stat--rejected">
-      <div class="cl-stat__num">{{ count('rejected') }}</div>
-      <div class="cl-stat__lbl">Rejected</div>
-    </div>
-  </div>
-
-  <!-- ── Tabs ─────────────────────────────────────────────────────────── -->
-  <div class="cl-tabs">
-    <button *ngFor="let t of tabs"
-            class="cl-tab"
-            [ngClass]="activeTab === t.key ? 'cl-tab--on cl-tab--' + t.color : ''"
-            (click)="activeTab = $any(t.key)">
-      {{ t.label }}
-      <span class="cl-tab-badge"
-            [ngClass]="activeTab === t.key ? 'cl-tab-badge--on' : ''">
-        {{ count(t.key) }}
-      </span>
-    </button>
-  </div>
-
-  <!-- ── Loading ─────────────────────────────────────────────────────── -->
-  <div *ngIf="loading" class="loading-wrap"><div class="spinner"></div></div>
-
-  <!-- ── Collaboration cards ─────────────────────────────────────────── -->
-  <div *ngIf="!loading && filtered.length" class="cl-grid">
-    <div *ngFor="let c of filtered; let i = index"
-         class="card cl-card"
-         [ngStyle]="{'animation-delay': (i * 0.06) + 's'}">
-
-      <!-- Card header: creator + status -->
-      <div class="cl-card__hd">
-        <div class="cl-card__creator">
-          <div class="cl-card__av"
-               [ngStyle]="{background: avatarGrad(c.creator?.firstName)}">
-            {{ initials(c.creator) }}
-          </div>
-          <div class="cl-card__creator-info">
-            <div class="cl-card__name">
-              {{ c.creator?.firstName || 'Unknown' }} {{ c.creator?.lastName || '' }}
-            </div>
-            <div class="cl-card__email">{{ c.creator?.email || '—' }}</div>
-          </div>
-        </div>
-        <div [ngClass]="statusChipClass(c.status)">{{ c.status }}</div>
-      </div>
-
-      <!-- Campaign link -->
-      <div *ngIf="c.campaign" class="cl-card__campaign">
-        Campaign: <strong>{{ c.campaign.title }}</strong>
-      </div>
-
-      <!-- Deliverables -->
-      <div *ngIf="c.deliverables" class="cl-card__row">
-        <span class="cl-card__lbl">Deliverables</span>
-        <span class="cl-card__val">{{ c.deliverables }}</span>
-      </div>
-
-      <!-- Payment terms & amount -->
-      <div class="cl-card__row" *ngIf="c.amount">
-        <span class="cl-card__lbl">Offer</span>
-        <span class="cl-card__val cl-card__amount">${{ c.amount | number }}</span>
-      </div>
-      <div class="cl-card__row" *ngIf="c.paymentTerms">
-        <span class="cl-card__lbl">Terms</span>
-        <span class="cl-card__val">{{ c.paymentTerms }}</span>
-      </div>
-
-      <!-- Message -->
-      <div *ngIf="c.message" class="cl-card__message">
-        "{{ c.message }}"
-      </div>
-
-      <!-- Date -->
-      <div class="cl-card__date">Sent {{ c.createdAt | date:'MMM d, y' }}</div>
-
-      <!-- Actions -->
-      <div class="cl-card__actions">
-
-        <!-- For pending — show Accept / Reject -->
-        <ng-container *ngIf="c.status === 'pending'">
-          <button class="btn-accept" (click)="setStatus(c, 'accepted')">
-            ✓ Accept
-          </button>
-          <button class="btn-reject" (click)="setStatus(c, 'rejected')">
-            ✕ Reject
-          </button>
-        </ng-container>
-
-        <!-- For accepted — can mark active or cancel -->
-        <ng-container *ngIf="c.status === 'accepted'">
-          <button class="btn-active" (click)="setStatus(c, 'active')">
-            Mark Active
-          </button>
-          <button class="btn-cancel" (click)="cancel(c)">Cancel</button>
-        </ng-container>
-
-        <!-- For active — can complete -->
-        <ng-container *ngIf="c.status === 'active'">
-          <button class="btn-complete" (click)="setStatus(c, 'completed')">
-            Mark Completed
-          </button>
-          <button class="btn-cancel" (click)="cancel(c)">Cancel</button>
-        </ng-container>
-
-        <!-- For rejected / cancelled — only delete -->
-        <ng-container *ngIf="c.status === 'rejected' || c.status === 'cancelled'">
-          <button class="btn-cancel" (click)="cancel(c)">Remove</button>
-        </ng-container>
-
-        <!-- For completed — read only label -->
-        <ng-container *ngIf="c.status === 'completed'">
-          <span class="cl-card__done">✓ Completed</span>
-        </ng-container>
-
-      </div>
-    </div>
-  </div>
-
-  <!-- ── Empty state ──────────────────────────────────────────────────── -->
-  <div *ngIf="!loading && !filtered.length" class="card empty-state">
-    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
-    </svg>
-    <div class="empty-title">
-      {{ activeTab === 'all' ? 'No collaborations yet' : 'No ' + activeTab + ' collaborations' }}
-    </div>
-    <div class="empty-sub">
-      {{ activeTab === 'all'
-         ? 'Explore creators and send invites — they\'ll appear here as Pending.'
-         : 'Switch to All to see all your collaborations.' }}
-    </div>
-    <a *ngIf="activeTab === 'all'" routerLink="/dashboard/brand/explore-creators" class="btn-primary">
+    <a routerLink="/dashboard/brand/explore-creators" class="bc-explore-btn">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
       Explore Creators
     </a>
   </div>
 
-  <!-- ── Toast ─────────────────────────────────────────────────────────── -->
-  <div *ngIf="toast" class="toast"
-       [ngClass]="toast.type === 'ok' ? 'toast--ok' : 'toast--err'">
-    {{ toast.msg }}
+  <!-- View tabs -->
+  <div class="bc-tabs">
+    <button class="bc-tab" [class.on]="tab==='invitations'" (click)="tab='invitations'">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+      Invitations Sent
+      <span class="bc-tab-badge pending" *ngIf="invCounts.pending > 0">{{invCounts.pending}} pending</span>
+      <span class="bc-tab-badge accepted" *ngIf="invCounts.accepted > 0">{{invCounts.accepted}} accepted</span>
+    </button>
+    <button class="bc-tab" [class.on]="tab==='collaborations'" (click)="tab='collaborations'">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      Active Collaborations
+      <span class="bc-tab-badge active" *ngIf="collabCounts.active > 0">{{collabCounts.active}} active</span>
+    </button>
   </div>
 
+  <!-- ════ INVITATIONS TAB ══════════════════════════════════════════ -->
+  <ng-container *ngIf="tab === 'invitations'">
+
+    <!-- Stats -->
+    <div class="bc-stats" *ngIf="!loadingInv">
+      <div class="bc-stat"><div class="bc-stat-val">{{invCounts.all}}</div><div class="bc-stat-lbl">Total Sent</div></div>
+      <div class="bc-stat pend"><div class="bc-stat-val">{{invCounts.pending}}</div><div class="bc-stat-lbl">Pending</div></div>
+      <div class="bc-stat acc"><div class="bc-stat-val">{{invCounts.accepted}}</div><div class="bc-stat-lbl">Accepted</div></div>
+      <div class="bc-stat rej"><div class="bc-stat-val">{{invCounts.rejected}}</div><div class="bc-stat-lbl">Declined</div></div>
+    </div>
+
+    <!-- Filter pills -->
+    <div class="bc-filters">
+      <button class="bf" [class.on]="filterInvStatus===''"         (click)="filterInvStatus='';        loadInvitations()">All</button>
+      <button class="bf pend" [class.on]="filterInvStatus==='pending'"  (click)="filterInvStatus='pending'; loadInvitations()">Pending</button>
+      <button class="bf acc"  [class.on]="filterInvStatus==='accepted'" (click)="filterInvStatus='accepted';loadInvitations()">Accepted</button>
+      <button class="bf rej"  [class.on]="filterInvStatus==='rejected'" (click)="filterInvStatus='rejected';loadInvitations()">Declined</button>
+    </div>
+
+    <div class="bc-loading" *ngIf="loadingInv"><div class="bc-spin"></div> Loading…</div>
+
+    <div class="bc-empty" *ngIf="!loadingInv && invitations.length === 0">
+      <div class="bc-ei">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/></svg>
+      </div>
+      <h3>No invitations sent yet</h3>
+      <p>Go to <a routerLink="/dashboard/brand/explore-creators" class="bc-link">Explore Creators</a> to invite creators to collaborate.</p>
+    </div>
+
+    <div class="bc-inv-list" *ngIf="!loadingInv && invitations.length > 0">
+      <div class="bc-inv-card" *ngFor="let inv of invitations; let i=index" [style.animation-delay]="(i*0.04)+'s'">
+        <div class="bic-glow"></div>
+
+        <!-- Creator info -->
+        <div class="bic-top">
+          <div class="bic-creator">
+            <div class="bic-av">{{initials(inv.creator)}}</div>
+            <div class="bic-info">
+              <div class="bic-name">{{inv.creator?.firstName}} {{inv.creator?.lastName}}</div>
+              <div class="bic-email">{{inv.creator?.email}}</div>
+              <div class="bic-plat" *ngIf="inv.creator?.platform">{{inv.creator.platform}}</div>
+            </div>
+          </div>
+          <span class="bic-status"
+            [ngStyle]="{ color: invStatusColor(inv.status), background: invStatusBg(inv.status), 'border-color': invStatusColor(inv.status)+'44' }">
+            {{inv.status | titlecase}}
+          </span>
+        </div>
+
+        <!-- Campaign row -->
+        <div class="bic-campaign" *ngIf="inv.campaign">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6"/></svg>
+          <span>{{inv.campaign.title}}</span>
+          <strong *ngIf="inv.campaign?.budget">${{inv.campaign.budget | number}}</strong>
+        </div>
+
+        <!-- Message -->
+        <div class="bic-msg" *ngIf="inv.invitationMessage">
+          <div class="bic-msg-lbl">Your Message</div>
+          <p>{{inv.invitationMessage | slice:0:200}}{{inv.invitationMessage?.length > 200 ? '…' : ''}}</p>
+        </div>
+
+        <!-- Meta -->
+        <div class="bic-meta">
+          <span>Proposed: <b>${{inv.proposedAmount | number}}</b></span>
+          <span>Sent {{fmtDate(inv.createdAt)}}</span>
+          <span *ngIf="inv.respondedAt">Responded {{fmtDate(inv.respondedAt)}}</span>
+        </div>
+
+        <!-- Creator response -->
+        <div class="bic-creator-note" *ngIf="inv.creatorResponse && inv.status !== 'pending'">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+          "{{inv.creatorResponse}}"
+        </div>
+
+        <!-- Accepted hint -->
+        <div class="bic-hint accepted" *ngIf="inv.status === 'accepted'">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Creator accepted! They can now upload collab content. Check <a routerLink="/dashboard/brand/content-review" class="bc-link">Content Review</a> for submissions.
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- ════ COLLABORATIONS TAB ══════════════════════════════════════ -->
+  <ng-container *ngIf="tab === 'collaborations'">
+
+    <!-- Filter pills -->
+    <div class="bc-filters">
+      <button class="bf" [class.on]="filterCollabStatus===''"       (click)="filterCollabStatus='';       loadCollaborations()">All</button>
+      <button class="bf active-f" [class.on]="filterCollabStatus==='active'"    (click)="filterCollabStatus='active';   loadCollaborations()">Active</button>
+      <button class="bf comp"     [class.on]="filterCollabStatus==='completed'" (click)="filterCollabStatus='completed';loadCollaborations()">Completed</button>
+    </div>
+
+    <div class="bc-loading" *ngIf="loadingCollabs"><div class="bc-spin"></div> Loading…</div>
+
+    <div class="bc-empty" *ngIf="!loadingCollabs && collabs.length === 0">
+      <div class="bc-ei">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
+      </div>
+      <h3>No active collaborations</h3>
+      <p>Collaborations appear here when a creator accepts your invitation or application.</p>
+    </div>
+
+    <div class="bc-collab-list" *ngIf="!loadingCollabs && collabs.length > 0">
+      <div class="bc-collab-card" *ngFor="let c of collabs; let i=index" [style.animation-delay]="(i*0.04)+'s'">
+        <div class="bcc-glow"></div>
+
+        <div class="bcc-top">
+          <div class="bcc-creator">
+            <div class="bcc-av">{{initials(c.creator)}}</div>
+            <div class="bcc-info">
+              <div class="bcc-name">{{c.creator?.firstName}} {{c.creator?.lastName}}</div>
+              <div class="bcc-email">{{c.creator?.email}}</div>
+            </div>
+          </div>
+          <span class="bcc-status"
+            [ngStyle]="{ color: collabStatusColor(c.status), background: collabStatusBg(c.status), 'border-color': collabStatusColor(c.status)+'44' }">
+            {{c.status | titlecase}}
+          </span>
+        </div>
+
+        <div class="bcc-campaign" *ngIf="c.campaign">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6"/></svg>
+          <span>{{c.campaign?.title || 'Campaign'}}</span>
+        </div>
+
+        <div class="bcc-meta">
+          <span>Amount: <b>${{c.amount | number}}</b></span>
+          <span>Started {{fmtDate(c.createdAt)}}</span>
+        </div>
+
+        <div class="bcc-hint" *ngIf="c.status === 'active'">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.069A1 1 0 0121 8.845v6.31a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+          Creator can submit collab content. Check <a routerLink="/dashboard/brand/content-review" class="bc-link">Content Review</a>.
+        </div>
+
+        <div class="bcc-actions">
+          <button class="bcc-btn cancel" *ngIf="c.status !== 'completed' && c.status !== 'cancelled'" (click)="cancelCollab(c)">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <div class="bc-toast" *ngIf="toast" [class.err]="toast.type==='err'">{{toast.msg}}</div>
 </div>

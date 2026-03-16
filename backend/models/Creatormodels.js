@@ -145,7 +145,7 @@ const CreatorNotificationSchema = new mongoose.Schema({
   message:     { type: String, required: true, maxlength: 1000 },
   link:        { type: String, default: '' },
   refId:       { type: mongoose.Schema.Types.ObjectId },
-  refModel:    { type: String, enum: ['Campaign','Collaboration','CollabPost','Payment','Message'] },
+  refModel:    { type: String, enum: ['Campaign','Collaboration','CollabPost','Payment','Message','BrandInvitation','CampaignApplication'] },
   isRead:      { type: Boolean, default: false },
   isDeleted:   { type: Boolean, default: false },
 }, { timestamps: true, versionKey: false });

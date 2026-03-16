@@ -12,6 +12,59 @@ router.use(protect);  // all routes require auth
    PUBLIC (any authenticated role)
    ══════════════════════════════════════════════════════════════════════ */
 
+
+/* ── POST /api/creators/explore (legacy compat) + GET /api/creators/search ─ */
+/* Both redirect to the same /api/users/creators logic so both old+new service work */
+const exploreHandler = async (req, res) => {
+  try {
+    const User    = require('../models/User');
+    const body    = { ...req.body, ...req.query };
+    const { search, niche, platform, page = 1, limit = 12 } = body;
+    const query   = { role: 'creator', isActive: true };
+    if (search) {
+      query.$or = [
+        { firstName: new RegExp(search, 'i') },
+        { lastName:  new RegExp(search, 'i') },
+        { bio:       new RegExp(search, 'i') },
+        { platform:  new RegExp(search, 'i') },
+      ];
+    }
+    if (platform) query.platform = new RegExp(platform, 'i');
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const [users, total] = await Promise.all([
+      User.find(query).select('-password').skip(skip).limit(parseInt(limit)).sort({ createdAt: -1 }),
+      User.countDocuments(query),
+    ]);
+    let enriched = users.map(u => u.toPublicJSON());
+    try {
+      const { CreatorProfile, SocialAccount } = require('../models/Creatormodels');
+      const ids = enriched.map(u => u.id);
+      const [profiles, socials] = await Promise.all([
+        CreatorProfile.find({ owner: { $in: ids } }),
+        SocialAccount.find({ creator: { $in: ids }, isActive: true }),
+      ]);
+      const profileMap = {}; profiles.forEach(p => { profileMap[p.owner.toString()] = p; });
+      const socialMap  = {}; socials.forEach(s => {
+        if (!socialMap[s.creator.toString()]) socialMap[s.creator.toString()] = [];
+        socialMap[s.creator.toString()].push(s);
+      });
+      enriched = enriched.map(u => ({
+        ...u,
+        profile:        profileMap[u.id] || null,
+        socials:        socialMap[u.id]  || [],
+        totalFollowers: (socialMap[u.id] || []).reduce((sum, s) => sum + (s.followersCount || 0), 0),
+        avgEngagement:  (socialMap[u.id] || []).length
+          ? ((socialMap[u.id] || []).reduce((sum, s) => sum + (s.engagementRate || 0), 0) / socialMap[u.id].length).toFixed(1)
+          : '0',
+      }));
+      if (niche) enriched = enriched.filter(u => u.profile?.niche === niche);
+    } catch (_) {}
+    res.json({ success: true, creators: enriched, pagination: { total, page: parseInt(page), pages: Math.ceil(total / parseInt(limit)) } });
+  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+};
+router.post('/creators/explore', exploreHandler);   // legacy POST
+router.get ('/creators/search',  exploreHandler);   // new GET alias
+
 /* GET /api/creators/:creatorId/profile  — brand views creator public profile */
 router.get('/creators/:creatorId/profile',   creatorCtrl.getPublicProfile);
 router.get('/creators/:creatorId/portfolio', creatorCtrl.getPublicPortfolio);

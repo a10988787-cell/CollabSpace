@@ -764,44 +764,60 @@ export class BrandService {
     return Math.min(100, Math.round((budget.allocated / budget.totalAmount) * 100));
   }
 
+  /* ── Creator Applications ────────────────────────────────────────── */
+  getBrandApplications(params?: { status?: string; campaignId?: string }): Observable<any> {
+    let q = '';
+    if (params?.status)     q += `status=${params.status}&`;
+    if (params?.campaignId) q += `campaignId=${params.campaignId}&`;
+    return this.http.get<any>(`${BASE}/applications${q ? '?' + q : ''}`);
+  }
+
+  respondToApplication(id: string, action: 'accept' | 'reject', brandResponse?: string): Observable<any> {
+    return this.http.patch<any>(`${BASE}/applications/${id}`, { action, brandResponse });
+  }
+
+  /* ── Content Review ──────────────────────────────────────────────── */
+  getBrandContentPosts(status?: string): Observable<any> {
+    return this.http.get<any>(`${BASE}/content-review${status ? '?status=' + status : ''}`);
+  }
+
+  reviewContentPost(id: string, action: string, brandNotes?: string, paymentAmount?: number): Observable<any> {
+    return this.http.patch<any>(`${BASE}/content-review/${id}/review`, { action, brandNotes, paymentAmount });
+  }
+
+  payContentPost(id: string): Observable<any> {
+    return this.http.post<any>(`${BASE}/content-review/${id}/pay`, {});
+  }
+
   collabCompletionRate(analytics: BrandAnalytics): number {
     if (!analytics.totalCollaborations) return 0;
     return Math.round((analytics.completedCollaborations / analytics.totalCollaborations) * 100);
   }
 
-  /* ── Explore Creators: GET /api/users/creators ───────────────────── */
+  /* ── Brand Invitations sent by this brand ────────────────────────── */
+  getBrandInvitations(status?: string): Observable<any> {
+    return this.http.get<any>(`${BASE}/invitations${status ? '?status=' + status : ''}`);
+  }
+
+  /* ── Explore Creators ────────────────────────────────────────────── */
   exploreCreators(filters: { search?: string; niche?: string; platform?: string; page?: number; limit?: number }): Observable<ExploreCreatorsResponse> {
-
-  let params: any = {};
-  if (filters.search) params['search'] = filters.search;
-  if (filters.niche) params['niche'] = filters.niche;
-  if (filters.platform) params['platform'] = filters.platform;
-  if (filters.page) params['page'] = String(filters.page);
-  params['limit'] = String(filters.limit || 12);
-
-  const queryStr = Object.keys(params)
-    .map(k => `${k}=${encodeURIComponent(params[k])}`)
-    .join('&');
-
-  const token = localStorage.getItem('token');
-
-  return this.http.get<ExploreCreatorsResponse>(
-    `/api/users/creators${queryStr ? '?' + queryStr : ''}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    }
-  );
-}
+    // GET /api/brand/creators — uses BASE which is guaranteed to be mounted
+    let q = '';
+    if (filters.search)   q += `search=${encodeURIComponent(filters.search)}&`;
+    if (filters.niche)    q += `niche=${encodeURIComponent(filters.niche)}&`;
+    if (filters.platform) q += `platform=${encodeURIComponent(filters.platform)}&`;
+    if (filters.page)     q += `page=${filters.page}&`;
+    q += `limit=${filters.limit || 12}`;
+    return this.http.get<ExploreCreatorsResponse>(`${BASE}/creators?${q}`);
+  }
 
   /* ── Send invitation to a creator ───────────────────────────────── */
   sendCreatorInvite(creatorId: string, payload: { campaignId?: string; invitationMessage: string; proposedAmount: number }): Observable<any> {
-    return this.http.post<any>(`/api/creators/${creatorId}/invite`, payload);
+    return this.http.post<any>(`${environment.apiUrl}/creators/${creatorId}/invite`, payload);
   }
 
   /* ── Get creator detail ──────────────────────────────────────────── */
   getCreatorDetail(creatorId: string): Observable<any> {
-    return this.http.get<any>(`/api/users/creators/${creatorId}`);
+    return this.http.get<any>(`${environment.apiUrl}/users/creators/${creatorId}`);
   }
 }
