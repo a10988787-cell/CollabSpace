@@ -1,5 +1,7 @@
 import { Component, OnInit, OnDestroy, signal, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
 /* ─── Interfaces ──────────────────────────────────────────────────────────── */
@@ -18,7 +20,7 @@ export interface DealType     { label: string; pct: number; color: string; }
 @Component({
   selector: 'app-homepage',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './homepage.component.html',
   styleUrls: ['./homepage.component.css'],
   encapsulation: ViewEncapsulation.None,
@@ -280,6 +282,9 @@ export class HomepageComponent implements OnInit, OnDestroy {
 
   parseFloat = parseFloat;
 
+  /* ── Constructor ─────────────────────────────────────────────────────── */
+  constructor(private router: Router) {}
+
   /* ── Lifecycle ───────────────────────────────────────────────────────── */
   ngOnInit() {
     this.initScrollSpy();
@@ -321,6 +326,9 @@ export class HomepageComponent implements OnInit, OnDestroy {
 
   /* ── Action Handlers ─────────────────────────────────────────────────── */
   onUpgrade()        { console.log('[CS] Upgrade'); }
+
+  goToLogin():   void { this.router.navigate(['/auth/login']); }
+  goToSignup():  void { this.router.navigate(['/auth/signup']); }
   onFindCampaigns()  { this.scrollTo('campaigns'); }
   onViewDemo()       { console.log('[CS] View demo'); }
   onNewCampaign()    { console.log('[CS] New campaign'); }

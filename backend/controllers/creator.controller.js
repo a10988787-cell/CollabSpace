@@ -247,7 +247,6 @@ exports.createCollabPost = async (req, res) => {
 
     if (!collab && applicationId) {
       // Look up collaboration via accepted application
-      const { CampaignApplication } = require('../models/CreatorModels');
       const app = await CampaignApplication.findOne({ _id: applicationId, creator: uid(req), status: 'accepted' })
         .populate('campaign', 'brand title');
       if (app) {

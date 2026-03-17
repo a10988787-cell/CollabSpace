@@ -5,7 +5,7 @@ import { authGuard, roleGuard } from './guards/auth.guard';
 export const routes: Routes = [
 
   /* ── Default ────────────────────────────────────────────────────── */
-  { path: '', redirectTo: '/auth/login', pathMatch: 'full' },
+  { path: '', loadComponent: () => import('./homepage/homepage.component').then(m => m.HomepageComponent), title: 'CollabSpace — Creator × Brand Platform' },
 
   /* ════════════════════════════════════════════════════════════════
      AUTH  — /auth/*
@@ -48,6 +48,9 @@ export const routes: Routes = [
 
       /* Explore Creators — NEW: brand browses & invites creators */
       { path: 'explore-creators', loadComponent: () => import('./Brand/brand-explore-creators/brand-explore-creators.component').then(m => m.BrandExploreCreatorsComponent), title: 'Explore Creators — CollabSpace' },
+
+      /* Creator Applications — brand reviews & accepts/rejects creator applications */
+      { path: 'applications',     loadComponent: () => import('./Brand/brand-applications/brand-applications.component').then(m => m.BrandApplicationsComponent),           title: 'Creator Applications — CollabSpace' },
 
       /* Campaigns */
       { path: 'campaigns',        loadComponent: () => import('./Brand/brand-campaigns/brand-campaigns.component').then(m => m.BrandCampaignsComponent),          title: 'Campaigns — CollabSpace' },

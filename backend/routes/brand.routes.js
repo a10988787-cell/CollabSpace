@@ -7,13 +7,18 @@ const { protect, restrict } = require('../middleware/auth.middleware');
 const validate              = require('../middleware/validate.middleware');
 const ctrl                  = require('../controllers/brand.controller');
 
-// Optional email service — won't crash if services/ folder doesn't exist yet
+// Models — loaded once at module level (prevents "cannot overwrite model" errors)
+const User = require('../models/User');
+const {
+  CampaignApplication, CreatorProfile, SocialAccount,
+  BrandInvitation, CreatorNotification,
+} = require('../models/CreatorModels');
+
+const creatorCtrl = require('../controllers/creator.controller');
+
+// Optional email service
 let emailSvc = null;
-let User     = null;
-try {
-  emailSvc = require('../services/email.service');
-  User     = require('../models/User');
-} catch (_) {
+try { emailSvc = require('../services/email.service'); } catch (_) {
   console.warn('[brand.routes] email.service not found — collaboration invite emails disabled.');
 }
 
@@ -198,8 +203,6 @@ router.delete('/payments/:id', ctrl.deletePayment);
    ════════════════════════════════════════════════════════════════════════════ */
 router.get('/applications', async (req, res) => {
   try {
-    const { CampaignApplication } = require('../models/CreatorModels');
-    const Campaign = require('../models/Campaign');
     const { status, campaignId } = req.query;
 
     // Get all campaigns belonging to this brand
@@ -223,8 +226,6 @@ router.get('/applications', async (req, res) => {
 
 router.patch('/applications/:id', async (req, res) => {
   try {
-    const { CampaignApplication, CreatorNotification, BrandInvitation } = require('../models/CreatorModels');
-    const { Collaboration } = require('../models/Brandmodels');
     const { action, brandResponse } = req.body; // action: 'accept' | 'reject'
 
     const app = await CampaignApplication.findById(req.params.id)
@@ -287,12 +288,10 @@ router.patch('/applications/:id', async (req, res) => {
    PATCH  /api/brand/content-review/:id/review
    POST   /api/brand/content-review/:id/pay
    ════════════════════════════════════════════════════════════════════════════ */
-const creatorCtrl = require('../controllers/creator.controller');
 router.get  ('/content-review',           creatorCtrl.getBrandCollabPosts);
 router.patch('/content-review/:id/review',creatorCtrl.reviewCollabPost);
 router.post ('/content-review/:id/pay',   creatorCtrl.payCollabPost);
 
-module.exports = router;
 /* ═══════════════════════════════════════════════════════
    EXPLORE CREATORS  GET /api/brand/creators
    Brands browse creator profiles - guaranteed to work
@@ -319,7 +318,6 @@ router.get('/creators', async (req, res) => {
     ]);
     let enriched = users.map(u => u.toPublicJSON());
     try {
-      const { CreatorProfile, SocialAccount } = require('../models/CreatorModels');
       const ids = enriched.map(u => u.id);
       const [profiles, socials] = await Promise.all([
         CreatorProfile.find({ owner: { $in: ids } }),
@@ -351,7 +349,6 @@ router.get('/creators', async (req, res) => {
    ═══════════════════════════════════════════════════════════════════ */
 router.get('/invitations', async (req, res) => {
   try {
-    const { BrandInvitation } = require('../models/CreatorModels');
     const { status } = req.query;
     const q = { brand: req.user._id, isDeleted: false };
     if (status) q.status = status;
@@ -362,3 +359,6 @@ router.get('/invitations', async (req, res) => {
     res.json({ success: true, invitations });
   } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 });
+
+
+module.exports = router;

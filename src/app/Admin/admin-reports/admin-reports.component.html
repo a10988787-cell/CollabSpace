@@ -1,0 +1,192 @@
+<!-- admin-reports.component.html -->
+<div class="ap">
+
+  <!-- Header -->
+  <div class="ap-hd">
+    <div class="ap-hd__left">
+      <div class="ap-eyebrow">Reports & Complaints</div>
+      <h1 class="ap-title">User Reports</h1>
+      <p class="ap-sub">Handle user disputes and platform violations</p>
+    </div>
+    <div class="ap-hd__right">
+      <button class="btn-outline" (click)="load()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        Refresh
+      </button>
+      <button class="btn-add" (click)="openAdd()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+        Add User
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI cards -->
+  <div class="ap-kpis">
+    <div class="ap-kpi">
+      <div class="ap-kpi__icon" style="background:rgba(239,68,68,.1);color:#EF4444">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+      </div>
+      <div class="ap-kpi__val">{{ stats.total || 0 }}</div>
+      <div class="ap-kpi__lbl">Total Reports</div>
+    </div>
+    <div class="ap-kpi">
+      <div class="ap-kpi__icon" style="background:rgba(245,158,11,.1);color:#F59E0B">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+      </div>
+      <div class="ap-kpi__val">{{ stats.pending || 0 }}</div>
+      <div class="ap-kpi__lbl">Pending</div>
+    </div>
+    <div class="ap-kpi">
+      <div class="ap-kpi__icon" style="background:rgba(34,197,94,.1);color:#22C55E">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+      </div>
+      <div class="ap-kpi__val">{{ stats.resolved || 0 }}</div>
+      <div class="ap-kpi__lbl">Resolved</div>
+    </div>
+  </div>
+
+  <!-- Chart -->
+  <div class="chart-grid" style="margin-bottom:22px;">
+    <div class="chart-card" style="grid-column:1/-1;">
+      <div class="chart-hd">
+        <div>
+          <div class="chart-title">User Reports Overview</div>
+          <div class="chart-sub">Recent activity breakdown</div>
+        </div>
+      </div>
+      <div class="chart-canvas-wrap">
+        <canvas id="reports_chart" height="240"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="ap-toolbar">
+    <div class="ap-toolbar__left">
+      <div class="ap-search">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input type="text" placeholder="Search user reports…" [(ngModel)]="search"/>
+      </div>
+      <div class="ap-filter-pills">
+        <button class="ap-pill" [ngClass]="{active: filterStatus==='all'}" (click)="filterStatus='all'">All <span class="ap-pill__ct">{{ items.length }}</span></button>
+        <button class="ap-pill" [ngClass]="{active: filterStatus==='active'}" (click)="filterStatus='active'">Active</button>
+        <button class="ap-pill" [ngClass]="{active: filterStatus==='pending'}" (click)="filterStatus='pending'">Pending</button>
+      </div>
+    </div>
+    <div class="ap-toolbar__right">
+      <button class="btn-sm">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" style="width:13px;height:13px;"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        Export
+      </button>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="ap-table-card">
+    <div class="ap-table-head">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="ap-table-title">User Reports</span>
+        <span class="ap-table-ct">{{ filtered.length }}</span>
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="ap-spinner"><div class="spin-ico"></div> Loading...</div>
+    <div *ngIf="!loading && filtered.length === 0" class="ap-empty">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
+      <h3>No user reports found</h3>
+      <p>Add your first entry using the button above.</p>
+    </div>
+
+    <table class="ap-tbl" *ngIf="!loading && filtered.length > 0">
+      <thead>
+        <tr>
+          <th>Reporter</th><th>Type</th><th>Against</th><th>Status</th><th>Filed</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of filtered; let i=index" [ngStyle]="{'animation-delay':(i*0.03)+'s'}">
+          <td>
+            <div class="cell-av">
+              <div class="av" [ngStyle]="{background: 'linear-gradient(135deg,#3B82F6,#2563EB)'}">
+                {{ (item.name||item.title||item.firstName||item.key||'?')[0]?.toUpperCase() }}
+              </div>
+              <div>
+                <div class="cell-name">{{ item.name || item.title || (item.firstName + ' ' + item.lastName) || item.key || '—' }}</div>
+                <div class="cell-sub">{{ item.email || item.type || item.slug || item.group || '' }}</div>
+              </div>
+            </div>
+          </td>
+          <td>{{ fmt(item[Object.keys(item)[2]]) }}</td>
+          <td>{{ fmt(item[Object.keys(item)[3]]) }}</td>
+          <td>
+            <span class="badge" [ngClass]="getStatusBadge(item.status || item.isActive || item.enabled)">
+              {{ item.status || (item.isActive || item.enabled ? 'Active' : 'Inactive') || '—' }}
+            </span>
+          </td>
+          <td class="cell-muted">{{ fmtDate(item.createdAt || item.updatedAt) }}</td>
+          <td>
+            <div class="row-acts">
+              <button class="btn-icon" (click)="openEdit(item)" title="Edit">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+              </button>
+              <button class="btn-icon" (click)="confirmDel(item._id)" title="Delete" style="color:#EF4444;">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Add / Edit Modal -->
+  <div class="modal-bg" *ngIf="showModal" (click)="showModal=false">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-hd">
+        <span class="modal-title">{{ isEdit ? 'Edit' : 'Add' }} User</span>
+        <button class="modal-x" (click)="showModal=false"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+      </div>
+      <form (ngSubmit)="save()">
+      <div class="fg">
+        <label class="fl">Report Type</label>
+        <select class="fi" [(ngModel)]="form['type']" name="type">
+          <option value="">Select Report Type</option>
+          <option value="spam">Spam</option><option value="harassment">Harassment</option><option value="fraud">Fraud</option><option value="copyright">Copyright</option><option value="other">Other</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="fl">Description</label>
+        <textarea class="fi" placeholder="Detailed description..." [(ngModel)]="form['description']" name="description"></textarea>
+      </div>
+      <div class="fg">
+        <label class="fl">Status</label>
+        <select class="fi" [(ngModel)]="form['status']" name="status">
+          <option value="">Select Status</option>
+          <option value="pending">Pending</option><option value="resolved">Resolved</option><option value="dismissed">Dismissed</option>
+        </select>
+      </div>
+        <div class="modal-ft">
+          <button type="button" class="btn-outline" (click)="showModal=false">Cancel</button>
+          <button type="submit" class="btn-add" [disabled]="saving">
+            <div class="spin-ico" *ngIf="saving" style="width:14px;height:14px;border-width:2px;border-color:rgba(255,255,255,.3);border-top-color:#fff;"></div>
+            {{ saving ? 'Saving…' : (isEdit ? 'Save Changes' : 'Create') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delete confirm -->
+  <div class="modal-bg" *ngIf="showDel" (click)="showDel=false">
+    <div class="modal del-modal" (click)="$event.stopPropagation()">
+      <div class="del-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></div>
+      <div class="del-title">Delete this entry?</div>
+      <div class="del-msg">This action cannot be undone. The record will be permanently removed.</div>
+      <div class="modal-ft" style="justify-content:center;border:none;padding-top:18px;">
+        <button class="btn-outline" (click)="showDel=false">Cancel</button>
+        <button class="btn-danger" (click)="del()">Yes, Delete</button>
+      </div>
+    </div>
+  </div>
+
+</div>

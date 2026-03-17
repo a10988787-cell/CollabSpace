@@ -1,11 +1,26 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService, User } from '../../services/auth.service';
+import { AdminUsersComponent } from '../admin-users/admin-users.component';
+import { AdminCreatorsComponent } from '../admin-creators/admin-creators.component';
+import { AdminBrandsComponent } from '../admin-brands/admin-brands.component';
+import { AdminCampaignsComponent } from '../admin-campaigns/admin-campaigns.component';
+import { AdminContentComponent } from '../admin-content/admin-content.component';
+import { AdminAnalyticsComponent } from '../admin-analytics/admin-analytics.component';
+import { AdminPaymentsComponent } from '../admin-payments/admin-payments.component';
+import { AdminReportsComponent } from '../admin-reports/admin-reports.component';
+import { AdminNotificationsComponent } from '../admin-notifications/admin-notifications.component';
+import { AdminRolesComponent } from '../admin-roles/admin-roles.component';
+import { AdminSettingsComponent } from '../admin-settings/admin-settings.component';
+import { AdminCategoriesComponent } from '../admin-categories/admin-categories.component';
+import { AdminAuditLogsComponent } from '../admin-audit-logs/admin-audit-logs.component';
+import { AdminSubscriptionsComponent } from '../admin-subscriptions/admin-subscriptions.component';
+import { AdminFeatureFlagsComponent } from '../admin-feature-flags/admin-feature-flags.component';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, AdminUsersComponent, AdminCreatorsComponent, AdminBrandsComponent, AdminCampaignsComponent, AdminContentComponent, AdminAnalyticsComponent, AdminPaymentsComponent, AdminReportsComponent, AdminNotificationsComponent, AdminRolesComponent, AdminSettingsComponent, AdminCategoriesComponent, AdminAuditLogsComponent, AdminSubscriptionsComponent, AdminFeatureFlagsComponent],
   templateUrl: './admin-dashboard.component.html',
   styleUrls: ['./admin-dashboard.component.css'],
   encapsulation: ViewEncapsulation.None,

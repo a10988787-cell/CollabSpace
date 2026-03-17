@@ -11,25 +11,26 @@ const fs        = require('fs');
 
 const connectDB      = require('./config/db');
 const authRoutes     = require('./routes/auth.routes');
+const adminRoutes    = require('./routes/admin.routes');
 const usersRoutes    = require('./routes/users.routes');
 const brandRoutes    = require('./routes/brand.routes');
 const creatorRoutes  = require('./routes/creator.routes');
-const publicRoutes   = require('./routes/public.routes');
+const publicRoutes             = require('./routes/public.routes');
+const { statsRouter }          = require('./routes/public.routes');
 
-/* ── Connect database ─────────────────────────────────────────────────── */
 connectDB();
 
 const app = express();
 
-/* ── Security ─────────────────────────────────────────────────────────── */
+/* ── Security ───────────────────────────────────────────────────────── */
 app.use(helmet({
-  crossOriginResourcePolicy: { policy: 'cross-origin' }, // allow serving uploaded files
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
 }));
 
 app.use(cors({
   origin:         process.env.CLIENT_URL || 'http://localhost:4200',
-  methods:        ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization'],
+  methods:        ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials:    true,
 }));
 
@@ -41,35 +42,35 @@ app.use(rateLimit({
   message: { success: false, message: 'Too many requests. Please try again later.' },
 }));
 
-/* ── Body parsing ─────────────────────────────────────────────────────── */
-app.use(express.json({ limit: '10kb' }));
+/* ── Body parsing ───────────────────────────────────────────────────── */
+app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-/* ── Logging (dev) ────────────────────────────────────────────────────── */
-if (process.env.NODE_ENV === 'development') app.use(morgan('dev'));
+/* ── Logging ────────────────────────────────────────────────────────── */
+if (process.env.NODE_ENV !== 'production') app.use(morgan('dev'));
 
-/* ── Static file serving for Multer uploads ───────────────────────────── */
-// Uploaded files are stored at: backend/uploads/
-// Accessible at: GET /uploads/assets/filename.png
+/* ── Static uploads ─────────────────────────────────────────────────── */
 const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 app.use('/uploads', express.static(uploadsDir));
 
-/* ── Health check ─────────────────────────────────────────────────────── */
-app.get('/health', (_req, res) => res.json({
-  success: true, status: 'healthy', service: 'CollabSpace API', version: '1.0.0',
-}));
+/* ── Health check ───────────────────────────────────────────────────── */
+app.get('/health', (_req, res) =>
+  res.json({ success: true, status: 'healthy', service: 'CollabSpace API', version: '1.0.0' })
+);
 
-/* ════════════════════════════════════════════════════════════════════════
+/* ════════════════════════════════════════════════════════════════════
    ROUTES
-   ════════════════════════════════════════════════════════════════════════ */
+   ════════════════════════════════════════════════════════════════════ */
 app.use('/api/auth',    authRoutes);
-app.use('/api/users',  usersRoutes);
-app.use('/api/brand',  brandRoutes);
+app.use('/api/admin',   adminRoutes);  // All 15 admin CRUD modules
+app.use('/api/users',   usersRoutes);
+app.use('/api/brand',   brandRoutes);
 app.use('/api/creator', creatorRoutes);
-app.use('/api',         publicRoutes);
+app.use('/api',         publicRoutes);   // /api/creators/:id, /api/collab-posts
+app.use('/api/stats',   statsRouter);     // /api/stats — public homepage data (no auth)
 
-/* ── 404 ──────────────────────────────────────────────────────────────── */
+/* ── 404 ─────────────────────────────────────────────────────────────── */
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -77,8 +78,7 @@ app.use((req, res) => {
   });
 });
 
-/* ── Global error handler ─────────────────────────────────────────────── */
-// eslint-disable-next-line no-unused-vars
+/* ── Global error handler ───────────────────────────────────────────── */
 app.use((error, req, res, next) => {
   console.error('[Error]', error.message);
 
@@ -96,10 +96,8 @@ app.use((error, req, res, next) => {
     return res.status(401).json({ success: false, message: 'Invalid token.' });
   if (error.name === 'TokenExpiredError')
     return res.status(401).json({ success: false, message: 'Session expired.' });
-
-  // Multer errors
   if (error.code === 'LIMIT_FILE_SIZE')
-    return res.status(400).json({ success: false, message: 'File too large. Max 50MB.' });
+    return res.status(400).json({ success: false, message: 'File too large. Max 100MB.' });
 
   const status  = error.statusCode || 500;
   const message = process.env.NODE_ENV === 'production'
@@ -107,12 +105,12 @@ app.use((error, req, res, next) => {
   res.status(status).json({ success: false, message });
 });
 
-/* ── Start ────────────────────────────────────────────────────────────── */
+/* ── Start ──────────────────────────────────────────────────────────── */
 const PORT   = process.env.PORT || 5000;
 const server = app.listen(PORT, () => {
   console.log(`\n🚀  CollabSpace API → http://localhost:${PORT}`);
-  console.log(`🌍  Env      : ${process.env.NODE_ENV}`);
-  console.log(`📦  Routes   : /api/auth | /api/users | /api/brand`);
+  console.log(`🌍  Env      : ${process.env.NODE_ENV || 'development'}`);
+  console.log(`📦  Routes   : /api/auth | /api/users | /api/brand | /api/creator`);
   console.log(`📁  Uploads  : http://localhost:${PORT}/uploads/assets/<filename>`);
   console.log(`💚  Health   : http://localhost:${PORT}/health\n`);
 });
