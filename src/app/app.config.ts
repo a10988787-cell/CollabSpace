@@ -4,12 +4,13 @@ import {
   provideRouter,
   withComponentInputBinding,
   withViewTransitions,
-}                                                  from '@angular/router';
+} from '@angular/router';
 import {
   provideHttpClient,
+  withFetch,
   withInterceptorsFromDi,
   HTTP_INTERCEPTORS,
-}                                                  from '@angular/common/http';
+} from '@angular/common/http';
 
 import { routes }          from './app.routes';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
@@ -20,16 +21,17 @@ export const appConfig: ApplicationConfig = {
     /* ── Router ──────────────────────────────────────────────────────── */
     provideRouter(
       routes,
-      withComponentInputBinding(),   // Allows route params as @Input()
-      withViewTransitions(),         // Smooth page transitions (Angular 17+)
+      withComponentInputBinding(),
+      withViewTransitions(),
     ),
 
-    /* ── HTTP Client + Auth Interceptor ──────────────────────────────── */
+    /* ── HTTP Client — withFetch() required for SSR compatibility ─────── */
     provideHttpClient(
-      withInterceptorsFromDi(),      // Uses class-based interceptors
+      withFetch(),               // Use fetch API (required for SSR)
+      withInterceptorsFromDi(),  // Class-based interceptors
     ),
 
-    /* ── Register the Auth Interceptor ───────────────────────────────── */
+    /* ── Auth Interceptor ─────────────────────────────────────────────── */
     {
       provide:  HTTP_INTERCEPTORS,
       useClass: AuthInterceptor,

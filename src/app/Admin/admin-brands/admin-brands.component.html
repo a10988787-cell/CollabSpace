@@ -116,8 +116,8 @@
               </div>
             </div>
           </td>
-          <td>{{ fmt(item[Object.keys(item)[2]]) }}</td>
-          <td>{{ fmt(item[Object.keys(item)[3]]) }}</td>
+          <td>{{ fmt(item.email) }}</td>
+          <td>{{ fmt(item.industry) }}</td>
           <td>
             <span class="badge" [ngClass]="getStatusBadge(item.status || item.isActive || item.enabled)">
               {{ item.status || (item.isActive || item.enabled ? 'Active' : 'Inactive') || '—' }}

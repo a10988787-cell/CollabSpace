@@ -123,8 +123,8 @@
               </div>
             </div>
           </td>
-          <td>{{ fmt(item[Object.keys(item)[2]]) }}</td>
-          <td>{{ fmt(item[Object.keys(item)[3]]) }}</td>
+          <td>{{ fmt(item.period) }}</td>
+          <td>{{ fmt(item.periodType) }}</td>
           <td>
             <span class="badge" [ngClass]="getStatusBadge(item.status || item.isActive || item.enabled)">
               {{ item.status || (item.isActive || item.enabled ? 'Active' : 'Inactive') || '—' }}

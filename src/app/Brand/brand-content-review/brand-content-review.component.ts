@@ -1,4 +1,4 @@
-// src/app/Brand/brand-content-review/brand-content-review.component.ts
+// brand-content-review.component.ts
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -13,17 +13,30 @@ import { BrandService } from '../../services/brand.service';
   encapsulation: ViewEncapsulation.None,
 })
 export class BrandContentReviewComponent implements OnInit {
-  posts: any[] = [];
-  loading = true;
-  saving  = false;
-  filterStatus = 'submitted';
+  posts: any[]    = [];
+  loading         = true;
+  saving          = false;
+  filterStatus    = '';
+  searchQuery     = '';
+  viewMode: 'grid' | 'table' = 'grid';
 
-  showModal    = false;
+  showModal     = false;
   selectedPost: any = null;
-  reviewForm: any  = { action: 'approve', brandNotes: '', paymentAmount: 0 };
+  reviewForm    = { action: 'approve', brandNotes: '', paymentAmount: 0 };
 
   toast: { msg: string; type: 'ok' | 'err' } | null = null;
   private tt: any;
+
+  filters = [
+    { key: '',                    label: 'All',       count: 0 },
+    { key: 'submitted',           label: 'Pending',   count: 0 },
+    { key: 'approved',            label: 'Approved',  count: 0 },
+    { key: 'revision_requested',  label: 'Revision',  count: 0 },
+    { key: 'rejected',            label: 'Rejected',  count: 0 },
+    { key: 'paid',                label: 'Paid',      count: 0 },
+  ];
+
+  stats = { submitted: 0, approved: 0, revision: 0, paid: 0 };
 
   constructor(private svc: BrandService) {}
 
@@ -31,10 +44,42 @@ export class BrandContentReviewComponent implements OnInit {
 
   load(): void {
     this.loading = true;
-    this.svc.getBrandContentPosts(this.filterStatus || undefined).subscribe({
-      next: (r: any) => { this.posts = r.posts || []; this.loading = false; },
+    this.svc.getBrandContentPosts(undefined).subscribe({
+      next: (r: any) => {
+        this.posts = r.posts || [];
+        this.calcStats();
+        this.loading = false;
+      },
       error: () => { this.loading = false; },
     });
+  }
+
+  calcStats(): void {
+    const all = this.posts;
+    this.stats = {
+      submitted: all.filter(p => p.status === 'submitted').length,
+      approved:  all.filter(p => p.status === 'approved').length,
+      revision:  all.filter(p => p.status === 'revision_requested').length,
+      paid:      all.filter(p => p.status === 'paid').length,
+    };
+    this.filters.forEach(f => {
+      f.count = f.key === '' ? all.length : all.filter(p => p.status === f.key).length;
+    });
+  }
+
+  get filtered(): any[] {
+    let result = this.filterStatus
+      ? this.posts.filter(p => p.status === this.filterStatus)
+      : this.posts;
+    if (this.searchQuery.trim()) {
+      const q = this.searchQuery.toLowerCase();
+      result = result.filter(p =>
+        p.title?.toLowerCase().includes(q) ||
+        p.creator?.firstName?.toLowerCase().includes(q) ||
+        p.creator?.lastName?.toLowerCase().includes(q)
+      );
+    }
+    return result;
   }
 
   openReview(post: any): void {
@@ -44,7 +89,7 @@ export class BrandContentReviewComponent implements OnInit {
   }
 
   submit(): void {
-    if (!this.selectedPost) return;
+    if (!this.selectedPost || this.saving) return;
     this.saving = true;
     this.svc.reviewContentPost(
       this.selectedPost._id,
@@ -53,10 +98,13 @@ export class BrandContentReviewComponent implements OnInit {
       this.reviewForm.paymentAmount,
     ).subscribe({
       next: () => {
-        this.saving    = false;
-        this.showModal = false;
+        this.saving = false; this.showModal = false;
         this.load();
-        const msgs: any = { approve: '✅ Content approved!', request_revision: '📝 Revision requested.', reject: '❌ Content rejected.' };
+        const msgs: any = {
+          approve:          '✅ Content approved!',
+          request_revision: '📝 Revision requested.',
+          reject:           '❌ Content rejected.',
+        };
         this.showToast(msgs[this.reviewForm.action] || 'Done.', 'ok');
       },
       error: (e: any) => { this.saving = false; this.showToast(e?.error?.message || 'Error', 'err'); },
@@ -64,24 +112,29 @@ export class BrandContentReviewComponent implements OnInit {
   }
 
   pay(post: any): void {
-    if (!confirm(`Pay $${post.paymentAmount} to ${post.creator?.firstName}?`)) return;
+    if (!confirm(`Release $${post.paymentAmount} payment to ${post.creator?.firstName}?`)) return;
     this.svc.payContentPost(post._id).subscribe({
-      next: () => { this.load(); this.showToast(`💸 Payment sent to ${post.creator?.firstName}!`, 'ok'); },
+      next: () => { this.load(); this.showToast(`💸 Payment released to ${post.creator?.firstName}!`, 'ok'); },
       error: (e: any) => { this.showToast(e?.error?.message || 'Payment failed', 'err'); },
     });
   }
 
   statusLabel(s: string): string {
-    const m: any = { draft:'Draft', submitted:'Under Review', approved:'Approved', revision_requested:'Revision', rejected:'Rejected', paid:'Paid' };
+    const m: any = { draft:'Draft', submitted:'Pending Review', approved:'Approved', revision_requested:'Revision', rejected:'Rejected', paid:'Paid' };
     return m[s] || s;
   }
   statusClass(s: string): string {
     const m: any = { submitted:'p-sky', approved:'p-jade', paid:'p-acc', revision_requested:'p-amber', rejected:'p-rose', draft:'p-gray' };
     return m[s] || 'p-gray';
   }
-  fmtDate(d: string): string { return d ? new Date(d).toLocaleDateString('en', { month:'short', day:'numeric', year:'numeric' }) : '—'; }
+  fmtDate(d: string): string {
+    return d ? new Date(d).toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+  }
+  initials(post: any): string {
+    return ((post.creator?.firstName || '?')[0] + (post.creator?.lastName || '?')[0]).toUpperCase();
+  }
 
-  private showToast(msg: string, type: 'ok'|'err'): void {
+  private showToast(msg: string, type: 'ok' | 'err'): void {
     clearTimeout(this.tt);
     this.toast = { msg, type };
     this.tt = setTimeout(() => this.toast = null, 4000);

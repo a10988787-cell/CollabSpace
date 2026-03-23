@@ -361,4 +361,83 @@ router.get('/invitations', async (req, res) => {
 });
 
 
+/* ═══════════════════════════════════════════════════════════════════
+   CREATOR INVITE  — POST /api/brand/creators/:creatorId/invite
+   Brand sends a collaboration invitation to a creator
+   Also accessible at POST /api/creators/:id/invite (via publicRoutes alias)
+   ═══════════════════════════════════════════════════════════════════ */
+router.post('/creators/:creatorId/invite', async (req, res) => {
+  try {
+    const { creatorId } = req.params;
+    const { campaignId, invitationMessage, proposedAmount } = req.body;
+
+    if (!invitationMessage?.trim()) {
+      return res.status(400).json({ success: false, message: 'Invitation message is required' });
+    }
+
+    // Verify creator exists
+    const creator = await User.findOne({ _id: creatorId, role: 'creator', isActive: true });
+    if (!creator) {
+      return res.status(404).json({ success: false, message: 'Creator not found' });
+    }
+
+    // Check for duplicate pending invite
+    const existing = await BrandInvitation.findOne({
+      brand: req.user._id, creator: creatorId, status: 'pending', isDeleted: false,
+    });
+    if (existing) {
+      return res.status(409).json({ success: false, message: 'You already have a pending invitation to this creator' });
+    }
+
+    // Build invitation
+    const inviteData = {
+      brand:             req.user._id,
+      creator:           creatorId,
+      invitationMessage: invitationMessage.trim(),
+      proposedAmount:    proposedAmount || 0,
+      expiresAt:         new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+    };
+    if (campaignId) inviteData.campaign = campaignId;
+
+    const invitation = await BrandInvitation.create(inviteData);
+    await invitation.populate('creator', 'firstName lastName email avatar');
+    await invitation.populate('campaign', 'title');
+
+    // Notify the creator
+    try {
+      await CreatorNotification.create({
+        user:      creatorId,
+        type:      'brand_invite',
+        title:     'New Collaboration Invite',
+        message:   `${req.user.companyName || req.user.firstName} wants to collaborate with you!`,
+        refModel:  'BrandInvitation',
+        refId:     invitation._id,
+        data:      { brandName: req.user.companyName || req.user.firstName, proposedAmount },
+      });
+    } catch (notifErr) {
+      console.warn('[invite] notification failed:', notifErr.message);
+    }
+
+    // Send email if service available
+    if (sendInviteEmail) {
+      try {
+        await sendInviteEmail({
+          to:          creator.email,
+          creatorName: creator.firstName,
+          brandName:   req.user.companyName || req.user.firstName,
+          message:     invitationMessage,
+          amount:      proposedAmount,
+        });
+      } catch (emailErr) {
+        console.warn('[invite] email failed:', emailErr.message);
+      }
+    }
+
+    res.status(201).json({ success: true, invitation, message: 'Invitation sent successfully!' });
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
+  }
+});
+
+
 module.exports = router;
