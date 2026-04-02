@@ -2,6 +2,13 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CreatorService } from '../../services/creator.service';
+import { environment } from '../../environment';
+
+function mediaUrl(url: string): string {
+  if (!url) return '';
+  if (url.startsWith('http') || url.startsWith('blob:')) return url;
+  return environment.apiUrl.replace('/api', '') + (url.startsWith('/') ? url : '/' + url);
+}
 
 @Component({
   selector: 'app-creator-collab-posts',
@@ -190,4 +197,6 @@ export class CreatorCollabPostsComponent implements OnInit {
     this.toast = { show: true, msg, type };
     setTimeout(() => this.toast.show = false, 4000);
   }
+
+  getMediaUrl(url: string): string { return mediaUrl(url); }
 }

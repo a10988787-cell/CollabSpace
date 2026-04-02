@@ -273,4 +273,21 @@ export class AuthService {
 
     return throwError(() => ({ ...err, friendlyMessage: message }));
   }
+
+  /** Called by InstagramSuccessComponent after OAuth redirect */
+  saveInstagramSession(token: string, info: { role: string; username: string; followers: number }): void {
+    // Save JWT token
+    localStorage.setItem(this.TK, token);
+    // Build a minimal user object so guards and role-routing work
+    const user: any = {
+      role:               info.role,
+      platform:           'Instagram',
+      instagramHandle:    info.username,
+      instagramFollowers: info.followers,
+      isLoggedIn:         true,
+    };
+    localStorage.setItem(this.UK, JSON.stringify(user));
+    this.currentUserSubject.next(user as any);
+  }
+
 }

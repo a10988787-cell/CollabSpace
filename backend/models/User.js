@@ -29,6 +29,11 @@ const UserSchema = new mongoose.Schema({
 
   // Account status
   isActive:    { type: Boolean, default: true },
+  /* ── Instagram OAuth ──────────────────────────────────────────────────── */
+  instagramId:     { type: String, sparse: true, index: true, default: null },
+  profilePicture:  { type: String, default: '' },
+  isEmailVerified: { type: Boolean, default: false },
+
 
   // Login tracking
   lastLogin:           { type: Date },

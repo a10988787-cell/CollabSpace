@@ -3,6 +3,7 @@ import { Component, ViewEncapsulation } from '@angular/core';
 import { CommonModule }                 from '@angular/common';
 import { FormsModule }                  from '@angular/forms';
 import { RouterModule, Router }         from '@angular/router';
+import { environment } from '../../environment';
 import { AuthService }                  from '../../services/auth.service';
 
 @Component({
@@ -221,4 +222,9 @@ export class SignupComponent {
   togglePassword():        void { this.showPassword        = !this.showPassword; }
   toggleConfirmPassword(): void { this.showConfirmPassword = !this.showConfirmPassword; }
   goToLogin():             void { this.router.navigate(['/auth/login']); }
+
+  signupWithInstagram(role: 'creator' | 'brand' = 'creator'): void {
+    window.location.href = `${environment.apiUrl}/auth/instagram?role=${role}`;
+  }
+
 }

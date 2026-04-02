@@ -1,0 +1,84 @@
+<div class="ig-page">
+
+  <!-- ── Loading ── -->
+  <div class="ig-card" *ngIf="state === 'loading'">
+    <div class="ig-spinner"></div>
+    <h2 class="ig-card__title">Connecting Instagram…</h2>
+    <p class="ig-card__sub">Fetching your profile, followers and posts.</p>
+  </div>
+
+  <!-- ── Error ── -->
+  <div class="ig-card ig-card--error" *ngIf="state === 'error'">
+    <div class="ig-icon ig-icon--error">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+    </div>
+    <h2 class="ig-card__title">Connection Failed</h2>
+    <p class="ig-card__sub">{{ errorMsg }}</p>
+    <button class="ig-btn ig-btn--outline" (click)="retry()">← Try Again</button>
+  </div>
+
+  <!-- ── Success ── -->
+  <div class="ig-card ig-card--success" *ngIf="state === 'success'">
+
+    <!-- Check icon -->
+    <div class="ig-icon ig-icon--success">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+      </svg>
+    </div>
+
+    <div class="ig-badge">Instagram Connected</div>
+
+    <!-- Avatar -->
+    <div class="ig-avatar-wrap">
+      <img *ngIf="profile.pic" [src]="profile.pic" alt="Profile" class="ig-avatar"
+           (error)="$any($event.target).style.display='none'">
+      <div *ngIf="!profile.pic" class="ig-avatar ig-avatar--fallback">
+        {{ (profile.name || profile.username || 'I')[0].toUpperCase() }}
+      </div>
+      <div class="ig-avatar-check">
+        <svg fill="none" stroke="white" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+      </div>
+    </div>
+
+    <!-- Name & handle -->
+    <h2 class="ig-name">{{ profile.name || profile.username }}</h2>
+    <p class="ig-handle">&#64;{{ profile.username }}</p>
+    <p *ngIf="profile.bio" class="ig-bio">{{ profile.bio }}</p>
+
+    <!-- Stats row -->
+    <div class="ig-stats">
+      <div class="ig-stat">
+        <div class="ig-stat__val">{{ fmtNum(profile.followers) }}</div>
+        <div class="ig-stat__label">Followers</div>
+      </div>
+      <div class="ig-stat-div"></div>
+      <div class="ig-stat">
+        <div class="ig-stat__val">{{ fmtNum(profile.following) }}</div>
+        <div class="ig-stat__label">Following</div>
+      </div>
+      <div class="ig-stat-div"></div>
+      <div class="ig-stat">
+        <div class="ig-stat__val">{{ fmtNum(profile.posts) }}</div>
+        <div class="ig-stat__label">Posts</div>
+      </div>
+      <div class="ig-stat-div"></div>
+      <div class="ig-stat">
+        <div class="ig-stat__val">{{ profile.engRate }}%</div>
+        <div class="ig-stat__label">Eng. Rate</div>
+      </div>
+    </div>
+
+    <!-- Redirect notice -->
+    <p class="ig-redirect">
+      Redirecting to your dashboard in <strong>{{ countdown }}s</strong>…
+    </p>
+    <div class="ig-progress">
+      <div class="ig-progress__bar" [ngStyle]="{'animation-duration': '2s'}"></div>
+    </div>
+
+  </div>
+
+</div>

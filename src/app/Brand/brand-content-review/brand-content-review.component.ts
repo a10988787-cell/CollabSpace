@@ -3,6 +3,13 @@ import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BrandService } from '../../services/brand.service';
+import { environment } from '../../environment';
+
+function mediaUrl(url: string): string {
+  if (!url) return '';
+  if (url.startsWith('http') || url.startsWith('blob:')) return url;
+  return environment.apiUrl.replace('/api', '') + (url.startsWith('/') ? url : '/' + url);
+}
 
 @Component({
   selector: 'app-brand-content-review',
@@ -139,4 +146,6 @@ export class BrandContentReviewComponent implements OnInit {
     this.toast = { msg, type };
     this.tt = setTimeout(() => this.toast = null, 4000);
   }
+
+  getMediaUrl(url: string): string { return mediaUrl(url); }
 }

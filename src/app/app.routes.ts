@@ -19,6 +19,7 @@ export const routes: Routes = [
       { path: 'forgot-password', loadComponent: () => import('./auth/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent), title: 'Reset Password — CollabSpace' },
       { path: 'reset-password/:token',  loadComponent: () => import('./auth/reset-password/reset-password.component').then(m => m.ResetPasswordComponent),  title: 'New Password — CollabSpace' },
       { path: 'verify-email/:token',    loadComponent: () => import('./auth/verify-email/verify-email.component').then(m => m.VerifyEmailComponent),         title: 'Verify Email — CollabSpace' },
+      { path: 'instagram/success',         loadComponent: () => import('./auth/instagram-success/instagram-success.component').then(m => m.InstagramSuccessComponent), title: 'Instagram Connected — CollabSpace' },
     ],
   },
 

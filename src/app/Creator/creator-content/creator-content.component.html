@@ -1,60 +1,175 @@
-<div class="pg">
-  <div class="ph">
-    <div><div class="ph-title">Content Library</div><div class="ph-sub">Manage all your content assets in one place</div></div>
-    <div style="display:flex;gap:10px">
-      <select class="form-select" [(ngModel)]="filterType" (change)="load()" style="width:130px;padding:8px 12px;font-size:.82rem" title="select"><option value="">All Types</option><option *ngFor="let t of fileTypes" [value]="t" style="text-transform:capitalize">{{t}}</option></select>
-      <button class="btn btn-primary" (click)="showUploadModal=true"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>Upload</button>
+<div class="cl-page">
+
+  <!-- Header -->
+  <div class="cl-hd">
+    <div>
+      <div class="cl-eyebrow"><span></span>Media</div>
+      <h1 class="cl-title">Content Library</h1>
+      <p class="cl-sub">Manage all your images, videos and media assets</p>
     </div>
-  </div>
-  <div *ngIf="loading" style="text-align:center;padding:60px;color:var(--t3)">Loading...</div>
-  <div class="grid-3" *ngIf="!loading">
-    <div class="empty" *ngIf="files.length===0" style="grid-column:1/-1"><div class="empty-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" style="width:28px;height:28px"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg></div><h3>No content yet</h3><p>Upload images, videos, and other media</p></div>
-    <div class="card" *ngFor="let f of files">
-      <div style="height:130px;border-radius:var(--r-md);background:var(--bg-card2);overflow:hidden;margin-bottom:12px;display:flex;align-items:center;justify-content:center;font-size:2.5rem">
-        <img *ngIf="f.fileType==='image'" [src]="f.fileUrl" style="width:100%;height:100%;object-fit:cover" alt="" onerror="this.style.display='none'">
-        <video *ngIf="f.fileType==='video'" [src]="f.fileUrl" style="width:100%;height:100%;object-fit:cover"></video>
-        <span *ngIf="f.fileType!=='image'&&f.fileType!=='video'">{{typeIcon(f.fileType)}}</span>
+    <div class="cl-hd-actions">
+      <div class="cl-search">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
       </div>
-      <div style="font-weight:600;color:var(--t1);font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{f.fileName}}</div>
-      <div style="font-size:.75rem;color:var(--t3);margin:4px 0 8px;text-transform:capitalize">{{f.fileType}} · {{formatSize(f.fileSize||0)}}</div>
-      <p style="font-size:.78rem;color:var(--t3);margin-bottom:8px;line-height:1.4">{{f.caption?.slice(0,80)}}{{f.caption?.length>80?'...':''}}</p>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
-        <span *ngFor="let h of (f.hashtags||[]).slice(0,3)" style="font-size:.68rem;color:var(--sky);background:rgba(56,189,248,.08);padding:2px 7px;border-radius:var(--r-full)">#{{h}}</span>
+      <div class="cl-type-filter">
+        <button class="cl-ftype" [class.active]="filterType===''" (click)="filterType=''; load()">All</button>
+        <button class="cl-ftype" *ngFor="let t of fileTypes" [class.active]="filterType===t" (click)="filterType=t; load()">{{t | titlecase}}</button>
       </div>
-      <div style="display:flex;gap:6px"><button class="btn btn-ghost btn-sm" style="flex:1" (click)="openEdit(f)">Edit</button><button class="btn btn-danger btn-sm" (click)="remove(f._id)">Delete</button></div>
+      <button class="cl-upload-btn" (click)="showUploadModal=true">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+        Upload
+      </button>
     </div>
   </div>
 
-  <!-- Upload Modal -->
-  <div class="modal-backdrop" *ngIf="showUploadModal" (click)="showUploadModal=false">
-    <div class="modal" (click)="$event.stopPropagation()">
-      <div class="modal-header"><div class="modal-title">Upload Content</div><button class="modal-close" (click)="showUploadModal=false" title="btn"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button></div>
-      <div class="form-group"><label class="form-label">File</label>
-        <div class="upload-zone" onclick="document.getElementById('contentFile').click()">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" style="width:32px;height:32px;color:var(--t3);display:block;margin:0 auto 10px"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
-          <p>{{selectedFile?.name||'Click to select file'}}</p>
-          <input id="contentFile" type="file" (change)="onFile($event)" style="display:none" accept="image/*,video/*,audio/*,.pdf,.doc,.docx">
+  <div *ngIf="loading" class="cl-loading"><div class="spin"></div> Loading content…</div>
+
+  <!-- Empty state -->
+  <div class="cl-empty" *ngIf="!loading && files.length === 0">
+    <div class="cl-empty-icon">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+      </svg>
+    </div>
+    <h3>Your content library is empty</h3>
+    <p>Upload images, videos, reels, stories and other media</p>
+    <button class="cl-upload-btn" style="margin-top:8px" (click)="showUploadModal=true">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+      Upload First File
+    </button>
+  </div>
+
+  <!-- Grid -->
+  <div class="cl-grid" *ngIf="!loading && files.length > 0">
+    <div class="cl-card" *ngFor="let f of files">
+
+      <!-- Thumbnail -->
+      <div class="cl-thumb" [attr.data-type]="f.fileType">
+        <img *ngIf="f.fileType==='image'" [src]="getMediaUrl(f.fileUrl)" alt="" loading="lazy" (error)="$any($event.target).style.display='none'">
+        <video *ngIf="f.fileType==='video'" [src]="getMediaUrl(f.fileUrl)" preload="metadata" style="width:100%;height:100%;object-fit:cover"></video>
+        <div class="cl-thumb-icon" *ngIf="f.fileType!=='image'&&f.fileType!=='video'">
+          {{typeIcon(f.fileType)}}
+        </div>
+        <div class="cl-type-badge">{{f.fileType}}</div>
+        <div class="cl-card-overlay">
+          <button class="cl-ov-btn" (click)="openEdit(f)">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+          </button>
+          <button class="cl-ov-btn danger" (click)="remove(f._id)">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          </button>
         </div>
       </div>
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">File Name</label><input class="form-input" [(ngModel)]="uploadForm.fileName" placeholder="My content"></div>
-        <div class="form-group"><label class="form-label">Type</label><select class="form-select" [(ngModel)]="uploadForm.fileType" title="select"><option *ngFor="let t of fileTypes" [value]="t" style="text-transform:capitalize">{{t}}</option></select></div>
+
+      <!-- Info -->
+      <div class="cl-info">
+        <div class="cl-filename">{{f.fileName}}</div>
+        <div class="cl-size">{{formatSize(f.fileSize || 0)}}</div>
+        <p class="cl-caption" *ngIf="f.caption">{{f.caption | slice:0:70}}{{f.caption?.length > 70 ? '…' : ''}}</p>
+        <div class="cl-tags" *ngIf="f.hashtags?.length">
+          <span *ngFor="let h of f.hashtags.slice(0,3)" class="cl-tag">#{{h}}</span>
+        </div>
       </div>
-      <div class="form-group"><label class="form-label">Caption</label><textarea class="form-textarea" [(ngModel)]="uploadForm.caption" rows="3" title="txtarea"></textarea></div>
-      <div class="form-group"><label class="form-label">Hashtags</label><input class="form-input" [(ngModel)]="uploadForm.hashtags" placeholder="#lifestyle, #fashion"></div>
-      <div class="modal-footer"><button class="btn btn-ghost" (click)="showUploadModal=false">Cancel</button><button class="btn btn-primary" (click)="upload()" [disabled]="saving">{{saving?'Uploading...':'Upload'}}</button></div>
     </div>
   </div>
 
-  <!-- Edit Modal -->
-  <div class="modal-backdrop" *ngIf="showEditModal" (click)="showEditModal=false">
-    <div class="modal" (click)="$event.stopPropagation()">
-      <div class="modal-header"><div class="modal-title">Edit Content</div><button class="modal-close" (click)="showEditModal=false" title="button"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button></div>
-      <div class="form-group"><label class="form-label">File Name</label><input class="form-input" [(ngModel)]="editForm.fileName" title="input"></div>
-      <div class="form-group"><label class="form-label">Caption</label><textarea class="form-textarea" [(ngModel)]="editForm.caption" rows="3" title="txtarea"></textarea></div>
-      <div class="form-group"><label class="form-label">Hashtags</label><input class="form-input" [(ngModel)]="editForm.hashtags" placeholder="#lifestyle, #fashion"></div>
-      <div class="modal-footer"><button class="btn btn-ghost" (click)="showEditModal=false">Cancel</button><button class="btn btn-primary" (click)="saveEdit()" [disabled]="saving">{{saving?'Saving...':'Update'}}</button></div>
+  <!-- ══ UPLOAD MODAL ══════════════════════════════════════════════════ -->
+  <div class="modal-overlay" *ngIf="showUploadModal" (click)="showUploadModal=false">
+    <div class="cl-modal" (click)="$event.stopPropagation()">
+      <div class="cl-modal-head">
+        <div class="cl-modal-title">Upload Content</div>
+        <button class="cl-modal-x" (click)="showUploadModal=false">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Drop zone -->
+      <label class="cl-dropzone" [class.has-file]="selectedFile">
+        <input id="cl-file-input" type="file" (change)="onFile($event)"
+          accept="image/*,video/*,audio/*,.pdf,.doc,.docx" style="display:none">
+        <ng-container *ngIf="!selectedFile">
+          <div class="cl-dropzone-icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+            </svg>
+          </div>
+          <div class="cl-dropzone-text">
+            <span class="cl-dropzone-main">Click to select a file</span>
+            <span class="cl-dropzone-sub">Images, Videos, Audio, Docs up to 100MB</span>
+          </div>
+        </ng-container>
+        <ng-container *ngIf="selectedFile">
+          <!-- Image preview -->
+          <div *ngIf="uploadForm.fileType==='image' && previewUrl" class="cl-preview-wrap">
+            <img [src]="previewUrl" alt="preview" class="cl-preview-img">
+            <div class="cl-preview-info">
+              <svg fill="none" stroke="#34D399" viewBox="0 0 24 24" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <div>
+                <div style="font-size:.85rem;font-weight:600;color:#34D399">{{selectedFile!.name}}</div>
+                <div style="font-size:.72rem;color:var(--t3);margin-top:1px">{{formatSize(selectedFile!.size)}} · Click to change</div>
+              </div>
+            </div>
+          </div>
+          <!-- Video / other preview -->
+          <div *ngIf="uploadForm.fileType!=='image'" class="cl-file-selected">
+            <svg fill="none" stroke="#34D399" viewBox="0 0 24 24" stroke-width="2" style="width:20px;height:20px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+            <div>
+              <div style="font-size:.88rem;font-weight:600;color:#34D399">{{selectedFile!.name}}</div>
+              <div style="font-size:.75rem;color:var(--t3);margin-top:2px">{{formatSize(selectedFile!.size)}} · Click to change</div>
+            </div>
+          </div>
+        </ng-container>
+      </label>
+
+      <div class="cl-form-row">
+        <div class="cl-field">
+          <label>File Name</label>
+          <input [(ngModel)]="uploadForm.fileName" placeholder="My content">
+        </div>
+        <div class="cl-field">
+          <label>Type</label>
+          <select [(ngModel)]="uploadForm.fileType">
+            <option *ngFor="let t of fileTypes" [value]="t" style="text-transform:capitalize">{{t | titlecase}}</option>
+          </select>
+        </div>
+      </div>
+      <div class="cl-field cl-field--full">
+        <label>Caption</label>
+        <textarea [(ngModel)]="uploadForm.caption" rows="3" placeholder="Add a caption for this content…"></textarea>
+      </div>
+      <div class="cl-field cl-field--full">
+        <label>Hashtags (comma separated)</label>
+        <input [(ngModel)]="uploadForm.hashtags" placeholder="#fashion, #lifestyle, #collab">
+      </div>
+
+      <div class="cl-modal-foot">
+        <button class="mbtn ghost" (click)="showUploadModal=false">Cancel</button>
+        <button class="mbtn primary" (click)="upload()" [disabled]="saving || !selectedFile">
+          <svg *ngIf="!saving" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+          {{saving ? 'Uploading…' : 'Upload File'}}
+        </button>
+      </div>
     </div>
   </div>
-  <div class="toast" *ngIf="toast.show" [class.success]="toast.type==='success'" [class.error]="toast.type==='error'">{{toast.msg}}</div>
+
+  <!-- ══ EDIT MODAL ═══════════════════════════════════════════════════ -->
+  <div class="modal-overlay" *ngIf="showEditModal" (click)="showEditModal=false">
+    <div class="cl-modal" (click)="$event.stopPropagation()">
+      <div class="cl-modal-head">
+        <div class="cl-modal-title">Edit Content</div>
+        <button title="btn" class="cl-modal-x" (click)="showEditModal=false">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="cl-field cl-field--full"><label>File Name</label><input placeholder="input" [(ngModel)]="editForm.fileName"></div>
+      <div class="cl-field cl-field--full"><label>Caption</label><textarea placeholder="txt" [(ngModel)]="editForm.caption" rows="3"></textarea></div>
+      <div class="cl-field cl-field--full"><label>Hashtags</label><input [(ngModel)]="editForm.hashtags" placeholder="#tag1, #tag2"></div>
+      <div class="cl-modal-foot">
+        <button class="mbtn ghost" (click)="showEditModal=false">Cancel</button>
+        <button class="mbtn primary" (click)="saveEdit()" [disabled]="saving">{{saving ? 'Saving…' : 'Update'}}</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-bar" *ngIf="toast.show" [class.err]="toast.type==='error'">{{toast.msg}}</div>
 </div>

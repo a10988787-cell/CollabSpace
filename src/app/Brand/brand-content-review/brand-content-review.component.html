@@ -127,7 +127,7 @@
         <!-- Media -->
         <div class="cr-media" *ngIf="post.mediaUrls?.length; else noMedia">
           <div class="cr-media__thumb" *ngFor="let url of post.mediaUrls.slice(0,3)">
-            <img [src]="url" alt="" (error)="$any($event.target).style.display='none'">
+            <img [src]="getMediaUrl(url)" alt="" (error)="$any($event.target).style.display='none'">
           </div>
           <div class="cr-media__more" *ngIf="post.mediaUrls.length > 3">+{{ post.mediaUrls.length - 3 }}</div>
         </div>
@@ -268,7 +268,7 @@
           <span *ngFor="let h of selectedPost?.hashtags" class="cr-tag">#{{ h }}</span>
         </div>
         <div class="cr-modal__media" *ngIf="selectedPost?.mediaUrls?.length">
-          <img *ngFor="let url of selectedPost?.mediaUrls?.slice(0,6)" [src]="url" alt="" (error)="$any($event.target).style.display='none'">
+          <img *ngFor="let url of selectedPost?.mediaUrls?.slice(0,6)" [src]="getMediaUrl(url)" alt="" (error)="$any($event.target).style.display='none'">
         </div>
       </div>
 

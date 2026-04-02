@@ -1,0 +1,146 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@700;800;900&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
+
+:root {
+  --bg:   #05060E; --card: #0C0E1E; --bdr: rgba(255,255,255,.08);
+  --acc:  #8B5CF6; --jade: #34D399; --rose: #FB7185;
+  --t1:   #EEEEFF; --t2:  #9896BC; --t3:  #3A385C;
+  --ig:   linear-gradient(135deg,#833AB4,#E1306C,#F77737);
+  --fd:  'Sora',sans-serif; --fb: 'DM Sans',sans-serif;
+}
+@keyframes fadeUp  { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:none} }
+@keyframes spin    { to{transform:rotate(360deg)} }
+@keyframes check   { from{opacity:0;transform:scale(.5)} to{opacity:1;transform:scale(1)} }
+@keyframes progress{ from{width:0} to{width:100%} }
+@keyframes pulse   { 0%,100%{opacity:.8} 50%{opacity:1} }
+
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+
+.ig-page {
+  min-height: 100vh;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+  font-family: var(--fb);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Card ── */
+.ig-card {
+  background: var(--card);
+  border: 1px solid var(--bdr);
+  border-radius: 24px;
+  padding: 48px 40px;
+  text-align: center;
+  max-width: 440px; width: 100%;
+  box-shadow: 0 24px 80px rgba(0,0,0,.6);
+  animation: fadeUp .5s cubic-bezier(.16,1,.3,1) both;
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+}
+.ig-card--success { border-color: rgba(139,92,246,.2); }
+.ig-card--error   { border-color: rgba(251,113,133,.18); }
+
+/* ── Loading spinner ── */
+.ig-spinner {
+  width: 44px; height: 44px;
+  border: 3px solid rgba(139,92,246,.18);
+  border-top-color: var(--acc);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  margin-bottom: 4px;
+}
+
+/* ── Icon ── */
+.ig-icon {
+  width: 64px; height: 64px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  animation: check .4s cubic-bezier(.34,1.56,.64,1) both;
+}
+.ig-icon svg { width: 28px; height: 28px; }
+.ig-icon--success { background: rgba(139,92,246,.15); border: 2px solid rgba(139,92,246,.3); }
+.ig-icon--success svg { color: #C4B5FD; }
+.ig-icon--error   { background: rgba(251,113,133,.12); border: 2px solid rgba(251,113,133,.25); }
+.ig-icon--error   svg { color: var(--rose); }
+
+/* ── Instagram badge ── */
+.ig-badge {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 5px 14px; border-radius: 999px;
+  background: var(--ig); color: #fff;
+  font-size: .72rem; font-weight: 700; letter-spacing: .04em;
+  box-shadow: 0 4px 14px rgba(225,48,108,.35);
+}
+.ig-badge::before {
+  content: '';
+  display: inline-block; width: 7px; height: 7px;
+  background: rgba(255,255,255,.9); border-radius: 50%;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* ── Avatar ── */
+.ig-avatar-wrap { position: relative; margin: 4px 0; }
+.ig-avatar {
+  width: 88px; height: 88px; border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid transparent;
+  background: var(--ig) border-box;
+  box-shadow: 0 0 0 3px rgba(225,48,108,.3), 0 8px 24px rgba(0,0,0,.4);
+}
+.ig-avatar--fallback {
+  width: 88px; height: 88px; border-radius: 50%;
+  background: var(--ig);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--fd); font-size: 2rem; font-weight: 800; color: #fff;
+  box-shadow: 0 8px 24px rgba(225,48,108,.4);
+}
+.ig-avatar-check {
+  position: absolute; bottom: 0; right: 0;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--jade); border: 2.5px solid var(--card);
+  display: flex; align-items: center; justify-content: center;
+}
+.ig-avatar-check svg { width: 12px; height: 12px; }
+
+/* ── Text ── */
+.ig-card__title { font-family: var(--fd); font-size: 1.2rem; font-weight: 800; color: var(--t1); letter-spacing: -.02em; }
+.ig-card__sub   { font-size: .87rem; color: var(--t2); line-height: 1.6; max-width: 300px; }
+.ig-name   { font-family: var(--fd); font-size: 1.3rem; font-weight: 800; color: var(--t1); letter-spacing: -.02em; }
+.ig-handle { font-size: .88rem; color: #E1306C; font-weight: 600; }
+.ig-bio    { font-size: .83rem; color: var(--t2); line-height: 1.55; max-width: 320px; }
+
+/* ── Stats ── */
+.ig-stats {
+  display: flex; align-items: center; gap: 0;
+  background: rgba(139,92,246,.06); border: 1px solid rgba(139,92,246,.14);
+  border-radius: 14px; padding: 16px 8px; width: 100%;
+}
+.ig-stat { flex: 1; text-align: center; }
+.ig-stat__val   { font-family: var(--fd); font-size: 1.25rem; font-weight: 800; color: var(--t1); letter-spacing: -.03em; }
+.ig-stat__label { font-size: .67rem; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--t3); margin-top: 3px; }
+.ig-stat-div    { width: 1px; height: 36px; background: rgba(255,255,255,.07); flex-shrink: 0; }
+
+/* ── Redirect ── */
+.ig-redirect { font-size: .83rem; color: var(--t3); }
+.ig-redirect strong { color: var(--t2); }
+.ig-progress {
+  width: 100%; height: 4px;
+  background: rgba(255,255,255,.06); border-radius: 99px; overflow: hidden;
+}
+.ig-progress__bar {
+  height: 100%; border-radius: 99px;
+  background: var(--ig);
+  animation: progress linear both;
+  width: 0;
+}
+
+/* ── Buttons ── */
+.ig-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 10px 24px; border-radius: 11px;
+  font-size: .85rem; font-weight: 700; font-family: var(--fb);
+  cursor: pointer; transition: all 180ms ease;
+}
+.ig-btn--outline {
+  background: transparent; color: var(--t2);
+  border: 1.5px solid rgba(255,255,255,.12);
+}
+.ig-btn--outline:hover { background: rgba(255,255,255,.05); color: var(--t1); }

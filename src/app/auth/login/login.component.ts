@@ -51,15 +51,25 @@ export class LoginComponent implements OnInit {
       return;
     }
 
-    // ── Show success banner when coming from signup ────────────────────
+    // ── Read query params ────────────────────────────────────────────────
     this.route.queryParams.subscribe(params => {
+      // Post-signup banner
       if (params['registered'] === 'true') {
         this.justRegistered  = true;
         this.registeredEmail = params['email'] || '';
-        // Pre-fill email field for convenience
-        if (this.registeredEmail) {
-          this.email = this.registeredEmail;
-        }
+        if (this.registeredEmail) this.email = this.registeredEmail;
+      }
+
+      // Instagram OAuth error
+      if (params['error']) {
+        const errorMap: Record<string, string> = {
+          instagram_not_configured: '⚙️ Instagram login is not set up yet. Add INSTAGRAM_APP_ID and INSTAGRAM_APP_SECRET to your .env file.',
+          instagram_denied:         'Instagram authorisation was cancelled. Please try again.',
+          instagram_token_failed:   'Could not get an Instagram access token. Please try again.',
+          instagram_profile_failed: 'Could not fetch your Instagram profile. Make sure you added yourself as a test user in Meta Developer Console.',
+          instagram_server_error:   'A server error occurred with Instagram login. Please try again.',
+        };
+        this.globalError = errorMap[params['error']] || 'Instagram login failed. Please try again.';
       }
     });
   }
@@ -138,6 +148,6 @@ export class LoginComponent implements OnInit {
   goToSignup():       void { this.router.navigate(['/auth/signup']); }
   onForgotPassword(): void { this.router.navigate(['/auth/forgot-password']); }
   dismissBanner():    void { this.justRegistered = false; }
-  loginWithGoogle():  void { window.location.href = `${environment.apiUrl}/auth/google`; }
-  loginWithGithub():  void { window.location.href = `${environment.apiUrl}/auth/github`; }
+  loginWithInstagram(): void { window.location.href = `${environment.apiUrl}/auth/instagram?role=creator`; }
+  loginWithInstagramBrand(): void { window.location.href = `${environment.apiUrl}/auth/instagram?role=brand`; }
 }
