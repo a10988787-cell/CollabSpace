@@ -492,7 +492,81 @@
         </table>
       </div>
     </section>
-
+<section class="sec section-anchor" id="pricing">
+      <div class="sec-hd">
+        <div>
+          <div class="sec-eyebrow">Simple Pricing</div>
+          <h2 class="sec-title">Plans &amp; Pricing</h2>
+          <p class="sec-sub">Choose the plan that fits your creator or brand journey</p>
+        </div>
+ 
+        <!-- Billing toggle -->
+        <div class="billing-toggle">
+          <span [ngClass]="!billingAnnual() ? 'billing-toggle__label--active' : 'billing-toggle__label'">Monthly</span>
+          <button class="toggle-switch" [ngClass]="billingAnnual() ? 'toggle-switch--on' : ''" (click)="toggleBilling()">
+            <span class="toggle-switch__knob"></span>
+          </button>
+          <span [ngClass]="billingAnnual() ? 'billing-toggle__label--active' : 'billing-toggle__label'">
+            Annual
+            <span class="billing-save-badge">Save 20%</span>
+          </span>
+        </div>
+      </div>
+ 
+      <div class="pricing-grid">
+        <div *ngFor="let plan of displayedPlans" class="pricing-card"
+             [ngClass]="plan.highlight ? 'pricing-card--highlight' : ''">
+ 
+          <!-- Popular badge -->
+          <div *ngIf="plan.badge" class="pricing-badge">{{ plan.badge }}</div>
+ 
+          <div class="pricing-card__name">{{ plan.name }}</div>
+ 
+          <div class="pricing-card__price">
+            <span class="pricing-currency">₹</span>
+            <span class="pricing-amount">{{ plan.price === 0 ? '0' : (plan.price | number) }}</span>
+            <span class="pricing-period">
+              / {{ billingAnnual() && plan.price > 0 ? 'year' : 'month' }}
+            </span>
+          </div>
+ 
+          <div *ngIf="billingAnnual() && plan.price > 0" class="pricing-billed-note">
+            Billed annually — save ₹{{ (plan.price * 0.25) | number:'1.0-0' }} vs monthly
+          </div>
+ 
+          <div class="pricing-divider"></div>
+ 
+          <ul class="pricing-features">
+            <li *ngFor="let feat of plan.features" class="pricing-feature"
+                [ngClass]="feat.included ? '' : 'pricing-feature--off'">
+              <svg *ngIf="feat.included" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5" class="feat-check">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+              </svg>
+              <svg *ngIf="!feat.included" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5" class="feat-cross">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+              {{ feat.text }}
+            </li>
+          </ul>
+ 
+          <button class="pricing-cta"
+                  [ngClass]="plan.highlight ? 'pricing-cta--highlight' : 'pricing-cta--outline'"
+                  (click)="selectPlan(plan)">
+            {{ plan.cta }}
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5" style="width:14px;height:14px">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+ 
+      <!-- Pricing footnote -->
+      <p class="pricing-note">
+        All prices are in Indian Rupees (₹) and include GST. Cancel anytime.
+        Enterprise plans available — <a (click)="goToSignup()" class="pricing-link">contact us</a>.
+      </p>
+    </section>
+ 
     <!-- ═══ FOOTER CTA ════════════════════════════════════════════════ -->
     <section class="footer-cta">
       <div class="footer-cta__inner">
@@ -510,4 +584,5 @@
     </section>
 
   </div><!-- /page-content -->
+  
 </div>

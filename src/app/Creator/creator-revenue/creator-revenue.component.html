@@ -1,30 +1,171 @@
+<!-- creator-revenue.component.html -->
 <div class="pg">
   <div class="ph">
-    <div><div class="ph-title">Revenue Tracking</div><div class="ph-sub">Track all your campaign earnings and payments</div></div>
-    <select class="form-select" [(ngModel)]="filterStatus" (change)="load()" style="width:140px;padding:8px 12px;font-size:.82rem" title="select"><option *ngFor="let s of statuses" [value]="s">{{s||'All Status'}}</option></select>
+    <div>
+      <div class="eyebrow">Earnings</div>
+      <div class="ph-title">Revenue</div>
+      <div class="ph-sub">All your campaign payments and earnings in one place</div>
+    </div>
+    <select class="form-select" [(ngModel)]="filterStatus" (change)="load()"
+            style="width:150px;padding:8px 12px;font-size:.82rem;border-radius:10px">
+      <option *ngFor="let s of statuses" [value]="s">{{ s || 'All Status' }}</option>
+    </select>
   </div>
-  <div class="grid-kpi" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))">
-    <div class="kpi"><div class="kpi-icon" style="background:rgba(52,211,153,.12)"><svg fill="none" stroke="#34D399" viewBox="0 0 24 24" stroke-width="2" style="width:18px;height:18px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1"/></svg></div><div class="kpi-val" style="color:var(--jade)">${{totalReceived|number}}</div><div class="kpi-lbl">Total Received</div></div>
-    <div class="kpi"><div class="kpi-icon" style="background:rgba(251,191,36,.12)"><svg fill="none" stroke="#FBBF24" viewBox="0 0 24 24" stroke-width="2" style="width:18px;height:18px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div><div class="kpi-val" style="color:var(--amber)">${{totalPending|number}}</div><div class="kpi-lbl">Pending</div></div>
-    <div class="kpi"><div class="kpi-icon" style="background:rgba(139,92,246,.12)"><svg fill="none" stroke="#A78BFA" viewBox="0 0 24 24" stroke-width="2" style="width:18px;height:18px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-1.75L12 21l3.5-1.75L19 21z"/></svg></div><div class="kpi-val">{{entries.length}}</div><div class="kpi-lbl">Total Entries</div></div>
+
+  <!-- KPI cards -->
+  <div class="grid-kpi" style="grid-template-columns:repeat(auto-fill,minmax(190px,1fr));margin-bottom:22px">
+    <div class="kpi">
+      <div class="kpi-icon" style="background:rgba(52,211,153,.12)">
+        <svg fill="none" stroke="#34D399" viewBox="0 0 24 24" stroke-width="2" style="width:18px;height:18px">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </div>
+      <div class="kpi-val" style="color:var(--jade)">{{ totalReceived | currency:'INR':'symbol':'1.0-0' }}</div>
+      <div class="kpi-lbl">Total Received</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon" style="background:rgba(251,191,36,.12)">
+        <svg fill="none" stroke="#FBBF24" viewBox="0 0 24 24" stroke-width="2" style="width:18px;height:18px">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </div>
+      <div class="kpi-val" style="color:var(--amber)">{{ totalPending | currency:'INR':'symbol':'1.0-0' }}</div>
+      <div class="kpi-lbl">Pending</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon" style="background:rgba(139,92,246,.12)">
+        <svg fill="none" stroke="#A78BFA" viewBox="0 0 24 24" stroke-width="2" style="width:18px;height:18px">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+        </svg>
+      </div>
+      <div class="kpi-val">{{ entries.length }}</div>
+      <div class="kpi-lbl">Total Payments</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon" style="background:rgba(56,189,248,.12)">
+        <svg fill="none" stroke="#38BDF8" viewBox="0 0 24 24" stroke-width="2" style="width:18px;height:18px">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+        </svg>
+      </div>
+      <div class="kpi-val" style="color:var(--sky)">{{ razorpayCount }}</div>
+      <div class="kpi-lbl">Razorpay Payments</div>
+    </div>
   </div>
-  <div *ngIf="loading" style="text-align:center;padding:60px;color:var(--t3)">Loading...</div>
+
+  <div *ngIf="loading" class="loading"><div class="spin"></div> Loading earnings…</div>
+
   <ng-container *ngIf="!loading">
-    <div class="empty" *ngIf="entries.length===0"><div class="empty-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" style="width:28px;height:28px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div><h3>No revenue entries</h3><p>Earnings from approved content will appear here</p></div>
-    <div class="table-wrap" *ngIf="entries.length>0">
+    <div class="empty" *ngIf="entries.length === 0">
+      <div class="empty-icon">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" style="width:28px;height:28px">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </div>
+      <h3>No revenue entries yet</h3>
+      <p>Payments from approved content will appear here once released by the brand</p>
+    </div>
+
+    <div class="table-wrap" *ngIf="entries.length > 0">
       <table>
-        <thead><tr><th>Campaign</th><th>Brand</th><th>Amount</th><th>Status</th><th>Payment Date</th></tr></thead>
+        <thead>
+          <tr>
+            <th>Campaign / Content</th>
+            <th>Brand</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Payment Method</th>
+            <th>Payment Date</th>
+            <th>Receipt</th>
+          </tr>
+        </thead>
         <tbody>
           <tr *ngFor="let e of entries">
-            <td style="font-weight:600;color:var(--t1)">{{e.campaignName}}</td>
-            <td style="color:var(--t2)">{{e.brandName||'—'}}</td>
-            <td style="font-weight:700;color:var(--jade)">${{e.amount|number}} <span style="font-size:.72rem;color:var(--t3)">{{e.currency}}</span></td>
-            <td><span class="pill" [ngClass]="statusPill(e.status)" style="text-transform:capitalize">{{e.status}}</span></td>
-            <td style="font-size:.8rem;color:var(--t3)">{{e.paymentDate?(e.paymentDate|date:'MMM d, y'):'—'}}</td>
+            <td>
+              <div style="font-weight:600;color:var(--t1)">{{ e.campaignName }}</div>
+              <div *ngIf="e.razorpayPaymentId" style="font-size:.68rem;color:var(--t3);font-family:monospace;margin-top:2px">
+                {{ e.razorpayPaymentId }}
+              </div>
+            </td>
+            <td style="color:var(--t2)">{{ e.brandName || '—' }}</td>
+            <td>
+              <span style="font-weight:800;color:var(--jade);font-size:.95rem">
+                {{ e.currency || 'INR' }} {{ e.amount | number:'1.0-0' }}
+              </span>
+            </td>
+            <td>
+              <span class="pill" [ngClass]="statusPill(e.status)" style="text-transform:capitalize">
+                {{ e.status }}
+              </span>
+            </td>
+            <td>
+              <span *ngIf="e.razorpayPaymentId" class="razorpay-badge">
+                <svg viewBox="0 0 24 24" fill="currentColor" style="width:13px;height:13px">
+                  <path d="M10.5 0L0 14h9L7.5 24 24 10h-9z"/>
+                </svg>
+                Razorpay
+              </span>
+              <span *ngIf="!e.razorpayPaymentId" style="color:var(--t3);font-size:.8rem">Manual</span>
+            </td>
+            <td style="font-size:.8rem;color:var(--t3)">
+              {{ e.paymentDate ? (e.paymentDate | date:'MMM d, y') : '—' }}
+            </td>
+            <td>
+              <button *ngIf="e.razorpayPaymentId" class="btn btn-ghost btn-sm" (click)="viewReceipt(e)">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" style="width:12px;height:12px">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2"/>
+                </svg>
+                Receipt
+              </button>
+              <span *ngIf="!e.razorpayPaymentId" style="color:var(--t3);font-size:.75rem">—</span>
+            </td>
           </tr>
         </tbody>
       </table>
     </div>
   </ng-container>
-  <div class="toast" *ngIf="toast.show" [class.success]="toast.type==='success'" [class.error]="toast.type==='error'">{{toast.msg}}</div>
+
+  <!-- Receipt Viewer -->
+  <div class="modal-bg" *ngIf="showReceipt" (click)="showReceipt=false">
+    <div class="modal" style="max-width:460px" (click)="$event.stopPropagation()">
+      <div class="modal-head">
+        <div class="modal-title">Payment Receipt</div>
+        <button class="modal-x" (click)="showReceipt=false">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div *ngIf="selectedReceipt" style="padding:20px 24px">
+        <!-- Success -->
+        <div style="display:flex;align-items:center;gap:10px;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.22);border-radius:11px;padding:11px 15px;margin-bottom:20px">
+          <svg fill="none" stroke="#34D399" viewBox="0 0 24 24" stroke-width="2.5" style="width:18px;height:18px;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          <span style="font-size:.85rem;font-weight:700;color:var(--jade)">Payment Received via Razorpay</span>
+        </div>
+        <!-- Amount -->
+        <div style="text-align:center;margin-bottom:20px">
+          <div style="font-size:.8rem;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.08em">Amount Received</div>
+          <div style="font-family:var(--fd);font-size:2.8rem;font-weight:900;color:var(--jade);letter-spacing:-.05em;line-height:1.1">
+            {{ selectedReceipt.currency }} {{ selectedReceipt.amount | number:'1.0-0' }}
+          </div>
+        </div>
+        <!-- Details -->
+        <div style="background:var(--card2);border:1px solid var(--bdr);border-radius:12px;overflow:hidden;margin-bottom:16px">
+          <div *ngFor="let row of receiptRows" style="display:flex;justify-content:space-between;align-items:center;padding:10px 15px;border-bottom:1px solid var(--bdr)">
+            <span style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3)">{{ row.label }}</span>
+            <span style="font-size:.84rem;font-weight:600;color:var(--t1);text-align:right;max-width:240px;word-break:break-all" [style.font-family]="row.mono ? 'monospace' : ''">{{ row.value }}</span>
+          </div>
+        </div>
+        <p style="font-size:.75rem;color:var(--t3);text-align:center;line-height:1.6">
+          This is an official receipt for the Razorpay payment. Payment ID can be used for dispute resolution.
+        </p>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" (click)="showReceipt=false">Close</button>
+        <button class="btn btn-primary" (click)="printPage()">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2z"/></svg>
+          Print Receipt
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" *ngIf="toast.show" [class.success]="toast.type==='success'" [class.error]="toast.type==='error'">{{ toast.msg }}</div>
 </div>

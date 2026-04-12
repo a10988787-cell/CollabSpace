@@ -16,6 +16,7 @@ const usersRoutes    = require('./routes/users.routes');
 const brandRoutes    = require('./routes/brand.routes');
 const creatorRoutes  = require('./routes/creator.routes');
 const publicRoutes             = require('./routes/public.routes');
+const paymentRoutes            = require('./routes/payment.routes');
 const { statsRouter }          = require('./routes/public.routes');
 
 connectDB();
@@ -67,6 +68,7 @@ app.use('/api/admin',   adminRoutes);  // All 15 admin CRUD modules
 app.use('/api/users',   usersRoutes);
 app.use('/api/brand',   brandRoutes);
 app.use('/api/creator', creatorRoutes);
+app.use('/api/payments', paymentRoutes);
 app.use('/api',         publicRoutes);   // /api/creators/:id, /api/collab-posts
 app.use('/api/stats',   statsRouter);     // /api/stats — public homepage data (no auth)
 
@@ -124,5 +126,6 @@ const shutdown = async (sig) => {
 };
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT',  () => shutdown('SIGINT'));
-
+console.log("KEY_ID:", process.env.RAZORPAY_KEY_ID);
+console.log("KEY_SECRET:", process.env.RAZORPAY_KEY_SECRET);
 module.exports = app;

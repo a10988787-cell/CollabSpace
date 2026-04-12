@@ -74,7 +74,12 @@ const DEMO_BRANDS = [
   { name:'ByteGadget',  niche:'Mobile',   campaigns:9,  spent:'$94K',  creators:27, gradient:GRADS[6], connected:false },
   { name:'PetPals',     niche:'Pets',     campaigns:5,  spent:'$38K',  creators:15, gradient:GRADS[7], connected:true  },
 ];
-
+interface Plan {
+  id: string; name: string; price: number; period: string;
+  highlight: boolean; badge?: string;
+  features: { text: string; included: boolean }[];
+  cta: string;
+}
 @Component({
   selector: 'app-homepage',
   standalone: true,
@@ -89,7 +94,7 @@ export class HomepageComponent implements OnInit, OnDestroy {
   private charts: any[] = [];
   private observer?: IntersectionObserver;
   private apiTimer: any;
-
+  billingAnnual  = signal<boolean>(false);
   /* ── State ─────────────────────────────────────────────────── */
   isLiveData = false;
   readonly activeSection = signal<string>('dashboard');
@@ -317,7 +322,15 @@ export class HomepageComponent implements OnInit, OnDestroy {
     this.charts.forEach(c => { try { c.destroy(); } catch(_){} });
     this.charts = [];
   }
-
+selectPlan(plan: Plan): void {
+    if (plan.id === 'free') {
+      this.router.navigate(['/signup']);
+    } else if (plan.id === 'business') {
+      this.router.navigate(['/contact']);
+    } else {
+      this.router.navigate(['/signup'], { queryParams: { plan: plan.id } });
+    }
+  }
   initCharts(): void {
     if (!this.isBrowser) return;
     const Chart = (window as any).Chart;
@@ -463,4 +476,61 @@ export class HomepageComponent implements OnInit, OnDestroy {
   goToLogin()  { this.router.navigate(['/auth/login']); }
   goToSignup() { this.router.navigate(['/auth/signup']); }
   toggleConnect(b: any) { b.connected = !b.connected; }
+  plans: Plan[] = [
+    {
+      id:'free', name:'Starter', price:0, period:'month',
+      highlight:false,
+      features:[
+        { text:'Up to 3 active campaigns',  included:true  },
+        { text:'Basic creator discovery',   included:true  },
+        { text:'5 brand connections',       included:true  },
+        { text:'Standard analytics',        included:true  },
+        { text:'Priority support',          included:false },
+        { text:'Custom contracts',          included:false },
+        { text:'API access',                included:false },
+      ],
+      cta:'Get Started Free'
+    },
+    {
+      id:'pro', name:'Pro', price:2999, period:'month',
+      highlight:true, badge:'Most Popular',
+      features:[
+        { text:'Up to 20 active campaigns', included:true  },
+        { text:'Advanced creator discovery',included:true  },
+        { text:'Unlimited brand connections',included:true },
+        { text:'Full analytics dashboard',  included:true  },
+        { text:'Priority support',          included:true  },
+        { text:'Custom contracts',          included:true  },
+        { text:'API access',                included:false },
+      ],
+      cta:'Start Pro Trial'
+    },
+    {
+      id:'business', name:'Business', price:7999, period:'month',
+      highlight:false,
+      features:[
+        { text:'Unlimited campaigns',            included:true },
+        { text:'AI-powered creator matching',    included:true },
+        { text:'Unlimited brand connections',    included:true },
+        { text:'Advanced analytics + exports',   included:true },
+        { text:'Dedicated account manager',      included:true },
+        { text:'Custom contracts + e-sign',      included:true },
+        { text:'Full API access',                included:true },
+      ],
+      cta:'Contact Sales'
+    }
+  ];
+ 
+  get displayedPlans(): Plan[] {
+    if (!this.billingAnnual()) return this.plans;
+    // Annual billing — 20% discount, billed as 10× monthly
+    return this.plans.map(p => ({
+      ...p,
+      price: p.price === 0 ? 0 : Math.round(p.price * 10 * 0.8)
+    }));
+  }
+ 
+  toggleBilling(): void {
+    this.billingAnnual.update(v => !v);
+  }
 }

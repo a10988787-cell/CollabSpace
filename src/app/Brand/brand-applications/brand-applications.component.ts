@@ -143,11 +143,9 @@ export class BrandApplicationsComponent implements OnInit {
   }
 
   payCreator(post: any): void {
-    if (!confirm(`Pay $${post.paymentAmount} to ${post.creator?.firstName} ${post.creator?.lastName}?`)) return;
-    this.svc.payContentPost(post._id).subscribe({
-      next: () => { this.loadPosts(); this.showToast(`💸 Payment of $${post.paymentAmount} sent to ${post.creator?.firstName}!`, 'ok'); },
-      error: (e: any) => { this.showToast(e?.error?.message || 'Payment failed', 'err'); },
-    });
+    // Razorpay payment — handled in brand-content-review.
+    // Here we just navigate to content review page, or emit.
+    this.showToast('Use the Content Review page to release Razorpay payment.', 'ok');
   }
 
   /* ══ HELPERS ═══════════════════════════════════════════════════════ */

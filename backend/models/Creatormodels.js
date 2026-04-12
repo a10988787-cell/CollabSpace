@@ -34,6 +34,14 @@ const SocialAccountSchema = new mongoose.Schema({
   accessToken:    { type: String, select: false, default: '' },
   profileUrl:     { type: String, default: '' },
   isActive:       { type: Boolean, default: true },
+  followingCount: { type: Number, default: 0 },
+  postsCount:     { type: Number, default: 0 },
+  profilePicture: { type: String, default: '' },
+  bio:            { type: String, default: '' },
+  website:        { type: String, default: '' },
+  accountType:    { type: String, default: 'PERSONAL' },
+  recentMediaCount:{ type: Number, default: 0 },
+  lastSyncedAt:   { type: Date, default: null },
 }, { timestamps: true, versionKey: false });
 SocialAccountSchema.index({ creator: 1 });
 SocialAccountSchema.index({ creator: 1, platform: 1 });
@@ -106,6 +114,8 @@ const CollabPostSchema = new mongoose.Schema({
   approvedAt:     { type: Date },
   paymentAmount:  { type: Number, default: 0 },
   isPaid:         { type: Boolean, default: false },
+  razorpayOrderId:    { type: String, default: null },
+  razorpayPaymentId:  { type: String, default: null },
   paidAt:         { type: Date },
   isDeleted:      { type: Boolean, default: false },
 }, { timestamps: true, versionKey: false });
@@ -309,19 +319,19 @@ MessageSchema.statics.getOrCreateThreadId = function(userA, userB) {
 };
 
 module.exports = {
-  CreatorProfile:       mongoose.models.CreatorProfile || mongoose.model('CreatorProfile', CreatorProfileSchema),
-  SocialAccount:        mongoose.models.SocialAccount || mongoose.model('SocialAccount', SocialAccountSchema),
-  PortfolioItem:        mongoose.models.PortfolioItem || mongoose.model('PortfolioItem', PortfolioItemSchema),
-  CampaignApplication:  mongoose.models.CampaignApplication || mongoose.model('CampaignApplication', CampaignApplicationSchema),
-  CollabPost:           mongoose.models.CollabPost || mongoose.model('CollabPost', CollabPostSchema),
-  ContentLibrary:       mongoose.models.ContentLibrary || mongoose.model('ContentLibrary', ContentLibrarySchema),
-  CreatorNotification:  mongoose.models.CreatorNotification || mongoose.model('CreatorNotification', CreatorNotificationSchema),
-  PerformanceAnalytics: mongoose.models.PerformanceAnalytics || mongoose.model('PerformanceAnalytics', PerformanceAnalyticsSchema),
-  AudienceInsight:      mongoose.models.AudienceInsight || mongoose.model('AudienceInsight', AudienceInsightSchema),
-  RevenueEntry:         mongoose.models.RevenueEntry || mongoose.model('RevenueEntry', RevenueEntrySchema),
-  BrandInvitation:      mongoose.models.BrandInvitation || mongoose.model('BrandInvitation', BrandInvitationSchema),
-  AiSuggestion:         mongoose.models.AiSuggestion || mongoose.model('AiSuggestion', AiSuggestionSchema),
-  GrowthMetric:         mongoose.models.GrowthMetric || mongoose.model('GrowthMetric', GrowthMetricSchema),
-  CreatorContract:      mongoose.models.CreatorContract || mongoose.model('CreatorContract', CreatorContractSchema),
-  Message:              mongoose.models.Message || mongoose.model('Message', MessageSchema),
+  CreatorProfile:     mongoose.model('CreatorProfile',     CreatorProfileSchema),
+  SocialAccount:      mongoose.model('SocialAccount',      SocialAccountSchema),
+  PortfolioItem:      mongoose.model('PortfolioItem',      PortfolioItemSchema),
+  CampaignApplication:mongoose.model('CampaignApplication',CampaignApplicationSchema),
+  CollabPost:         mongoose.model('CollabPost',         CollabPostSchema),
+  ContentLibrary:     mongoose.model('ContentLibrary',     ContentLibrarySchema),
+  CreatorNotification:mongoose.model('CreatorNotification',CreatorNotificationSchema),
+  PerformanceAnalytics:mongoose.model('PerformanceAnalytics',PerformanceAnalyticsSchema),
+  AudienceInsight:    mongoose.model('AudienceInsight',    AudienceInsightSchema),
+  RevenueEntry:       mongoose.model('RevenueEntry',       RevenueEntrySchema),
+  BrandInvitation:    mongoose.model('BrandInvitation',    BrandInvitationSchema),
+  AiSuggestion:       mongoose.model('AiSuggestion',       AiSuggestionSchema),
+  GrowthMetric:       mongoose.model('GrowthMetric',       GrowthMetricSchema),
+  CreatorContract:    mongoose.model('CreatorContract',    CreatorContractSchema),
+  Message:            mongoose.model('Message',            MessageSchema),
 };

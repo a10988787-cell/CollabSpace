@@ -11,7 +11,7 @@
         </svg>
       </div>
       <span class="sb-lbl">Collab<span>Space</span></span>
-      <button class="sb-tog" (click)="collapsed=!collapsed" [title]="collapsed ? 'Expand' : 'Collapse'" title="btn">
+      <button class="sb-tog" (click)="collapsed=!collapsed" [title]="collapsed ? 'Expand' : 'Collapse'">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
         </svg>
@@ -86,7 +86,7 @@
       <app-creator-profile       *ngIf="activePage==='profile'"></app-creator-profile>
       <app-creator-social        *ngIf="activePage==='social'"></app-creator-social>
       <app-creator-portfolio     *ngIf="activePage==='portfolio'"></app-creator-portfolio>
-      <app-creator-applications  *ngIf="activePage==='applications'"></app-creator-applications>
+      <app-creator-applications  *ngIf="activePage==='applications'" (navigate)="navigate($event)"></app-creator-applications>
       <app-creator-invitations   *ngIf="activePage==='invitations'"></app-creator-invitations>
       <app-creator-collab-posts  *ngIf="activePage==='collabposts'"></app-creator-collab-posts>
       <app-creator-content       *ngIf="activePage==='content'"></app-creator-content>

@@ -2,6 +2,55 @@
 const express  = require('express');
 const router   = express.Router();
 const Campaign = require('../models/Campaign');
+/* ─────────────────────────────────────────────────────────────────────────────
+   GET /api/campaigns/browse
+   Creator browses active brand campaigns (authenticated creators only).
+   Supports: search, platform, niche, page, limit
+   ───────────────────────────────────────────────────────────────────────────── */
+const { protect: _protectBrowse } = (() => {
+  try { return require('../middleware/auth.middleware'); } catch { return { protect: (_r,_s,n)=>n() }; }
+})();
+
+router.get('/campaigns/browse', _protectBrowse, async (req, res) => {
+  try {
+    const { search, platform, niche, page = 1, limit = 50 } = req.query;
+    const skip  = (parseInt(page) - 1) * parseInt(limit);
+
+    // Only show active, non-deleted campaigns
+    const query = { status: 'active', isDeleted: false };
+
+    if (niche)  query.niche = niche;
+    if (platform) query.platforms = platform; // campaigns have a platforms array
+
+    // Text search on title / description
+    if (search) {
+      query.$or = [
+        { title:       { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    const [campaigns, total] = await Promise.all([
+      Campaign.find(query)
+        .populate('brand', 'firstName lastName companyName isVerified profilePicture')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit))
+        .lean(),
+      Campaign.countDocuments(query),
+    ]);
+
+    res.json({
+      success: true,
+      campaigns,
+      pagination: { total, page: parseInt(page), pages: Math.ceil(total / parseInt(limit)) },
+    });
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
+  }
+});
+
+
 
 // ── Public collab-posts browse ───────────────────────────────────────────────
 const { CollabPost } = (() => { try { return require('../models/CreatorModels'); } catch { return {}; } })();
