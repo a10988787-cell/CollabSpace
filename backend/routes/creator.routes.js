@@ -106,10 +106,13 @@ router.post  ('/invitations/:id/respond',      ctrl.respondToInvitation);
 router.delete('/invitations/:id',              ctrl.deleteInvitation);
 
 /* 12. AI CONTENT TOOLS */
-router.get   ('/ai',           ctrl.getAiSuggestions);
-router.post  ('/ai/generate',  ctrl.generateAiSuggestion);
-router.put   ('/ai/:id',       ctrl.updateAiSuggestion);
-router.delete('/ai/:id',       ctrl.deleteAiSuggestion);
+router.get   ('/ai',                                         ctrl.getAiSuggestions);
+router.post  ('/ai/generate',                                ctrl.generateAiSuggestion);
+router.post  ('/ai/titles',                                  ctrl.generateTitles);
+router.post  ('/ai/hashtags',                                ctrl.generateHashtags);
+router.post  ('/ai/analyze',   single('mediaFile'),          ctrl.analyzeUploadedContent);
+router.put   ('/ai/:id',                                     ctrl.updateAiSuggestion);
+router.delete('/ai/:id',                                     ctrl.deleteAiSuggestion);
 
 /* 13. GROWTH METRICS */
 router.get   ('/growth',      ctrl.getGrowthMetrics);

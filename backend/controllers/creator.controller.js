@@ -6,8 +6,8 @@ const {
   CollabPost, ContentLibrary, CreatorNotification, PerformanceAnalytics,
   AudienceInsight, RevenueEntry, BrandInvitation, AiSuggestion,
   GrowthMetric, CreatorContract, Message,
-} = require('../models/CreatorModels');
-const { Collaboration } = require('../models/BrandModels');
+} = require('../models/Creatormodels');
+const { Collaboration } = require('../models/Brandmodels');
 
 const ok  = (res, data, status = 200) => res.status(status).json({ success: true, ...data });
 const err = (res, msg, status = 500)  => res.status(status).json({ success: false, message: msg });
@@ -676,8 +676,15 @@ exports.deleteInvitation = async (req, res) => {
 };
 
 /* ════════════════════════════════════════════════════════════════════════
-   12. AI CONTENT TOOLS
+   12. AI CONTENT TOOLS  (powered by Gemini 1.5 Flash)
    ════════════════════════════════════════════════════════════════════════ */
+let groqSvc = null;
+try {
+  groqSvc = require('../services/groq.service');
+} catch (e) {
+  console.warn('[AI] groqService not found, using fallback generation.');
+}
+
 exports.getAiSuggestions = async (req, res) => {
   try {
     const suggestions = await AiSuggestion.find({ creator: uid(req), isDeleted: false }).sort({ createdAt: -1 });
@@ -688,21 +695,124 @@ exports.getAiSuggestions = async (req, res) => {
 exports.generateAiSuggestion = async (req, res) => {
   try {
     const { type, prompt, platform, niche } = req.body;
-    // Simulate AI generation (in production, call OpenAI/Anthropic API here)
-    const niches = { Fashion: 'stylish', Tech: 'innovative', Fitness: 'energetic', Beauty: 'glowing', Food: 'delicious' };
-    const adj = niches[niche] || 'amazing';
-    const generated = {
-      generatedCaption: `✨ Discover this ${adj} ${niche || 'lifestyle'} moment! ${prompt || 'Experience the magic firsthand.'}`,
-      hashtags: [`#${niche || 'lifestyle'}`, `#${platform || 'content'}`, '#creator', '#collab', '#trending', `#${adj}`],
-      contentIdea: `Create a ${platform || 'social media'} post showcasing the ${adj} side of ${niche || 'your niche'}. Focus on authentic storytelling and audience engagement. Include a call-to-action in the caption.`,
-    };
+
+    let generated = {};
+
+    if (groqSvc) {
+      // ── Groq-powered generation ──────────────────────────────────────
+      const result = await groqSvc.generateFullPost({ type, prompt, platform: platform || 'Instagram', niche: niche || 'Lifestyle' });
+      generated = {
+        generatedCaption:  result.generatedCaption  || '',
+        hashtags:          Array.isArray(result.hashtags) ? result.hashtags : [],
+        hashtagDetails:    Array.isArray(result.hashtagDetails) ? result.hashtagDetails : [],
+        titleSuggestions:  Array.isArray(result.titleSuggestions) ? result.titleSuggestions : [],
+        contentIdea:       result.contentIdea || '',
+        callToAction:      result.callToAction || '',
+      };
+    } else {
+      // ── Fallback ─────────────────────────────────────────────────────
+      const adj = ({ Fashion:'stylish', Tech:'innovative', Fitness:'energetic', Beauty:'glowing', Food:'delicious' })[niche] || 'amazing';
+      generated = {
+        generatedCaption: `✨ ${prompt || `Discover this ${adj} ${niche || 'lifestyle'} moment!`}`,
+        hashtags: [`#${(niche||'lifestyle').toLowerCase()}`, `#${(platform||'content').toLowerCase()}`, '#creator', '#collab', '#trending'],
+        hashtagDetails: [],
+        titleSuggestions: [],
+        contentIdea: `Create a ${platform || 'social media'} post showcasing the ${adj} side of ${niche || 'your niche'}. Focus on authentic storytelling.`,
+        callToAction: 'Save this post and share with a friend! 👇',
+      };
+    }
+
     const suggestion = await AiSuggestion.create({
       creator: uid(req), type, prompt: prompt || '', platform: platform || '', niche: niche || '',
-      generatedCaption: type !== 'hashtags' ? generated.generatedCaption : '',
-      hashtags: generated.hashtags,
-      contentIdea: type !== 'caption' ? generated.contentIdea : '',
+      generatedCaption:  generated.generatedCaption || '',
+      hashtags:          generated.hashtags,
+      hashtagDetails:    generated.hashtagDetails,
+      titleSuggestions:  generated.titleSuggestions,
+      contentIdea:       generated.contentIdea || '',
+      callToAction:      generated.callToAction || '',
     });
-    ok(res, { suggestion }, 201);
+    // Return BOTH the saved suggestion AND the raw generated data so the
+    // frontend can display AI content immediately without a second round-trip
+    ok(res, {
+      suggestion: {
+        ...suggestion.toObject(),
+        generatedCaption:  generated.generatedCaption,
+        hashtags:          generated.hashtags,
+        hashtagDetails:    generated.hashtagDetails,
+        titleSuggestions:  generated.titleSuggestions,
+        contentIdea:       generated.contentIdea,
+        callToAction:      generated.callToAction,
+      }
+    }, 201);
+  } catch (e) { err(res, e.message); }
+};
+
+/* ── Title suggestions only ─────────────────────────────────────────── */
+exports.generateTitles = async (req, res) => {
+  try {
+    const { topic, platform, niche, count = 5 } = req.body;
+    const titles = await groqSvc.generateTitles({
+      topic, platform: platform || 'Instagram', niche: niche || 'Lifestyle', count: Number(count) || 5
+    });
+    ok(res, { titles });
+  } catch (e) { err(res, e.message); }
+};
+
+/* ── Hashtag suggestions only ───────────────────────────────────────── */
+exports.generateHashtags = async (req, res) => {
+  try {
+    const { topic, platform, niche, count = 20 } = req.body;
+    const hashtags = await groqSvc.generateHashtags({
+      topic, platform: platform || 'Instagram', niche: niche || 'Lifestyle', count: Number(count) || 20
+    });
+    ok(res, { hashtags });
+  } catch (e) { err(res, e.message); }
+};
+
+/* ── Analyse uploaded media content ─────────────────────────────────── */
+exports.analyzeUploadedContent = async (req, res) => {
+  try {
+    const { contentDescription, fileType, platform, niche } = req.body;
+    const file = req.file;
+
+    let analysis = {};
+    const desc = contentDescription || (file ? `Uploaded ${file.mimetype} file: ${file.originalname}` : 'Creator content');
+
+    if (groqSvc) {
+      analysis = await groqSvc.analyzeContentFromText({
+        contentDescription: desc,
+        fileType: fileType || (file ? file.mimetype.split('/')[0] : 'content'),
+        platform: platform || 'Instagram',
+        niche:    niche    || 'Lifestyle',
+      });
+    } else {
+      analysis = {
+        contentSummary:    `${niche || 'Lifestyle'} content for ${platform || 'Instagram'}`,
+        suggestedTitles:   [{ title: `Amazing ${niche} Content`, ctrScore: 8, hook: 'Direct', emoji: '✨' }],
+        suggestedHashtags: [{ tag: `#${(niche||'lifestyle').toLowerCase()}`, reach: 'large', ctrScore: 7, category: 'niche' }],
+        suggestedCaption:  `Check out this amazing ${niche || 'lifestyle'} content! ✨`,
+        contentTips:       ['Post at peak hours', 'Engage with early comments', 'Use all suggested hashtags'],
+      };
+    }
+
+    // Store as an AI suggestion so the creator can save/reference it
+    const savedAnalysis = await AiSuggestion.create({
+      creator:          uid(req),
+      type:             'content_analysis',
+      prompt:           desc,
+      platform:         platform || '',
+      niche:            niche    || '',
+      generatedCaption: analysis.suggestedCaption || '',
+      hashtags:         (analysis.suggestedHashtags || []).map(h => h.tag || h),
+      hashtagDetails:   analysis.suggestedHashtags || [],
+      titleSuggestions: analysis.suggestedTitles   || [],
+      contentIdea:      analysis.contentSummary    || '',
+      contentTips:      analysis.contentTips       || [],
+      uploadedFileName: file ? file.originalname : '',
+      uploadedFileType: file ? file.mimetype      : '',
+    });
+
+    ok(res, { analysis, suggestion: savedAnalysis }, 201);
   } catch (e) { err(res, e.message); }
 };
 

@@ -249,16 +249,32 @@ BrandInvitationSchema.index({ creator: 1, status: 1 });
    ═══════════════════════════════════════════════════════════════════════════ */
 const AiSuggestionSchema = new mongoose.Schema({
   creator:          { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  type:             { type: String, enum: ['caption','hashtags','content_idea','full_post'], required: true },
-  prompt:           { type: String, maxlength: 1000, default: '' },
-  generatedCaption: { type: String, maxlength: 3000, default: '' },
+  type:             { type: String, enum: ['caption','hashtags','content_idea','full_post','content_analysis'], required: true },
+  prompt:           { type: String, maxlength: 2000, default: '' },
+  generatedCaption: { type: String, maxlength: 5000, default: '' },
   hashtags:         [{ type: String }],
-  contentIdea:      { type: String, maxlength: 2000, default: '' },
+  hashtagDetails:   [{
+    tag:      { type: String },
+    reach:    { type: String },
+    ctrScore: { type: Number },
+    category: { type: String },
+  }],
+  titleSuggestions: [{
+    title:    { type: String },
+    ctrScore: { type: Number },
+    hook:     { type: String },
+    emoji:    { type: String },
+  }],
+  contentIdea:      { type: String, maxlength: 3000, default: '' },
+  callToAction:     { type: String, maxlength: 500,  default: '' },
+  contentTips:      [{ type: String }],
   platform:         { type: String, default: '' },
   niche:            { type: String, default: '' },
-  editedContent:    { type: String, maxlength: 3000, default: '' },
+  editedContent:    { type: String, maxlength: 5000, default: '' },
   isSaved:          { type: Boolean, default: false },
   isDeleted:        { type: Boolean, default: false },
+  uploadedFileName: { type: String, default: '' },
+  uploadedFileType: { type: String, default: '' },
 }, { timestamps: true, versionKey: false });
 AiSuggestionSchema.index({ creator: 1 });
 
@@ -318,20 +334,23 @@ MessageSchema.statics.getOrCreateThreadId = function(userA, userB) {
   return `${sorted[0]}_${sorted[1]}`;
 };
 
+// Guard against OverwriteModelError on nodemon hot-reloads:
+// re-use the already-compiled model if it exists, otherwise compile fresh.
+const m = mongoose.models;
 module.exports = {
-  CreatorProfile:     mongoose.model('CreatorProfile',     CreatorProfileSchema),
-  SocialAccount:      mongoose.model('SocialAccount',      SocialAccountSchema),
-  PortfolioItem:      mongoose.model('PortfolioItem',      PortfolioItemSchema),
-  CampaignApplication:mongoose.model('CampaignApplication',CampaignApplicationSchema),
-  CollabPost:         mongoose.model('CollabPost',         CollabPostSchema),
-  ContentLibrary:     mongoose.model('ContentLibrary',     ContentLibrarySchema),
-  CreatorNotification:mongoose.model('CreatorNotification',CreatorNotificationSchema),
-  PerformanceAnalytics:mongoose.model('PerformanceAnalytics',PerformanceAnalyticsSchema),
-  AudienceInsight:    mongoose.model('AudienceInsight',    AudienceInsightSchema),
-  RevenueEntry:       mongoose.model('RevenueEntry',       RevenueEntrySchema),
-  BrandInvitation:    mongoose.model('BrandInvitation',    BrandInvitationSchema),
-  AiSuggestion:       mongoose.model('AiSuggestion',       AiSuggestionSchema),
-  GrowthMetric:       mongoose.model('GrowthMetric',       GrowthMetricSchema),
-  CreatorContract:    mongoose.model('CreatorContract',    CreatorContractSchema),
-  Message:            mongoose.model('Message',            MessageSchema),
+  CreatorProfile:      m.CreatorProfile      || mongoose.model('CreatorProfile',      CreatorProfileSchema),
+  SocialAccount:       m.SocialAccount       || mongoose.model('SocialAccount',       SocialAccountSchema),
+  PortfolioItem:       m.PortfolioItem       || mongoose.model('PortfolioItem',       PortfolioItemSchema),
+  CampaignApplication: m.CampaignApplication || mongoose.model('CampaignApplication', CampaignApplicationSchema),
+  CollabPost:          m.CollabPost          || mongoose.model('CollabPost',          CollabPostSchema),
+  ContentLibrary:      m.ContentLibrary      || mongoose.model('ContentLibrary',      ContentLibrarySchema),
+  CreatorNotification: m.CreatorNotification || mongoose.model('CreatorNotification', CreatorNotificationSchema),
+  PerformanceAnalytics:m.PerformanceAnalytics|| mongoose.model('PerformanceAnalytics',PerformanceAnalyticsSchema),
+  AudienceInsight:     m.AudienceInsight     || mongoose.model('AudienceInsight',     AudienceInsightSchema),
+  RevenueEntry:        m.RevenueEntry        || mongoose.model('RevenueEntry',        RevenueEntrySchema),
+  BrandInvitation:     m.BrandInvitation     || mongoose.model('BrandInvitation',     BrandInvitationSchema),
+  AiSuggestion:        m.AiSuggestion        || mongoose.model('AiSuggestion',        AiSuggestionSchema),
+  GrowthMetric:        m.GrowthMetric        || mongoose.model('GrowthMetric',        GrowthMetricSchema),
+  CreatorContract:     m.CreatorContract     || mongoose.model('CreatorContract',     CreatorContractSchema),
+  Message:             m.Message             || mongoose.model('Message',             MessageSchema),
 };

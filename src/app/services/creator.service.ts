@@ -285,12 +285,21 @@ export class CreatorService {
     return this.http.post<any>(`${API}/creators/${creatorId}/invite`, data).pipe(catchError(this.handleError));
   }
 
-  /* ── 12. AI CONTENT TOOLS ───────────────────────────────────────────── */
+  /* ── 12. AI CONTENT TOOLS (Groq-powered) ───────────────────────────── */
   getAiSuggestions(): Observable<{ success: boolean; suggestions: AiSuggestion[] }> {
     return this.http.get<any>(`${BASE}/ai`).pipe(catchError(this.handleError));
   }
   generateAiSuggestion(data: { type: string; prompt?: string; platform?: string; niche?: string }): Observable<any> {
     return this.http.post<any>(`${BASE}/ai/generate`, data).pipe(catchError(this.handleError));
+  }
+  generateTitles(data: { topic: string; platform: string; niche: string; count?: number }): Observable<any> {
+    return this.http.post<any>(`${BASE}/ai/titles`, data).pipe(catchError(this.handleError));
+  }
+  generateHashtags(data: { topic: string; platform: string; niche: string; count?: number }): Observable<any> {
+    return this.http.post<any>(`${BASE}/ai/hashtags`, data).pipe(catchError(this.handleError));
+  }
+  analyzeUploadedContent(formData: FormData): Observable<any> {
+    return this.http.post<any>(`${BASE}/ai/analyze`, formData).pipe(catchError(this.handleError));
   }
   updateAiSuggestion(id: string, data: any): Observable<any> {
     return this.http.put<any>(`${BASE}/ai/${id}`, data).pipe(catchError(this.handleError));
