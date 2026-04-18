@@ -1,0 +1,76 @@
+<div class="ad-page">
+  <div class="ad-page-head">
+    <div><div class="ad-page-title">🏷️ Brand Profiles</div><div class="ad-page-sub">Live from database · {{ total }} records</div></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <div class="ad-search"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><input [(ngModel)]="search" (keyup.enter)="page=1;load()" placeholder="Search brand name, email…"></div>
+    </div>
+  </div>
+  <div class="ad-loading" *ngIf="loading"><div class="ad-spin"></div> Loading…</div>
+
+  <ng-container *ngIf="!loading">
+    <div class="ad-empty" *ngIf="items.length===0">No brand profiles found.</div>
+    <div class="ad-card-grid" *ngIf="items.length>0">
+      <div class="ad-data-card" *ngFor="let item of items">
+        <div class="ad-data-card__head">
+          <div class="ad-data-card__av" style="background:linear-gradient(135deg,#FBBF24,#D97706)">{{ (item.companyName||item.firstName||'B')[0] }}</div>
+          <div style="flex:1;min-width:0">
+            <div class="ad-data-card__name">{{ item.companyName || (item.firstName+' '+item.lastName) }}</div>
+            <div class="ad-data-card__sub">{{ item.email }}</div>
+          </div>
+          <span *ngIf="item.isVerified" style="padding:2px 8px;border-radius:99px;background:rgba(52,211,153,.12);color:var(--jade);font-size:.68rem;font-weight:700;flex-shrink:0">✓ Verified</span>
+          <span *ngIf="!item.isActive" style="padding:2px 8px;border-radius:99px;background:rgba(251,113,133,.12);color:var(--rose);font-size:.68rem;font-weight:700;flex-shrink:0">Inactive</span>
+          <div class="ad-data-card__actions">
+            <button class="ad-btn-sm ad-btn-sm--edit" (click)="openEdit(item)">Edit</button>
+            <button class="ad-btn-sm ad-btn-sm--del"  (click)="confirmDel(item._id)">Deactivate</button>
+          </div>
+        </div>
+        <div class="ad-data-card__body" *ngIf="item.bio">
+          <p style="font-size:.79rem;color:var(--t2);line-height:1.5;margin:0"><ng-container *ngIf="item.bio.length <= 100">{{ item.bio }}</ng-container>
+            <ng-container *ngIf="item.bio.length > 100">{{ item.bio | slice:0:100 }}…</ng-container></p>
+        </div>
+        <div class="ad-data-card__stats">
+          <div class="ad-stat-item"><div class="ad-stat-val">{{ item.createdAt | date:'MMM y' }}</div><div class="ad-stat-lbl">Joined</div></div>
+          <div class="ad-stat-item"><div class="ad-stat-val">{{ item.isActive ? 'Active' : 'Inactive' }}</div><div class="ad-stat-lbl">Status</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="ad-pager" *ngIf="pages>1">
+      <button class="ad-btn-sm" (click)="prev()" [disabled]="page===1">‹ Prev</button>
+      <span>Page {{ page }} / {{ pages }}</span>
+      <button class="ad-btn-sm" (click)="next()" [disabled]="page===pages">Next ›</button>
+    </div>
+  </ng-container>
+
+  <div class="ad-backdrop" *ngIf="showModal" (click)="showModal=false">
+    <div class="ad-modal" (click)="$event.stopPropagation()">
+      <div class="ad-modal-head"><div class="ad-modal-title">Edit Brand Profile</div><button class="ad-modal-x" (click)="showModal=false">✕</button></div>
+      <div class="ad-modal-body">
+        <div class="ad-field"><label>Company Name</label><input class="ad-input" [(ngModel)]="form.companyName"></div>
+        <div class="ad-field"><label>First Name</label><input class="ad-input" [(ngModel)]="form.firstName"></div>
+        <div class="ad-field"><label>Last Name</label><input class="ad-input" [(ngModel)]="form.lastName"></div>
+        <div class="ad-field"><label>Email</label><input class="ad-input" type="email" [(ngModel)]="form.email"></div>
+        <div class="ad-field"><label>Bio</label><textarea class="ad-input" [(ngModel)]="form.bio" rows="3"></textarea></div>
+        <div style="display:flex;gap:18px;flex-wrap:wrap;margin-bottom:12px">
+          <label style="display:flex;align-items:center;gap:8px;font-size:.84rem;color:var(--t2);cursor:pointer">
+            <input type="checkbox" [(ngModel)]="form.isVerified"> Verified
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:.84rem;color:var(--t2);cursor:pointer">
+            <input type="checkbox" [(ngModel)]="form.isActive"> Active
+          </label>
+        </div>
+      </div>
+      <div class="ad-modal-foot">
+        <button class="ad-btn" (click)="showModal=false">Cancel</button>
+        <button class="ad-btn ad-btn--primary" (click)="save()" [disabled]="saving">{{ saving?'Saving…':'Update' }}</button>
+      </div>
+    </div>
+  </div>
+  <div class="ad-backdrop" *ngIf="showDel" (click)="showDel=false">
+    <div class="ad-modal" style="max-width:380px" (click)="$event.stopPropagation()">
+      <div class="ad-modal-head"><div class="ad-modal-title" style="color:var(--rose)">Deactivate Brand</div></div>
+      <div class="ad-modal-body"><p style="color:var(--t2);font-size:.88rem">This brand account will be deactivated. They will not be able to log in.</p></div>
+      <div class="ad-modal-foot"><button class="ad-btn" (click)="showDel=false">Cancel</button><button class="ad-btn ad-btn--danger" (click)="doDelete()">Deactivate</button></div>
+    </div>
+  </div>
+  <div class="ad-toast" *ngIf="toast" [class.ad-toast--err]="toast.type==='err'">{{ toast.msg }}</div>
+</div>

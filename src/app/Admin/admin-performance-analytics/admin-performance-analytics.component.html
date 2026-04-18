@@ -1,0 +1,79 @@
+<div class="ad-page">
+  <div class="ad-page-head">
+    <div><div class="ad-page-title">📊 Performance Analytics</div><div class="ad-page-sub">Live from database · {{ total }} records</div></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <div class="ad-search"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><input [(ngModel)]="search" (keyup.enter)="page=1;load()" placeholder="Search…"></div>
+      <button class="ad-btn ad-btn--primary" (click)="openCreate()">+ Add Record</button>
+    </div>
+  </div>
+  <div class="ad-loading" *ngIf="loading"><div class="ad-spin"></div> Loading…</div>
+
+  <ng-container *ngIf="!loading">
+    <div class="ad-empty" *ngIf="items.length===0">No analytics records found.</div>
+
+    <!-- Cards -->
+    <div class="ad-card-grid" *ngIf="items.length>0">
+      <div class="ad-data-card" *ngFor="let item of items">
+        <div class="ad-data-card__head">
+          <div class="ad-data-card__av">{{ (item.creator?.firstName||'?')[0] }}</div>
+          <div>
+            <div class="ad-data-card__name">{{ item.creator?.firstName }} {{ item.creator?.lastName }}</div>
+            <div class="ad-data-card__sub">{{ item.platform }} · {{ item.period }}</div>
+          </div>
+          <div class="ad-data-card__actions">
+            <button class="ad-btn-sm ad-btn-sm--edit" (click)="openEdit(item)">Edit</button>
+            <button class="ad-btn-sm ad-btn-sm--del"  (click)="confirmDel(item._id)">Del</button>
+          </div>
+        </div>
+        <div class="ad-data-card__stats">
+          <div class="ad-stat-item"><div class="ad-stat-val">{{ item.followers | number }}</div><div class="ad-stat-lbl">Followers</div></div>
+          <div class="ad-stat-item"><div class="ad-stat-val">{{ item.engagementRate }}%</div><div class="ad-stat-lbl">Engagement</div></div>
+          <div class="ad-stat-item"><div class="ad-stat-val">{{ item.avgLikes | number }}</div><div class="ad-stat-lbl">Avg Likes</div></div>
+          <div class="ad-stat-item"><div class="ad-stat-val">{{ item.reach | number }}</div><div class="ad-stat-lbl">Reach</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="ad-pager" *ngIf="pages>1">
+      <button class="ad-btn-sm" (click)="prev()" [disabled]="page===1">‹ Prev</button>
+      <span>Page {{ page }} / {{ pages }}</span>
+      <button class="ad-btn-sm" (click)="next()" [disabled]="page===pages">Next ›</button>
+    </div>
+  </ng-container>
+
+  <!-- Modal -->
+  <div class="ad-backdrop" *ngIf="showModal" (click)="showModal=false">
+    <div class="ad-modal" (click)="$event.stopPropagation()">
+      <div class="ad-modal-head"><div class="ad-modal-title">{{ isEdit?'Edit':'Add' }} Analytics</div><button class="ad-modal-x" (click)="showModal=false">✕</button></div>
+      <div class="ad-modal-body">
+        <div class="ad-field"><label>Platform</label>
+          <select class="ad-input" [(ngModel)]="form.platform">
+            <option *ngFor="let p of ['Instagram','YouTube','TikTok','Twitter','All']" [value]="p">{{p}}</option>
+          </select>
+        </div>
+        <div class="ad-field"><label>Period</label>
+          <select class="ad-input" [(ngModel)]="form.period">
+            <option *ngFor="let p of ['7d','30d','90d','6m','1y']" [value]="p">{{p}}</option>
+          </select>
+        </div>
+        <div class="ad-field"><label>Followers</label><input class="ad-input" type="number" [(ngModel)]="form.followers"></div>
+        <div class="ad-field"><label>Engagement Rate (%)</label><input class="ad-input" type="number" [(ngModel)]="form.engagementRate" step="0.01"></div>
+        <div class="ad-field"><label>Avg Likes</label><input class="ad-input" type="number" [(ngModel)]="form.avgLikes"></div>
+        <div class="ad-field"><label>Avg Comments</label><input class="ad-input" type="number" [(ngModel)]="form.avgComments"></div>
+        <div class="ad-field"><label>Reach</label><input class="ad-input" type="number" [(ngModel)]="form.reach"></div>
+        <div class="ad-field"><label>Impressions</label><input class="ad-input" type="number" [(ngModel)]="form.impressions"></div>
+      </div>
+      <div class="ad-modal-foot">
+        <button class="ad-btn" (click)="showModal=false">Cancel</button>
+        <button class="ad-btn ad-btn--primary" (click)="save()" [disabled]="saving">{{ saving?'Saving…':(isEdit?'Update':'Create') }}</button>
+      </div>
+    </div>
+  </div>
+  <div class="ad-backdrop" *ngIf="showDel" (click)="showDel=false">
+    <div class="ad-modal" style="max-width:380px" (click)="$event.stopPropagation()">
+      <div class="ad-modal-head"><div class="ad-modal-title" style="color:var(--rose)">Confirm Delete</div></div>
+      <div class="ad-modal-body"><p style="color:var(--t2);font-size:.88rem">This record will be removed. Cannot be undone.</p></div>
+      <div class="ad-modal-foot"><button class="ad-btn" (click)="showDel=false">Cancel</button><button class="ad-btn ad-btn--danger" (click)="doDelete()">Delete</button></div>
+    </div>
+  </div>
+  <div class="ad-toast" *ngIf="toast" [class.ad-toast--err]="toast.type==='err'">{{ toast.msg }}</div>
+</div>

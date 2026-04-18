@@ -9,7 +9,7 @@ const Campaign = require('../models/Campaign');
 const {
   AdminUser, Report, AdminNotification, Role,
   Setting, Category, AuditLog, Plan, FeatureFlag, ContentReview,
-} = require('../models/Adminmodels');
+} = require('../models/AdminModels');
 
 let Payment, Collaboration;
 try {
@@ -1031,4 +1031,567 @@ exports.deleteFeatureFlag = async (req, res) => {
     await audit(req, 'feature_flag.delete', 'feature-flags', req.params.id, { key: d.key });
     ok(res, { message: 'Feature flag deleted' });
   } catch (e) { fail(res, e.message, 500); }
+};
+
+// ════════════════════════════════════════════════════════════════════════════
+// ADMIN — COLLAB POSTS CRUD
+// ════════════════════════════════════════════════════════════════════════════
+let _CollabPost, _RevenueEntry, _BrandBudget;
+try {
+  const CM = require('../models/CreatorModels');
+  _CollabPost   = CM.CollabPost;
+  _RevenueEntry = CM.RevenueEntry;
+} catch(_) {}
+try {
+  const BM = require('../models/Brandmodels');
+  _BrandBudget = BM.Budget || BM.BrandBudget;
+} catch(_) {}
+
+exports.listCollabPosts = async (req, res) => {
+  try {
+    if (!_CollabPost) return fail(res, 'CollabPost model not available', 503);
+    const { page, limit, skip } = paginate(req.query);
+    const { search = '', status = '' } = req.query;
+    const q = { isDeleted: false };
+    if (status) q.status = status;
+    if (search) q.title = { $regex: search, $options: 'i' };
+    const [data, total] = await Promise.all([
+      _CollabPost.find(q)
+        .populate('creator', 'firstName lastName email')
+        .populate('brand',   'firstName lastName companyName')
+        .populate('campaign','title')
+        .sort({ createdAt: -1 }).skip(skip).limit(limit),
+      _CollabPost.countDocuments(q),
+    ]);
+    ok(res, { data, total, page, pages: Math.ceil(total / limit) });
+  } catch(e) { fail(res, e.message, 500); }
+};
+
+exports.getCollabPost = async (req, res) => {
+  try {
+    if (!_CollabPost) return fail(res, 'Model not available', 503);
+    const d = await _CollabPost.findById(req.params.id)
+      .populate('creator','firstName lastName email')
+      .populate('brand','firstName lastName companyName')
+      .populate('campaign','title budget');
+    if (!d) return fail(res, 'Post not found', 404);
+    ok(res, { data: d });
+  } catch(e) { fail(res, e.message, 500); }
+};
+
+exports.updateCollabPost = async (req, res) => {
+  try {
+    if (!_CollabPost) return fail(res, 'Model not available', 503);
+    const allowed = ['status','brandNotes','paymentAmount','isPaid'];
+    const update  = {};
+    allowed.forEach(k => { if (req.body[k] !== undefined) update[k] = req.body[k]; });
+    const d = await _CollabPost.findByIdAndUpdate(req.params.id, update, { new: true });
+    if (!d) return fail(res, 'Post not found', 404);
+    await audit(req, 'collab_post.update', 'collab-posts', d._id, update);
+    ok(res, { data: d });
+  } catch(e) { fail(res, e.message, 500); }
+};
+
+exports.deleteCollabPost = async (req, res) => {
+  try {
+    if (!_CollabPost) return fail(res, 'Model not available', 503);
+    const d = await _CollabPost.findByIdAndUpdate(req.params.id, { isDeleted: true }, { new: true });
+    if (!d) return fail(res, 'Post not found', 404);
+    await audit(req, 'collab_post.delete', 'collab-posts', req.params.id, {});
+    ok(res, { message: 'Collab post removed' });
+  } catch(e) { fail(res, e.message, 500); }
+};
+
+// ════════════════════════════════════════════════════════════════════════════
+// ADMIN — COLLABORATIONS CRUD
+// ════════════════════════════════════════════════════════════════════════════
+exports.listCollaborations = async (req, res) => {
+  try {
+    if (!Collaboration) return fail(res, 'Collaboration model not available', 503);
+    const { page, limit, skip } = paginate(req.query);
+    const { status = '' } = req.query;
+    const q = {};
+    if (status) q.status = status;
+    const [data, total] = await Promise.all([
+      Collaboration.find(q)
+        .populate('creator','firstName lastName email')
+        .populate('brand','firstName lastName companyName')
+        .populate('campaign','title')
+        .sort({ createdAt: -1 }).skip(skip).limit(limit),
+      Collaboration.countDocuments(q),
+    ]);
+    ok(res, { data, total, page, pages: Math.ceil(total / limit) });
+  } catch(e) { fail(res, e.message, 500); }
+};
+
+exports.getCollaboration = async (req, res) => {
+  try {
+    if (!Collaboration) return fail(res, 'Model not available', 503);
+    const d = await Collaboration.findById(req.params.id)
+      .populate('creator','firstName lastName email')
+      .populate('brand','firstName lastName companyName')
+      .populate('campaign','title budget');
+    if (!d) return fail(res, 'Collaboration not found', 404);
+    ok(res, { data: d });
+  } catch(e) { fail(res, e.message, 500); }
+};
+
+exports.updateCollaboration = async (req, res) => {
+  try {
+    if (!Collaboration) return fail(res, 'Model not available', 503);
+    const d = await Collaboration.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!d) return fail(res, 'Collaboration not found', 404);
+    await audit(req, 'collaboration.update', 'collaborations', d._id, req.body);
+    ok(res, { data: d });
+  } catch(e) { fail(res, e.message, 500); }
+};
+
+exports.deleteCollaboration = async (req, res) => {
+  try {
+    if (!Collaboration) return fail(res, 'Model not available', 503);
+    const d = await Collaboration.findByIdAndDelete(req.params.id);
+    if (!d) return fail(res, 'Collaboration not found', 404);
+    await audit(req, 'collaboration.delete', 'collaborations', req.params.id, {});
+    ok(res, { message: 'Collaboration deleted' });
+  } catch(e) { fail(res, e.message, 500); }
+};
+
+// ════════════════════════════════════════════════════════════════════════════
+// ADMIN — BUDGETS CRUD
+// ════════════════════════════════════════════════════════════════════════════
+exports.listBudgets = async (req, res) => {
+  try {
+    if (!_BrandBudget) return fail(res, 'Budget model not available', 503);
+    const { page, limit, skip } = paginate(req.query);
+    const [data, total] = await Promise.all([
+      _BrandBudget.find({ isDeleted: false })
+        .populate('brand','firstName lastName companyName')
+        .sort({ createdAt: -1 }).skip(skip).limit(limit),
+      _BrandBudget.countDocuments({ isDeleted: false }),
+    ]);
+    ok(res, { data, total, page, pages: Math.ceil(total / limit) });
+  } catch(e) { fail(res, e.message, 500); }
+};
+
+exports.getBudget = async (req, res) => {
+  try {
+    if (!_BrandBudget) return fail(res, 'Model not available', 503);
+    const d = await _BrandBudget.findById(req.params.id).populate('brand','firstName lastName companyName');
+    if (!d) return fail(res, 'Budget not found', 404);
+    ok(res, { data: d });
+  } catch(e) { fail(res, e.message, 500); }
+};
+
+exports.updateBudget = async (req, res) => {
+  try {
+    if (!_BrandBudget) return fail(res, 'Model not available', 503);
+    const d = await _BrandBudget.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!d) return fail(res, 'Budget not found', 404);
+    ok(res, { data: d });
+  } catch(e) { fail(res, e.message, 500); }
+};
+
+exports.deleteBudget = async (req, res) => {
+  try {
+    if (!_BrandBudget) return fail(res, 'Model not available', 503);
+    await _BrandBudget.findByIdAndUpdate(req.params.id, { isDeleted: true });
+    ok(res, { message: 'Budget deleted' });
+  } catch(e) { fail(res, e.message, 500); }
+};
+
+// ════════════════════════════════════════════════════════════════════════════
+// ADMIN — EXCEL REPORT EXPORT
+// Uses xlsx (SheetJS) — npm install xlsx
+// GET /api/admin/reports/export?type=users|creators|brands|campaigns|payments|collab-posts|collaborations
+// ════════════════════════════════════════════════════════════════════════════
+exports.exportExcelReport = async (req, res) => {
+  let XLSX;
+  try {
+    // Try multiple require paths to handle different project structures
+    try { XLSX = require('xlsx'); }
+    catch(_) {
+      try { XLSX = require(require.resolve('xlsx', { paths: [process.cwd(), __dirname, require.main?.path || ''] })); }
+      catch(__) { XLSX = null; }
+    }
+    if (!XLSX) return fail(res, 'xlsx not found. Run: npm install xlsx  in your backend folder', 503);
+  } catch(e) { return fail(res, 'xlsx load error: ' + e.message, 503); }
+
+  const type = (req.query.type || 'users').toLowerCase().replace(/-/g,'').replace('_','');
+  const now  = new Date();
+  const dateStr = now.toISOString().slice(0,10);
+
+  try {
+    let rows = [];
+    let sheetName = type;
+
+    if (type === 'users') {
+      const data = await User.find().select('-password -verificationToken -resetPasswordToken').lean();
+      rows = data.map(u => ({
+        ID:           u._id?.toString(),
+        'First Name':  u.firstName,
+        'Last Name':   u.lastName,
+        Email:         u.email,
+        Role:          u.role,
+        Platform:      u.platform || '',
+        'Company':     u.companyName || '',
+        Verified:      u.isVerified ? 'Yes' : 'No',
+        Active:        u.isActive   ? 'Yes' : 'No',
+        'Created At':  u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '',
+        'Last Login':  u.lastLogin  ? new Date(u.lastLogin).toLocaleDateString() : '',
+      }));
+      sheetName = 'Users';
+    }
+
+    else if (type === 'creators') {
+      const data = await User.find({ role: 'creator' }).select('-password').lean();
+      rows = data.map(u => ({
+        ID:          u._id?.toString(),
+        Name:        `${u.firstName} ${u.lastName}`,
+        Email:       u.email,
+        Platform:    u.platform || '',
+        Verified:    u.isVerified ? 'Yes' : 'No',
+        Active:      u.isActive   ? 'Yes' : 'No',
+        'Created At':u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '',
+      }));
+      sheetName = 'Creators';
+    }
+
+    else if (type === 'brands') {
+      const data = await User.find({ role: 'brand' }).select('-password').lean();
+      rows = data.map(u => ({
+        ID:           u._id?.toString(),
+        Name:         `${u.firstName} ${u.lastName}`,
+        Email:        u.email,
+        'Company':    u.companyName || '',
+        Verified:     u.isVerified ? 'Yes' : 'No',
+        Active:       u.isActive   ? 'Yes' : 'No',
+        'Created At': u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '',
+      }));
+      sheetName = 'Brands';
+    }
+
+    else if (type === 'campaigns') {
+      const data = await Campaign.find({ isDeleted: false })
+        .populate('brand','firstName lastName companyName').lean();
+      rows = data.map(c => ({
+        ID:           c._id?.toString(),
+        Title:        c.title,
+        Brand:        c.brand?.companyName || `${c.brand?.firstName||''} ${c.brand?.lastName||''}`,
+        Status:       c.status,
+        Budget:       c.budget || 0,
+        Niche:        c.niche || '',
+        Platforms:    (c.platforms || []).join(', '),
+        Slots:        c.slots || '',
+        'Start Date': c.startDate ? new Date(c.startDate).toLocaleDateString() : '',
+        'End Date':   c.endDate   ? new Date(c.endDate).toLocaleDateString()   : '',
+        'Created At': c.createdAt ? new Date(c.createdAt).toLocaleDateString() : '',
+      }));
+      sheetName = 'Campaigns';
+    }
+
+    else if (type === 'payments') {
+      if (!_CollabPost) return fail(res, 'CollabPost model not available', 503);
+      const data = await _CollabPost.find({ isPaid: true })
+        .populate('creator','firstName lastName email')
+        .populate('brand','firstName lastName companyName').lean();
+      rows = data.map(p => ({
+        ID:              p._id?.toString(),
+        'Content Title': p.title,
+        Creator:         `${p.creator?.firstName||''} ${p.creator?.lastName||''}`,
+        'Creator Email': p.creator?.email || '',
+        Brand:           p.brand?.companyName || `${p.brand?.firstName||''} ${p.brand?.lastName||''}`,
+        Amount:          p.paymentAmount || 0,
+        Currency:        'INR',
+        'Paid At':       p.paidAt ? new Date(p.paidAt).toLocaleDateString() : '',
+        'Razorpay ID':   p.razorpayPaymentId || '',
+        'Order ID':      p.razorpayOrderId   || '',
+        Status:          p.status,
+      }));
+      sheetName = 'Payments';
+    }
+
+    else if (type === 'collabposts') {
+      if (!_CollabPost) return fail(res, 'CollabPost model not available', 503);
+      const data = await _CollabPost.find({ isDeleted: false })
+        .populate('creator','firstName lastName email')
+        .populate('brand','firstName lastName companyName')
+        .populate('campaign','title').lean();
+      rows = data.map(p => ({
+        ID:           p._id?.toString(),
+        Title:        p.title,
+        Creator:      `${p.creator?.firstName||''} ${p.creator?.lastName||''}`,
+        Brand:        p.brand?.companyName || `${p.brand?.firstName||''} ${p.brand?.lastName||''}`,
+        Campaign:     p.campaign?.title || '',
+        Status:       p.status,
+        'Content Type':p.contentType || '',
+        Platform:     p.platform || '',
+        'Payment Amt':p.paymentAmount || 0,
+        Paid:         p.isPaid ? 'Yes' : 'No',
+        'Created At': p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '',
+      }));
+      sheetName = 'CollabPosts';
+    }
+
+    else if (type === 'collaborations') {
+      if (!Collaboration) return fail(res, 'Collaboration model not available', 503);
+      const data = await Collaboration.find()
+        .populate('creator','firstName lastName email')
+        .populate('brand','firstName lastName companyName')
+        .populate('campaign','title budget').lean();
+      rows = data.map(c => ({
+        ID:           c._id?.toString(),
+        Creator:      `${c.creator?.firstName||''} ${c.creator?.lastName||''}`,
+        Brand:        c.brand?.companyName || `${c.brand?.firstName||''} ${c.brand?.lastName||''}`,
+        Campaign:     c.campaign?.title || '',
+        Status:       c.status,
+        'Agreed Amt': c.agreedAmount || 0,
+        'Created At': c.createdAt ? new Date(c.createdAt).toLocaleDateString() : '',
+      }));
+      sheetName = 'Collaborations';
+    }
+
+    else {
+      return fail(res, 'Unknown report type. Available: users, creators, brands, campaigns, payments, collabposts, collaborations');
+    }
+
+    if (!rows.length) rows = [{ Note: 'No data found for this report.' }];
+
+    // Build workbook
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(rows);
+
+    // Style header row (bold) via column widths
+    const cols = Object.keys(rows[0] || {});
+    ws['!cols'] = cols.map(k => ({ wch: Math.max(k.length + 2, 14) }));
+
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+
+    // Add summary sheet
+    const summary = XLSX.utils.json_to_sheet([
+      { Field: 'Report Type',   Value: sheetName },
+      { Field: 'Total Records', Value: rows.length },
+      { Field: 'Generated At',  Value: now.toLocaleString() },
+      { Field: 'Generated By',  Value: req.user?.email || 'Admin' },
+    ]);
+    XLSX.utils.book_append_sheet(wb, summary, 'Summary');
+
+    const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    const filename = `CollabSpace_${sheetName}_${dateStr}.xlsx`;
+
+    res.setHeader('Content-Type',        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Length',      buffer.length);
+    res.send(buffer);
+
+  } catch(e) {
+    fail(res, e.message, 500);
+  }
+};
+
+// ════════════════════════════════════════════════════════════════════════════
+// ADMIN — PERFORMANCE ANALYTICS CRUD
+// ════════════════════════════════════════════════════════════════════════════
+let _PerformanceAnalytics, _GrowthMetric, _CreatorProfile;
+try {
+  const CM = require('../models/CreatorModels');
+  _PerformanceAnalytics = CM.PerformanceAnalytics;
+  _GrowthMetric         = CM.GrowthMetric;
+  _CreatorProfile       = CM.CreatorProfile;
+} catch(_) {}
+
+exports.listPerformanceAnalytics = async (req, res) => {
+  try {
+    if (!_PerformanceAnalytics) return fail(res, 'Model not available', 503);
+    const { page, limit, skip } = paginate(req.query);
+    const { search = '' } = req.query;
+    const q = { isDeleted: false };
+    const [data, total] = await Promise.all([
+      _PerformanceAnalytics.find(q)
+        .populate('creator', 'firstName lastName email')
+        .sort({ createdAt: -1 }).skip(skip).limit(limit),
+      _PerformanceAnalytics.countDocuments(q),
+    ]);
+    ok(res, { data, total, page, pages: Math.ceil(total / limit) });
+  } catch(e) { fail(res, e.message, 500); }
+};
+
+exports.getPerformanceAnalytic = async (req, res) => {
+  try {
+    const d = await _PerformanceAnalytics.findById(req.params.id).populate('creator','firstName lastName email');
+    if (!d) return fail(res, 'Not found', 404);
+    ok(res, { data: d });
+  } catch(e) { fail(res, e.message, 500); }
+};
+
+exports.createPerformanceAnalytic = async (req, res) => {
+  try {
+    const d = await _PerformanceAnalytics.create(req.body);
+    await audit(req, 'analytics.create', 'performance-analytics', d._id, req.body);
+    ok(res, { data: d }, 201);
+  } catch(e) { fail(res, e.message); }
+};
+
+exports.updatePerformanceAnalytic = async (req, res) => {
+  try {
+    const d = await _PerformanceAnalytics.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!d) return fail(res, 'Not found', 404);
+    await audit(req, 'analytics.update', 'performance-analytics', d._id, req.body);
+    ok(res, { data: d });
+  } catch(e) { fail(res, e.message); }
+};
+
+exports.deletePerformanceAnalytic = async (req, res) => {
+  try {
+    await _PerformanceAnalytics.findByIdAndUpdate(req.params.id, { isDeleted: true });
+    ok(res, { message: 'Deleted' });
+  } catch(e) { fail(res, e.message, 500); }
+};
+
+// ════════════════════════════════════════════════════════════════════════════
+// ADMIN — GROWTH METRICS CRUD
+// ════════════════════════════════════════════════════════════════════════════
+exports.listGrowthMetrics = async (req, res) => {
+  try {
+    if (!_GrowthMetric) return fail(res, 'Model not available', 503);
+    const { page, limit, skip } = paginate(req.query);
+    const [data, total] = await Promise.all([
+      _GrowthMetric.find({ isDeleted: false })
+        .populate('creator', 'firstName lastName email')
+        .sort({ createdAt: -1 }).skip(skip).limit(limit),
+      _GrowthMetric.countDocuments({ isDeleted: false }),
+    ]);
+    ok(res, { data, total, page, pages: Math.ceil(total / limit) });
+  } catch(e) { fail(res, e.message, 500); }
+};
+
+exports.getGrowthMetric = async (req, res) => {
+  try {
+    const d = await _GrowthMetric.findById(req.params.id).populate('creator','firstName lastName email');
+    if (!d) return fail(res, 'Not found', 404);
+    ok(res, { data: d });
+  } catch(e) { fail(res, e.message, 500); }
+};
+
+exports.createGrowthMetric = async (req, res) => {
+  try {
+    const d = await _GrowthMetric.create(req.body);
+    ok(res, { data: d }, 201);
+  } catch(e) { fail(res, e.message); }
+};
+
+exports.updateGrowthMetric = async (req, res) => {
+  try {
+    const d = await _GrowthMetric.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!d) return fail(res, 'Not found', 404);
+    ok(res, { data: d });
+  } catch(e) { fail(res, e.message); }
+};
+
+exports.deleteGrowthMetric = async (req, res) => {
+  try {
+    await _GrowthMetric.findByIdAndUpdate(req.params.id, { isDeleted: true });
+    ok(res, { message: 'Deleted' });
+  } catch(e) { fail(res, e.message, 500); }
+};
+
+// ════════════════════════════════════════════════════════════════════════════
+// ADMIN — CREATOR PROFILES CRUD
+// ════════════════════════════════════════════════════════════════════════════
+exports.listCreatorProfiles = async (req, res) => {
+  try {
+    if (!_CreatorProfile) return fail(res, 'Model not available', 503);
+    const { page, limit, skip } = paginate(req.query);
+    const { search = '', niche = '' } = req.query;
+    const q = { isArchived: false };
+    if (niche)  q.niche = niche;
+    if (search) q.$or = [{ username: { $regex: search, $options: 'i' } }, { bio: { $regex: search, $options: 'i' } }];
+    const [data, total] = await Promise.all([
+      _CreatorProfile.find(q)
+        .populate('owner', 'firstName lastName email')
+        .sort({ createdAt: -1 }).skip(skip).limit(limit),
+      _CreatorProfile.countDocuments(q),
+    ]);
+    ok(res, { data, total, page, pages: Math.ceil(total / limit) });
+  } catch(e) { fail(res, e.message, 500); }
+};
+
+exports.getCreatorProfile = async (req, res) => {
+  try {
+    const d = await _CreatorProfile.findById(req.params.id).populate('owner','firstName lastName email');
+    if (!d) return fail(res, 'Not found', 404);
+    ok(res, { data: d });
+  } catch(e) { fail(res, e.message, 500); }
+};
+
+exports.updateCreatorProfile = async (req, res) => {
+  try {
+    const d = await _CreatorProfile.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!d) return fail(res, 'Not found', 404);
+    await audit(req, 'creator_profile.update', 'creator-profiles', d._id, req.body);
+    ok(res, { data: d });
+  } catch(e) { fail(res, e.message); }
+};
+
+exports.deleteCreatorProfile = async (req, res) => {
+  try {
+    await _CreatorProfile.findByIdAndUpdate(req.params.id, { isArchived: true });
+    await audit(req, 'creator_profile.delete', 'creator-profiles', req.params.id, {});
+    ok(res, { message: 'Archived' });
+  } catch(e) { fail(res, e.message, 500); }
+};
+
+// ════════════════════════════════════════════════════════════════════════════
+// ADMIN — BRAND PROFILES CRUD (via User model role=brand)
+// ════════════════════════════════════════════════════════════════════════════
+exports.listBrandProfiles = async (req, res) => {
+  try {
+    const { page, limit, skip } = paginate(req.query);
+    const { search = '' } = req.query;
+    const q = { role: 'brand' };
+    if (search) q.$or = [
+      { firstName: { $regex: search, $options: 'i' } },
+      { companyName: { $regex: search, $options: 'i' } },
+      { email: { $regex: search, $options: 'i' } },
+    ];
+    const [data, total] = await Promise.all([
+      User.find(q).select('-password').sort({ createdAt: -1 }).skip(skip).limit(limit),
+      User.countDocuments(q),
+    ]);
+    ok(res, { data, total, page, pages: Math.ceil(total / limit) });
+  } catch(e) { fail(res, e.message, 500); }
+};
+
+exports.getBrandProfile = async (req, res) => {
+  try {
+    const d = await User.findOne({ _id: req.params.id, role: 'brand' }).select('-password');
+    if (!d) return fail(res, 'Brand not found', 404);
+    ok(res, { data: d });
+  } catch(e) { fail(res, e.message, 500); }
+};
+
+exports.updateBrandProfile = async (req, res) => {
+  try {
+    const { password, role, ...rest } = req.body; // never update role/pw via this endpoint
+    const d = await User.findOneAndUpdate(
+      { _id: req.params.id, role: 'brand' },
+      rest,
+      { new: true, runValidators: true }
+    ).select('-password');
+    if (!d) return fail(res, 'Brand not found', 404);
+    await audit(req, 'brand_profile.update', 'brand-profiles', d._id, rest);
+    ok(res, { data: d });
+  } catch(e) { fail(res, e.message); }
+};
+
+exports.deleteBrandProfile = async (req, res) => {
+  try {
+    const d = await User.findOneAndUpdate(
+      { _id: req.params.id, role: 'brand' },
+      { isActive: false },
+      { new: true }
+    );
+    if (!d) return fail(res, 'Brand not found', 404);
+    await audit(req, 'brand_profile.deactivate', 'brand-profiles', req.params.id, {});
+    ok(res, { message: 'Brand deactivated' });
+  } catch(e) { fail(res, e.message, 500); }
 };

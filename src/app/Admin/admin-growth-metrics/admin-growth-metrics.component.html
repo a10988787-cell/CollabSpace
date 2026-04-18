@@ -1,0 +1,77 @@
+<div class="ad-page">
+  <div class="ad-page-head">
+    <div><div class="ad-page-title">📈 Growth Metrics</div><div class="ad-page-sub">Live from database · {{ total }} records</div></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <div class="ad-search"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><input [(ngModel)]="search" (keyup.enter)="page=1;load()" placeholder="Search…"></div>
+      <button class="ad-btn ad-btn--primary" (click)="openCreate()">+ Add Metric</button>
+    </div>
+  </div>
+  <div class="ad-loading" *ngIf="loading"><div class="ad-spin"></div> Loading…</div>
+
+  <ng-container *ngIf="!loading">
+    <div class="ad-empty" *ngIf="items.length===0">No growth metrics found.</div>
+    <div class="ad-card-grid" *ngIf="items.length>0">
+      <div class="ad-data-card" *ngFor="let item of items">
+        <div class="ad-data-card__head">
+          <div class="ad-data-card__av" style="background:linear-gradient(135deg,#34D399,#059669)">{{ (item.creator?.firstName||'?')[0] }}</div>
+          <div>
+            <div class="ad-data-card__name">{{ item.creator?.firstName }} {{ item.creator?.lastName }}</div>
+            <div class="ad-data-card__sub">{{ item.platform }} · {{ item.period }}</div>
+          </div>
+          <div class="ad-data-card__actions">
+            <button class="ad-btn-sm ad-btn-sm--edit" (click)="openEdit(item)">Edit</button>
+            <button class="ad-btn-sm ad-btn-sm--del"  (click)="confirmDel(item._id)">Del</button>
+          </div>
+        </div>
+        <div class="ad-data-card__stats">
+          <div class="ad-stat-item"><div class="ad-stat-val" [style.color]="item.monthlyGrowth>=0?'var(--jade)':'var(--rose)'">
+              <ng-container *ngIf="item.monthlyGrowth>=0">+</ng-container>{{ item.monthlyGrowth }}%
+            </div><div class="ad-stat-lbl">Monthly Growth</div></div>
+          <div class="ad-stat-item"><div class="ad-stat-val" [style.color]="item.weeklyGrowth>=0?'var(--jade)':'var(--rose)'">
+              <ng-container *ngIf="item.weeklyGrowth>=0">+</ng-container>{{ item.weeklyGrowth }}%
+            </div><div class="ad-stat-lbl">Weekly Growth</div></div>
+          <div class="ad-stat-item"><div class="ad-stat-val">{{ item.engagementTrend }}%</div><div class="ad-stat-lbl">Engagement Trend</div></div>
+          <div class="ad-stat-item"><div class="ad-stat-val">{{ item.createdAt | date:'MMM d' }}</div><div class="ad-stat-lbl">Recorded</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="ad-pager" *ngIf="pages>1">
+      <button class="ad-btn-sm" (click)="prev()" [disabled]="page===1">‹ Prev</button>
+      <span>Page {{ page }} / {{ pages }}</span>
+      <button class="ad-btn-sm" (click)="next()" [disabled]="page===pages">Next ›</button>
+    </div>
+  </ng-container>
+
+  <div class="ad-backdrop" *ngIf="showModal" (click)="showModal=false">
+    <div class="ad-modal" (click)="$event.stopPropagation()">
+      <div class="ad-modal-head"><div class="ad-modal-title">{{ isEdit?'Edit':'Add' }} Growth Metric</div><button class="ad-modal-x" (click)="showModal=false">✕</button></div>
+      <div class="ad-modal-body">
+        <div class="ad-field"><label>Platform</label>
+          <select class="ad-input" [(ngModel)]="form.platform">
+            <option *ngFor="let p of ['Instagram','YouTube','TikTok','Twitter','All']" [value]="p">{{p}}</option>
+          </select>
+        </div>
+        <div class="ad-field"><label>Period</label>
+          <select class="ad-input" [(ngModel)]="form.period">
+            <option *ngFor="let p of ['7d','30d','90d','6m','1y']" [value]="p">{{p}}</option>
+          </select>
+        </div>
+        <div class="ad-field"><label>Monthly Growth (%)</label><input class="ad-input" type="number" [(ngModel)]="form.monthlyGrowth" step="0.1"></div>
+        <div class="ad-field"><label>Weekly Growth (%)</label><input class="ad-input" type="number" [(ngModel)]="form.weeklyGrowth" step="0.1"></div>
+        <div class="ad-field"><label>Engagement Trend (%)</label><input class="ad-input" type="number" [(ngModel)]="form.engagementTrend" step="0.1"></div>
+      </div>
+      <div class="ad-modal-foot">
+        <button class="ad-btn" (click)="showModal=false">Cancel</button>
+        <button class="ad-btn ad-btn--primary" (click)="save()" [disabled]="saving">{{ saving?'Saving…':(isEdit?'Update':'Create') }}</button>
+      </div>
+    </div>
+  </div>
+  <div class="ad-backdrop" *ngIf="showDel" (click)="showDel=false">
+    <div class="ad-modal" style="max-width:380px" (click)="$event.stopPropagation()">
+      <div class="ad-modal-head"><div class="ad-modal-title" style="color:var(--rose)">Confirm Delete</div></div>
+      <div class="ad-modal-body"><p style="color:var(--t2);font-size:.88rem">Delete this growth metric record?</p></div>
+      <div class="ad-modal-foot"><button class="ad-btn" (click)="showDel=false">Cancel</button><button class="ad-btn ad-btn--danger" (click)="doDelete()">Delete</button></div>
+    </div>
+  </div>
+  <div class="ad-toast" *ngIf="toast" [class.ad-toast--err]="toast.type==='err'">{{ toast.msg }}</div>
+</div>

@@ -144,4 +144,72 @@ router.get   ('/feature-flags/:id',    ctrl.getFeatureFlag);
 router.put   ('/feature-flags/:id',    ctrl.updateFeatureFlag);
 router.delete('/feature-flags/:id',    ctrl.deleteFeatureFlag);
 
+
+/* ════════════════════════════════════════════════════════════════════════════
+   COLLAB POSTS — admin can view, update status, delete
+   ════════════════════════════════════════════════════════════════════════════ */
+router.get   ('/collab-posts',         ctrl.listCollabPosts);
+router.get   ('/collab-posts/:id',     ctrl.getCollabPost);
+router.put   ('/collab-posts/:id',     ctrl.updateCollabPost);
+router.delete('/collab-posts/:id',     ctrl.deleteCollabPost);
+
+/* ════════════════════════════════════════════════════════════════════════════
+   COLLABORATIONS
+   ════════════════════════════════════════════════════════════════════════════ */
+router.get   ('/collaborations',         ctrl.listCollaborations);
+router.get   ('/collaborations/:id',     ctrl.getCollaboration);
+router.put   ('/collaborations/:id',     ctrl.updateCollaboration);
+router.delete('/collaborations/:id',     ctrl.deleteCollaboration);
+
+/* ════════════════════════════════════════════════════════════════════════════
+   BUDGETS
+   ════════════════════════════════════════════════════════════════════════════ */
+router.get   ('/budgets',         ctrl.listBudgets);
+router.get   ('/budgets/:id',     ctrl.getBudget);
+router.put   ('/budgets/:id',     ctrl.updateBudget);
+router.delete('/budgets/:id',     ctrl.deleteBudget);
+
+/* ════════════════════════════════════════════════════════════════════════════
+   EXCEL REPORT EXPORT
+   GET /api/admin/reports/export?type=users|creators|brands|campaigns|payments|collabposts|collaborations
+   ════════════════════════════════════════════════════════════════════════════ */
+router.get('/reports/export', ctrl.exportExcelReport);
+
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   PERFORMANCE ANALYTICS
+   ════════════════════════════════════════════════════════════════════════════ */
+router.get   ('/performance-analytics',        ctrl.listPerformanceAnalytics);
+router.get   ('/performance-analytics/:id',    ctrl.getPerformanceAnalytic);
+router.post  ('/performance-analytics',        ctrl.createPerformanceAnalytic);
+router.put   ('/performance-analytics/:id',    ctrl.updatePerformanceAnalytic);
+router.delete('/performance-analytics/:id',    ctrl.deletePerformanceAnalytic);
+
+/* ════════════════════════════════════════════════════════════════════════════
+   GROWTH METRICS
+   ════════════════════════════════════════════════════════════════════════════ */
+router.get   ('/growth-metrics',        ctrl.listGrowthMetrics);
+router.get   ('/growth-metrics/:id',    ctrl.getGrowthMetric);
+router.post  ('/growth-metrics',        ctrl.createGrowthMetric);
+router.put   ('/growth-metrics/:id',    ctrl.updateGrowthMetric);
+router.delete('/growth-metrics/:id',    ctrl.deleteGrowthMetric);
+
+/* ════════════════════════════════════════════════════════════════════════════
+   CREATOR PROFILES
+   ════════════════════════════════════════════════════════════════════════════ */
+router.get   ('/creator-profiles',        ctrl.listCreatorProfiles);
+router.get   ('/creator-profiles/:id',    ctrl.getCreatorProfile);
+router.put   ('/creator-profiles/:id',    ctrl.updateCreatorProfile);
+router.delete('/creator-profiles/:id',    ctrl.deleteCreatorProfile);
+
+/* ════════════════════════════════════════════════════════════════════════════
+   BRAND PROFILES
+   ════════════════════════════════════════════════════════════════════════════ */
+router.get   ('/brand-profiles',        ctrl.listBrandProfiles);
+router.get   ('/brand-profiles/:id',    ctrl.getBrandProfile);
+router.put   ('/brand-profiles/:id',    ctrl.updateBrandProfile);
+router.delete('/brand-profiles/:id',    ctrl.deleteBrandProfile);
+
+
 module.exports = router;

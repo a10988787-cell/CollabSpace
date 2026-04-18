@@ -1,0 +1,138 @@
+<div class="ad-page">
+  <div class="ad-page-head">
+    <div><div class="ad-page-title">🎬 Creator Profiles</div><div class="ad-page-sub">Live from database · {{ total }} records</div></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <div class="ad-search">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input [(ngModel)]="search" (keyup.enter)="page=1;load()" placeholder="Search username, bio…">
+      </div>
+    </div>
+  </div>
+
+  <div class="ad-loading" *ngIf="loading"><div class="ad-spin"></div> Loading…</div>
+
+  <ng-container *ngIf="!loading">
+    <div class="ad-empty" *ngIf="items.length===0">No creator profiles found.</div>
+
+    <div class="ad-card-grid" *ngIf="items.length>0">
+      <div class="ad-data-card" *ngFor="let item of items">
+        <div class="ad-data-card__head">
+          <div class="ad-data-card__av">{{ (item.owner?.firstName || '?')[0] }}</div>
+          <div style="flex:1;min-width:0">
+            <div class="ad-data-card__name">{{ item.owner?.firstName }} {{ item.owner?.lastName }}</div>
+            <!-- FIXED: escaped @ sign using {{ '@' }} to avoid Angular 17 control-flow clash -->
+            <div class="ad-data-card__sub">{{ '@' }}{{ item.username || '—' }} · {{ item.niche }}</div>
+          </div>
+          <span *ngIf="item.isVerified"
+            style="padding:2px 8px;border-radius:99px;background:rgba(52,211,153,.12);color:var(--jade);font-size:.68rem;font-weight:700;flex-shrink:0">
+            ✓ Verified
+          </span>
+          <div class="ad-data-card__actions">
+            <button class="ad-btn-sm ad-btn-sm--edit" (click)="openEdit(item)">Edit</button>
+            <button class="ad-btn-sm ad-btn-sm--del"  (click)="confirmDel(item._id)">Del</button>
+          </div>
+        </div>
+
+        <!-- FIXED: replaced ternary inside {{ }} with *ngIf + slice pipe to avoid ICU parser issues -->
+        <div class="ad-data-card__body" *ngIf="item.bio">
+          <p style="font-size:.79rem;color:var(--t2);line-height:1.5;margin:0">
+            <ng-container *ngIf="item.bio.length <= 100">{{ item.bio }}</ng-container>
+            <ng-container *ngIf="item.bio.length > 100">{{ item.bio | slice:0:100 }}…</ng-container>
+          </p>
+        </div>
+
+        <div class="ad-data-card__stats">
+          <div class="ad-stat-item">
+            <div class="ad-stat-val">{{ item.country || '—' }}</div>
+            <div class="ad-stat-lbl">Country</div>
+          </div>
+          <div class="ad-stat-item">
+            <div class="ad-stat-val" style="font-size:.72rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+              {{ item.owner?.email || '—' }}
+            </div>
+            <div class="ad-stat-lbl">Email</div>
+          </div>
+          <div class="ad-stat-item">
+            <div class="ad-stat-val">{{ item.createdAt | date:'MMM y' }}</div>
+            <div class="ad-stat-lbl">Joined</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ad-pager" *ngIf="pages > 1">
+      <button class="ad-btn-sm" (click)="prev()" [disabled]="page===1">‹ Prev</button>
+      <span>Page {{ page }} / {{ pages }}</span>
+      <button class="ad-btn-sm" (click)="next()" [disabled]="page===pages">Next ›</button>
+    </div>
+  </ng-container>
+
+  <!-- Edit Modal -->
+  <div class="ad-backdrop" *ngIf="showModal" (click)="showModal=false">
+    <div class="ad-modal" (click)="$event.stopPropagation()">
+      <div class="ad-modal-head">
+        <div class="ad-modal-title">Edit Creator Profile</div>
+        <button class="ad-modal-x" (click)="showModal=false">✕</button>
+      </div>
+      <div class="ad-modal-body">
+        <div class="ad-field">
+          <label>Username</label>
+          <input class="ad-input" [(ngModel)]="form.username" placeholder="handle (without @)">
+        </div>
+        <div class="ad-field">
+          <label>Bio</label>
+          <textarea class="ad-input" [(ngModel)]="form.bio" rows="3" placeholder="Short bio…"></textarea>
+        </div>
+        <div class="ad-field">
+          <label>Niche</label>
+          <select class="ad-input" [(ngModel)]="form.niche">
+            <option value="Fashion">Fashion</option>
+            <option value="Beauty">Beauty</option>
+            <option value="Tech">Tech</option>
+            <option value="Gaming">Gaming</option>
+            <option value="Food">Food</option>
+            <option value="Travel">Travel</option>
+            <option value="Fitness">Fitness</option>
+            <option value="Lifestyle">Lifestyle</option>
+            <option value="Music">Music</option>
+            <option value="Education">Education</option>
+            <option value="Comedy">Comedy</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="ad-field">
+          <label>Country</label>
+          <input class="ad-input" [(ngModel)]="form.country" placeholder="India">
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <input type="checkbox" [(ngModel)]="form.isVerified" id="cpv_chk">
+          <label for="cpv_chk" style="font-size:.84rem;color:var(--t2);cursor:pointer">Mark as Verified</label>
+        </div>
+      </div>
+      <div class="ad-modal-foot">
+        <button class="ad-btn" (click)="showModal=false">Cancel</button>
+        <button class="ad-btn ad-btn--primary" (click)="save()" [disabled]="saving">
+          {{ saving ? 'Saving…' : 'Update' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirm -->
+  <div class="ad-backdrop" *ngIf="showDel" (click)="showDel=false">
+    <div class="ad-modal" style="max-width:380px" (click)="$event.stopPropagation()">
+      <div class="ad-modal-head">
+        <div class="ad-modal-title" style="color:var(--rose)">Archive Profile</div>
+      </div>
+      <div class="ad-modal-body">
+        <p style="color:var(--t2);font-size:.88rem">Archive this creator profile? The user account remains active.</p>
+      </div>
+      <div class="ad-modal-foot">
+        <button class="ad-btn" (click)="showDel=false">Cancel</button>
+        <button class="ad-btn ad-btn--danger" (click)="doDelete()">Archive</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="ad-toast" *ngIf="toast" [class.ad-toast--err]="toast.type==='err'">{{ toast.msg }}</div>
+</div>

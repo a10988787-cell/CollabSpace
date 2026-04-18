@@ -1,0 +1,90 @@
+<div class="ad-page">
+  <div class="ad-page-head">
+    <div>
+      <div class="ad-page-title">Collaborations</div>
+      <div class="ad-page-sub">Live from database · {{ total }} records</div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <div class="ad-search">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input [(ngModel)]="search" (keyup.enter)="page=1;load()" placeholder="Search…">
+      </div>
+      <button class="ad-btn ad-btn--primary" (click)="openCreate()">+ Add New</button>
+    </div>
+  </div>
+
+  <div class="ad-loading" *ngIf="loading"><div class="ad-spin"></div> Loading…</div>
+
+  <div *ngIf="!loading">
+    <div *ngIf="items.length===0" class="ad-empty">No records found.</div>
+    <div *ngIf="items.length>0" style="overflow-x:auto">
+      <table class="ad-table">
+        <thead><tr><th>Creator</th><th>Brand</th><th>Campaign</th><th>Status</th><th>Agreed Amt</th><th>Created</th><th>Actions</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let item of items">
+            <td>{{ item.creator?.firstName + ' ' + (item.creator?.lastName||'') }}</td>
+              <td>{{ item.brand?.companyName || (item.brand?.firstName||'') }}</td>
+              <td>{{ item.campaign?.title }}</td>
+              <td>{{ item.status }}</td>
+              <td>{{ item.agreedAmount | number }}</td>
+              <td>{{ item.createdAt | date:'MMM d, y' }}</td>
+              
+            <td>
+              <div style="display:flex;gap:6px">
+                <button class="ad-btn-sm ad-btn-sm--edit"  (click)="openEdit(item)">Edit</button>
+                <button class="ad-btn-sm ad-btn-sm--del"   (click)="confirmDel(item._id)">Delete</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <!-- Pagination -->
+    <div class="ad-pager" *ngIf="pages>1">
+      <button class="ad-btn-sm" (click)="prev()" [disabled]="page===1">‹ Prev</button>
+      <span>Page {{ page }} / {{ pages }}</span>
+      <button class="ad-btn-sm" (click)="next()" [disabled]="page===pages">Next ›</button>
+    </div>
+  </div>
+
+  <!-- Create/Edit Modal -->
+  <div class="ad-backdrop" *ngIf="showModal" (click)="showModal=false">
+    <div class="ad-modal" (click)="$event.stopPropagation()">
+      <div class="ad-modal-head">
+        <div class="ad-modal-title">{{ isEdit ? 'Edit' : 'Create' }} Collaboration</div>
+        <button class="ad-modal-x" (click)="showModal=false">✕</button>
+      </div>
+      <div class="ad-modal-body">
+        <div class="ad-field"><label>Status</label>
+          <select class="ad-input" [(ngModel)]="form.status">
+            <option value="active">Active</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div class="ad-field"><label>Agreed Amount (₹)</label><input class="ad-input" type="number" [(ngModel)]="form.agreedAmount"></div>
+      </div>
+      <div class="ad-modal-foot">
+        <button class="ad-btn" (click)="showModal=false">Cancel</button>
+        <button class="ad-btn ad-btn--primary" (click)="save()" [disabled]="saving">
+          {{ saving ? 'Saving…' : (isEdit ? 'Update' : 'Create') }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirm -->
+  <div class="ad-backdrop" *ngIf="showDel" (click)="showDel=false">
+    <div class="ad-modal" style="max-width:400px" (click)="$event.stopPropagation()">
+      <div class="ad-modal-head"><div class="ad-modal-title" style="color:var(--rose)">Confirm Delete</div></div>
+      <div class="ad-modal-body"><p style="font-size:.9rem;color:var(--t2)">This action cannot be undone. Are you sure?</p></div>
+      <div class="ad-modal-foot">
+        <button class="ad-btn" (click)="showDel=false">Cancel</button>
+        <button class="ad-btn ad-btn--danger" (click)="doDelete()">Yes, Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="ad-toast" *ngIf="toast" [class.ad-toast--err]="toast.type==='err'">{{ toast.msg }}</div>
+</div>

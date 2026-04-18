@@ -163,7 +163,7 @@
           <div class="campaign-card__name">{{ c.name }}</div>
           <div class="campaign-card__brand">{{ c.brand }} · {{ c.niche }}</div>
           <div style="padding:0 18px 12px">
-            <div class="campaign-card__budget">${{ c.budget | number }}<span> budget</span></div>
+            <div class="campaign-card__budget">₹{{ c.budget | number }}<span> budget</span></div>
           </div>
           <div class="campaign-card__meta">
             <div class="meta-item">
@@ -297,7 +297,7 @@
               </td>
               <td style="font-weight:700;color:var(--t1)">{{ cr.followers }}</td>
               <td><span [ngStyle]="{color: cr.engRate>5?'var(--jade)':'var(--t2)', fontWeight:'700'}">{{ cr.engRate }}%</span></td>
-              <td><span class="amount-cell">${{ cr.avgDeal | number }}</span></td>
+              <td><span class="amount-cell">₹{{ cr.avgDeal | number }}</span></td>
               <td>
                 <div class="chip" [ngClass]="getStatusClass(cr.status)">
                   <span class="chip__dot"></span>{{ cr.status }}
@@ -471,7 +471,7 @@
                 </div>
               </td>
               <td style="color:var(--t2)">{{ row.brand }}</td>
-              <td><span class="amount-cell">${{ row.budget | number }}</span></td>
+              <td><span class="amount-cell">₹{{ row.budget | number }}</span></td>
               <td><span class="tag">{{ row.niche }}</span></td>
               <td>
                 <div class="chip" [ngClass]="getStatusClass(row.status)">

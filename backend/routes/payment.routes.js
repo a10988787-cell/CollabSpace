@@ -22,6 +22,41 @@ const {
   CollabPost, RevenueEntry, CreatorNotification,
 } = require('../models/CreatorModels');
 
+/* ── Payment model (from BrandModels) ── */
+let BrandPayment = null;
+try {
+  const BM = require('../models/BrandModels');
+  BrandPayment = BM.Payment || BM.BrandPayment || null;
+} catch(_) {}
+// Fallback inline schema if BrandModels not found
+if (!BrandPayment) {
+  try {
+    const mongoose = require('mongoose');
+    const existing = mongoose.modelNames().find(m => m === 'BrandPayment' || m === 'Payment');
+    if (existing) {
+      BrandPayment = mongoose.model(existing);
+    } else {
+      const PaySchema = new mongoose.Schema({
+        brand:             { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        creator:           { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        collabPost:        { type: mongoose.Schema.Types.ObjectId, ref: 'CollabPost' },
+        amount:            { type: Number, default: 0 },
+        currency:          { type: String, default: 'INR' },
+        status:            { type: String, enum: ['pending','processing','paid','failed','refunded'], default: 'pending' },
+        method:            { type: String, default: 'razorpay' },
+        description:       { type: String, default: '' },
+        razorpayOrderId:   { type: String, default: '' },
+        razorpayPaymentId: { type: String, default: '' },
+        razorpaySignature: { type: String, default: '' },
+        receiptId:         { type: String, default: '' },
+        paidAt:            { type: Date },
+        isDeleted:         { type: Boolean, default: false },
+      }, { timestamps: true, versionKey: false });
+      BrandPayment = mongoose.model('BrandPayment', PaySchema);
+    }
+  } catch(_) {}
+}
+
 /* ── Razorpay SDK — optional, gracefully disabled if not installed ── */
 let Razorpay = null;
 let razorpay = null;
@@ -182,6 +217,27 @@ router.post('/verify', async (req, res) => {
       },
       { upsert: true, new: true }
     );
+
+    /* ── Save to Payment model ── */
+    if (BrandPayment) {
+      try {
+        await BrandPayment.create({
+          brand:             req.user._id,
+          creator:           post.creator._id,
+          collabPost:        post._id,
+          amount:            post.paymentAmount,
+          currency:          CURRENCY,
+          status:            'paid',
+          method:            'razorpay',
+          description:       `Payment for content: ${post.title}`,
+          razorpayOrderId:   razorpay_order_id,
+          razorpayPaymentId: razorpay_payment_id,
+          razorpaySignature: razorpay_signature,
+          receiptId:         `RCP-${razorpay_payment_id.slice(-8).toUpperCase()}`,
+          paidAt:            new Date(),
+        });
+      } catch(pe) { console.error('[payment.routes] BrandPayment save failed:', pe.message); }
+    }
 
     /* ── Notify creator ── */
     const brandName = req.user.companyName || req.user.firstName;
