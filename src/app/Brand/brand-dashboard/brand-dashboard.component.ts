@@ -70,9 +70,12 @@ export class BrandDashboardComponent implements OnInit, OnDestroy {
     this.routerSub?.unsubscribe();
   }
 
-  private checkOverview(url: string): void {
-    this.isOverview = url === '/dashboard/brand' || url === '/dashboard/brand/';
-  }
-
+  // private checkOverview(url: string): void {
+  //   this.isOverview = url === '/dashboard/brand' || url === '/dashboard/brand/';
+  // }
+private checkOverview(url: string): void {
+  const cleanUrl = url.split('?')[0];
+  this.isOverview = cleanUrl === '/dashboard/brand';
+}
   logout(): void { this.auth.logout(); }
 }

@@ -765,39 +765,39 @@ export class BrandService {
   }
 
   /* ── Creator Applications ────────────────────────────────────────── */
-  getBrandApplications(params?: { status?: string; campaignId?: string }): Observable<any> {
-    let q = '';
-    if (params?.status)     q += `status=${params.status}&`;
-    if (params?.campaignId) q += `campaignId=${params.campaignId}&`;
-    return this.http.get<any>(`${BASE}/applications${q ? '?' + q : ''}`);
-  }
+  // getBrandApplications(params?: { status?: string; campaignId?: string }): Observable<any> {
+  //   let q = '';
+  //   if (params?.status)     q += `status=${params.status}&`;
+  //   if (params?.campaignId) q += `campaignId=${params.campaignId}&`;
+  //   return this.http.get<any>(`${BASE}/applications${q ? '?' + q : ''}`);
+  // }
 
-  respondToApplication(id: string, action: 'accept' | 'reject', brandResponse?: string): Observable<any> {
-    return this.http.patch<any>(`${BASE}/applications/${id}`, { action, brandResponse });
-  }
+  // respondToApplication(id: string, action: 'accept' | 'reject', brandResponse?: string): Observable<any> {
+  //   return this.http.patch<any>(`${BASE}/applications/${id}`, { action, brandResponse });
+  // }
 
   /* ── Content Review ──────────────────────────────────────────────── */
-  getBrandContentPosts(status?: string): Observable<any> {
-    return this.http.get<any>(`${BASE}/content-review${status ? '?status=' + status : ''}`);
-  }
+  // getBrandContentPosts(status?: string): Observable<any> {
+  //   return this.http.get<any>(`${BASE}/content-review${status ? '?status=' + status : ''}`);
+  // }
 
-  reviewContentPost(id: string, action: string, brandNotes?: string, paymentAmount?: number): Observable<any> {
-    return this.http.patch<any>(`${BASE}/content-review/${id}/review`, { action, brandNotes, paymentAmount });
-  }
+  // reviewContentPost(id: string, action: string, brandNotes?: string, paymentAmount?: number): Observable<any> {
+  //   return this.http.patch<any>(`${BASE}/content-review/${id}/review`, { action, brandNotes, paymentAmount });
+  // }
 
-  payContentPost(id: string): Observable<any> {
-    return this.http.post<any>(`${BASE}/content-review/${id}/pay`, {});
-  }
+  // payContentPost(id: string): Observable<any> {
+  //   return this.http.post<any>(`${BASE}/content-review/${id}/pay`, {});
+  // }
 
-  collabCompletionRate(analytics: BrandAnalytics): number {
-    if (!analytics.totalCollaborations) return 0;
-    return Math.round((analytics.completedCollaborations / analytics.totalCollaborations) * 100);
-  }
+  // collabCompletionRate(analytics: BrandAnalytics): number {
+  //   if (!analytics.totalCollaborations) return 0;
+  //   return Math.round((analytics.completedCollaborations / analytics.totalCollaborations) * 100);
+  // }
 
-  /* ── Brand Invitations sent by this brand ────────────────────────── */
-  getBrandInvitations(status?: string): Observable<any> {
-    return this.http.get<any>(`${BASE}/invitations${status ? '?status=' + status : ''}`);
-  }
+  // /* ── Brand Invitations sent by this brand ────────────────────────── */
+  // getBrandInvitations(status?: string): Observable<any> {
+  //   return this.http.get<any>(`${BASE}/invitations${status ? '?status=' + status : ''}`);
+  // }
 
   /* ── Explore Creators ────────────────────────────────────────────── */
   exploreCreators(filters: { search?: string; niche?: string; platform?: string; page?: number; limit?: number }): Observable<ExploreCreatorsResponse> {
@@ -820,4 +820,77 @@ export class BrandService {
   getCreatorDetail(creatorId: string): Observable<any> {
     return this.http.get<any>(`${environment.apiUrl}/users/creators/${creatorId}`);
   }
+   /* ══ MESSAGING ═════════════════════════════════════════════════════ */
+  getConversations(): Observable<any> {
+    return this.http.get<any>(`${BASE}/messages`).pipe(catchError(e => this.handleError(e)));
+  }
+  getMessages(userId: string): Observable<any> {
+    return this.http.get<any>(`${BASE}/messages/${userId}`).pipe(catchError(e => this.handleError(e)));
+  }
+  sendMessage(data: { receiverId: string; content: string }): Observable<any> {
+    return this.http.post<any>(`${BASE}/messages`, data).pipe(catchError(e => this.handleError(e)));
+  }
+ 
+  /* ══ CONTRACTS (brand side) ═════════════════════════════════════════ */
+  getBrandContracts(): Observable<any> {
+    return this.http.get<any>(`${BASE}/brand-contracts`).pipe(catchError(e => this.handleError(e)));
+  }
+  generateContract(applicationId: string, clauses?: string[]): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/contracts/generate`, { applicationId, clauses })
+      .pipe(catchError(e => this.handleError(e)));
+  }
+  downloadContract(contractId: string): Observable<Blob> {
+    return this.http.get(`${environment.apiUrl}/contracts/${contractId}/download`, { responseType: 'blob' })
+      .pipe(catchError(e => this.handleError(e)));
+  }
+ getBrandApplications(params?: { status?: string; campaignId?: string }): Observable<any> {
+    return this.http
+      .get<any>(`${BASE}/applications`, { params: this.buildParams(params as any) })
+      .pipe(catchError(e => this.handleError(e)));
+  }
+   respondToApplication(id: string, action: 'accept' | 'reject', brandResponse?: string): Observable<any> {
+    return this.http
+      .patch<any>(`${BASE}/applications/${id}`, { action, brandResponse })
+      .pipe(catchError(e => this.handleError(e)));
+  }
+   getBrandContentPosts(status?: string): Observable<any> {
+    const params = this.buildParams(status ? { status } : undefined);
+    return this.http
+      .get<any>(`${BASE}/content-review`, { params })
+      .pipe(catchError(e => this.handleError(e)));
+  }
+   reviewContentPost(id: string, action: string, brandNotes?: string, paymentAmount?: number): Observable<any> {
+    return this.http
+      .patch<any>(`${BASE}/content-review/${id}/review`, { action, brandNotes, paymentAmount })
+      .pipe(catchError(e => this.handleError(e)));
+  }
+   payContentPost(id: string): Observable<any> {
+    return this.http
+      .post<any>(`${BASE}/content-review/${id}/pay`, {})
+      .pipe(catchError(e => this.handleError(e)));
+  }
+  collabCompletionRate(analytics: BrandAnalytics): number {
+    if (!analytics.totalCollaborations) return 0;
+    return Math.round((analytics.completedCollaborations / analytics.totalCollaborations) * 100);
+  }
+ 
+  /* ── Brand Invitations sent by this brand ─────────────────────────── */
+  getBrandInvitations(status?: string): Observable<any> {
+    const params = this.buildParams(status ? { status } : undefined);
+    return this.http
+      .get<any>(`${BASE}/invitations`, { params })
+      .pipe(catchError(e => this.handleError(e)));
+  }
+  // collabCompletionRate(analytics: BrandAnalytics): number {
+  //   if (!analytics.totalCollaborations) return 0;
+  //   return Math.round((analytics.completedCollaborations / analytics.totalCollaborations) * 100);
+  // }
+ 
+  /* ── Brand Invitations sent by this brand ─────────────────────────── */
+  // getBrandInvitations(status?: string): Observable<any> {
+  //   const params = this.buildParams(status ? { status } : undefined);
+  //   return this.http
+  //     .get<any>(`${BASE}/invitations`, { params })
+  //     .pipe(catchError(e => this.handleError(e)));
+  // }
 }

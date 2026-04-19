@@ -51,7 +51,18 @@ export const routes: Routes = [
       { path: 'explore-creators', loadComponent: () => import('./Brand/brand-explore-creators/brand-explore-creators.component').then(m => m.BrandExploreCreatorsComponent), title: 'Explore Creators — CollabSpace' },
 
       /* Creator Applications — brand reviews & accepts/rejects creator applications */
-      { path: 'applications',     loadComponent: () => import('./Brand/brand-applications/brand-applications.component').then(m => m.BrandApplicationsComponent),           title: 'Creator Applications — CollabSpace' },
+      // { path: 'applications',     loadComponent: () => import('./Brand/brand-applications/brand-applications.component').then(m => m.BrandApplicationsComponent),           title: 'Creator Applications — CollabSpace' },
+      {
+  path: 'applications',
+  loadComponent: () => import('./Brand/brand-applications/brand-applications.component')
+    .then(m => m.BrandApplicationsComponent),
+},
+
+{
+  path: 'messages',
+  loadComponent: () => import('./Brand/brand-messages/brand-messages.component')
+    .then(m => m.BrandMessagesComponent),
+},
 
       /* Campaigns */
       { path: 'campaigns',        loadComponent: () => import('./Brand/brand-campaigns/brand-campaigns.component').then(m => m.BrandCampaignsComponent),          title: 'Campaigns — CollabSpace' },
@@ -79,7 +90,12 @@ export const routes: Routes = [
 
       /* Team */
       { path: 'team',             loadComponent: () => import('./Brand/brand-team/brand-team.component').then(m => m.BrandTeamComponent),                         title: 'Team — CollabSpace' },
-
+//       {
+//   path: 'messages',
+//   loadComponent: () => import('./Brand/brand-messages/brand-messages.component')
+//     .then(m => m.BrandMessagesComponent),
+//   title: 'Messages — CollabSpace'
+// },
       { path: '**', redirectTo: '' },
     ],
   },

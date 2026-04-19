@@ -1,121 +1,135 @@
-<!-- creator-contracts.component.html -->
 <div class="pg">
   <div class="ph">
     <div>
+      <div class="eyebrow">Legal</div>
       <div class="ph-title">Contracts</div>
-      <div class="ph-sub">Manage your legal agreements with brands</div>
+      <div class="ph-sub">Brand collaboration contracts sent to you. Review, sign, and upload your signed copy.</div>
     </div>
-    <button class="btn btn-primary" (click)="openAdd()">
-      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-      Upload Contract
-    </button>
   </div>
 
-  <div *ngIf="loading" style="text-align:center;padding:60px;color:var(--t3)">Loading...</div>
+  <div class="loading" *ngIf="loading"><div class="spin"></div> Loading contracts…</div>
 
-  <ng-container *ngIf="!loading">
-    <div class="empty" *ngIf="contracts.length === 0">
-      <div class="empty-icon">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" style="width:28px;height:28px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-      </div>
-      <h3>No contracts yet</h3>
-      <p>Upload contracts from brand deals to keep them organized</p>
-      <button class="btn btn-primary" (click)="openAdd()">Upload First Contract</button>
+  <div class="empty" *ngIf="!loading && contracts.length===0">
+    <div class="empty-icon">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+      </svg>
     </div>
+    <h3>No contracts yet</h3>
+    <p>When a brand accepts your application and sends a contract, it will appear here for signing.</p>
+  </div>
 
-    <div class="grid-2" *ngIf="contracts.length > 0">
-      <div class="card" *ngFor="let c of contracts">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px">
-          <div style="display:flex;align-items:center;gap:12px">
-            <div style="width:42px;height:42px;border-radius:var(--r-md);background:rgba(139,92,246,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-              <svg fill="none" stroke="#A78BFA" viewBox="0 0 24 24" stroke-width="2" style="width:20px;height:20px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            </div>
-            <div>
-              <div style="font-weight:700;color:var(--t1)">{{c.title}}</div>
-              <div style="font-size:.75rem;color:var(--t3);margin-top:2px">{{c.brand?.companyName || c.brand?.firstName || 'No brand linked'}}</div>
-            </div>
+  <div class="contracts-list" *ngIf="!loading && contracts.length>0">
+    <div class="contract-card" *ngFor="let c of contracts; let i=index"
+         [style.animation-delay]="(i*0.05)+'s'"
+         [class.contract-card--pending]="c.status==='pending'"
+         [class.contract-card--signed]="c.status==='signed'">
+
+      <!-- Status stripe -->
+      <div class="contract-stripe" [ngStyle]="{
+        background: c.status==='signed' ? 'var(--jade)' : c.status==='expired' ? 'var(--rose)' : 'var(--amber)'
+      }"></div>
+
+      <div class="contract-body">
+        <!-- Header -->
+        <div class="contract-head">
+          <div class="contract-icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
           </div>
-          <span class="pill" [ngClass]="statusPill(c.status)" style="text-transform:capitalize">{{c.status}}</span>
+          <div class="contract-info">
+            <div class="contract-title">{{ c.title }}</div>
+            <div class="contract-brand">From: {{ c.brand?.companyName || (c.brand?.firstName + ' ' + c.brand?.lastName) }}</div>
+            <div class="contract-date">Received {{ fmtDate(c.createdAt) }}</div>
+          </div>
+          <span class="pill" [ngClass]="statusClass(c.status)" style="text-transform:capitalize;flex-shrink:0">
+            {{ c.status }}
+          </span>
         </div>
 
-        <div *ngIf="c.content" style="background:var(--bg-card2);border-radius:var(--r-md);padding:12px;margin-bottom:12px;font-size:.82rem;color:var(--t2);line-height:1.5;max-height:80px;overflow:hidden">
-          {{c.content.slice(0, 200)}}{{c.content.length > 200 ? '...' : ''}}
+        <!-- Content preview -->
+        <div class="contract-preview" *ngIf="c.content">
+          <p>{{ c.content.length > 200 ? (c.content | slice:0:200) + '…' : c.content }}</p>
         </div>
 
-        <div style="display:flex;gap:12px;margin-bottom:14px">
-          <div *ngIf="c.createdAt" style="font-size:.75rem;color:var(--t3)">
-            Created: {{c.createdAt | date:'MMM d, y'}}
-          </div>
-          <div *ngIf="c.signedAt" style="font-size:.75rem;color:var(--jade)">
-            ✓ Signed: {{c.signedAt | date:'MMM d, y'}}
-          </div>
-          <div *ngIf="c.expiresAt" style="font-size:.75rem;color:var(--amber)">
-            Expires: {{c.expiresAt | date:'MMM d, y'}}
-          </div>
+        <!-- Signed info -->
+        <div class="contract-signed-info" *ngIf="c.status==='signed' && c.signedAt">
+          <svg fill="none" stroke="#34D399" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          You signed this contract on {{ fmtDate(c.signedAt) }}
         </div>
 
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <a *ngIf="c.fileUrl" [href]="c.fileUrl" target="_blank" class="btn btn-ghost btn-sm">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-            Download
-          </a>
-          <button class="btn btn-jade btn-sm" *ngIf="c.status === 'pending'" (click)="sign(c._id)">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-            Sign Contract
-          </button>
-          <button class="btn btn-ghost btn-sm" *ngIf="c.status === 'pending'" (click)="openEdit(c)">Edit</button>
-          <button class="btn btn-danger btn-sm" *ngIf="c.status !== 'archived'" (click)="archive(c._id)">Archive</button>
+        <!-- Signed copy already uploaded -->
+        <div *ngIf="c.signedFileUrl"
+             style="display:flex;align-items:center;gap:7px;font-size:.8rem;color:var(--jade);font-weight:600;padding:6px 0">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" style="width:14px;height:14px;flex-shrink:0">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+          </svg>
+          Signed copy uploaded and sent to brand.
+        </div>
+
+        <!-- Pending signing prompt -->
+        <div class="contract-pending-prompt" *ngIf="c.status==='pending'">
+          <svg fill="none" stroke="#FBBF24" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+          Action required — Download the contract, review it, then sign digitally using the button below.
+        </div>
+
+        <!-- Upload signed copy — shown after signing if not yet uploaded -->
+        <div *ngIf="c.status==='signed' && !c.signedFileUrl"
+             style="margin-top:10px;padding:12px;background:rgba(13,148,136,.06);border:1px dashed rgba(13,148,136,.3);border-radius:10px">
+          <div style="font-size:.78rem;font-weight:700;color:var(--t2);margin-bottom:8px">
+            📎 Upload your physically signed copy so the brand can confirm
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <label style="cursor:pointer;display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--t2);background:var(--hov);border:1px solid var(--bdr2);border-radius:8px;padding:6px 12px">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" style="width:13px;height:13px">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+              </svg>
+              {{ signedFiles[c._id]?.name || 'Choose PDF / Image' }}
+              <input type="file" accept=".pdf,.jpg,.jpeg,.png" style="display:none"
+                     (change)="onFileSelected(c._id, $event)" />
+            </label>
+            <button class="btn btn-primary btn-sm"
+                    *ngIf="signedFiles[c._id]"
+                    (click)="uploadSignedCopy(c)"
+                    [disabled]="uploading===c._id">
+              <svg *ngIf="uploading!==c._id" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+              </svg>
+              <span *ngIf="uploading===c._id" class="spin" style="width:13px;height:13px;border-width:2px"></span>
+              {{ uploading===c._id ? 'Uploading…' : 'Upload Signed Copy' }}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  </ng-container>
 
-  <!-- Modal -->
-  <div class="modal-backdrop" *ngIf="showModal" (click)="showModal=false">
-    <div class="modal" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <div class="modal-title">{{editingId ? 'Edit' : 'Upload'}} Contract</div>
-        <button class="modal-close" (click)="showModal=false" title="btn">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      <!-- Actions -->
+      <div class="contract-actions">
+        <button class="btn btn-ghost btn-sm" (click)="download(c)">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+          </svg>
+          Download PDF
+        </button>
+        <button class="btn btn-primary btn-sm"
+                *ngIf="c.status==='pending'"
+                (click)="sign(c)"
+                [disabled]="signing===c._id">
+          <svg *ngIf="signing!==c._id" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+          </svg>
+          <span *ngIf="signing===c._id" class="spin" style="width:13px;height:13px;border-width:2px"></span>
+          {{ signing===c._id ? 'Signing…' : 'Sign Contract' }}
         </button>
       </div>
-
-      <div class="form-group">
-        <label class="form-label">Contract Title</label>
-        <input class="form-input" [(ngModel)]="form.title" placeholder="e.g. Summer Campaign Agreement">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Contract Content / Notes</label>
-        <textarea class="form-textarea" [(ngModel)]="form.content" rows="4" placeholder="Paste contract terms or notes..."></textarea>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Brand ID (optional)</label>
-          <input class="form-input" [(ngModel)]="form.brandId" placeholder="Brand user ID">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Expires At</label>
-          <input class="form-input" type="date" [(ngModel)]="form.expiresAt" title="input">
-        </div>
-      </div>
-
-      <div class="form-group" *ngIf="!editingId">
-        <label class="form-label">Contract File (PDF)</label>
-        <div class="upload-zone" onclick="document.getElementById('contractFile').click()">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" style="width:28px;height:28px;color:var(--t3);display:block;margin:0 auto 8px">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-          </svg>
-          <p>{{selectedFile?.name || 'Click to upload PDF'}}</p>
-          <input id="contractFile" type="file" accept=".pdf,.doc,.docx" (change)="onFile($event)" style="display:none">
-        </div>
-      </div>
-
-      <div class="modal-footer">
-        <button class="btn btn-ghost" (click)="showModal=false">Cancel</button>
-        <button class="btn btn-primary" (click)="save()" [disabled]="saving">{{saving ? 'Saving...' : editingId ? 'Update' : 'Upload'}}</button>
-      </div>
     </div>
   </div>
 
-  <div class="toast" *ngIf="toast.show" [class.success]="toast.type==='success'" [class.error]="toast.type==='error'">{{toast.msg}}</div>
+  <div class="toast" *ngIf="toast" [class.success]="toast.type==='ok'" [class.error]="toast.type==='err'">
+    {{ toast.msg }}
+  </div>
 </div>

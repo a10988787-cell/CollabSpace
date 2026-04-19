@@ -440,4 +440,27 @@ router.post('/creators/:creatorId/invite', async (req, res) => {
 });
 
 
+
+/* ════════════════════════════════════════════════════════════════════════════
+   MESSAGING — brands can message creators (same endpoints as creator side)
+   ════════════════════════════════════════════════════════════════════════════ */
+router.get   ('/messages',             creatorCtrl.getConversations);
+router.get   ('/messages/:userId',     creatorCtrl.getMessages);
+router.post  ('/messages',             creatorCtrl.sendMessage);
+router.delete('/messages/:id',         creatorCtrl.deleteMessage);
+
+/* ════════════════════════════════════════════════════════════════════════════
+   CONTRACTS — brand can list and view contracts they've issued
+   ════════════════════════════════════════════════════════════════════════════ */
+router.get('/brand-contracts', async (req, res) => {
+  try {
+    const { CreatorContract } = require('../models/CreatorModels');
+    const contracts = await CreatorContract.find({ brand: req.user._id, isDeleted: false })
+      .populate('creator', 'firstName lastName email avatar')
+      .sort({ createdAt: -1 });
+    res.json({ success: true, contracts });
+  } catch(e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
+
 module.exports = router;

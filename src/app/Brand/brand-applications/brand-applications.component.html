@@ -1,320 +1,334 @@
-<div class="ba-page">
+<!-- brand-applications.component.html -->
+<div class="ba-pg">
 
-  <!-- ── Page header ──────────────────────────────────────────────── -->
-  <div class="ba-hd">
-    <div>
-      <div class="ba-eyebrow"><span></span>Campaign Management</div>
-      <h1 class="ba-title">Applications & Content Review</h1>
-      <p class="ba-sub">Manage creator applications to your campaigns, then review their submitted content</p>
-    </div>
-  </div>
-
-  <!-- ── View tabs ────────────────────────────────────────────────── -->
-  <div class="ba-view-tabs">
-    <button class="ba-vtab" [class.on]="view==='applications'"  (click)="view='applications'">
-      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+  <!-- ── Tab bar ── -->
+  <div class="ba-tabs">
+    <button class="ba-tab" [class.on]="view==='applications'" (click)="view='applications'">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
       Applications
-      <span class="ba-vtab-badge pending" *ngIf="appCounts.pending > 0">{{appCounts.pending}}</span>
+      <span class="ba-tab-badge" *ngIf="appCounts.pending">{{ appCounts.pending }}</span>
     </button>
-    <button class="ba-vtab" [class.on]="view==='content-review'" (click)="view='content-review'; loadPosts()">
-      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.069A1 1 0 0121 8.845v6.31a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+    <button class="ba-tab" [class.on]="view==='content-review'" (click)="view='content-review'; loadPosts()">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.26a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
       Content Review
-      <span class="ba-vtab-badge sky" *ngIf="postCounts.review > 0">{{postCounts.review}}</span>
+      <span class="ba-tab-badge" *ngIf="postCounts.review">{{ postCounts.review }}</span>
+    </button>
+    <button class="ba-tab" [class.on]="view==='contracts'" (click)="view='contracts'; loadContracts()">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      Contracts
+      <span class="ba-tab-badge" *ngIf="contracts.length">{{ contracts.length }}</span>
     </button>
   </div>
 
-  <!-- ════════════════════════════════════════════════════════════════
-       APPLICATIONS VIEW
-       ════════════════════════════════════════════════════════════════ -->
-  <ng-container *ngIf="view === 'applications'">
+  <!-- ══ APPLICATIONS ══════════════════════════════════════════════════ -->
+  <ng-container *ngIf="view==='applications'">
 
-    <!-- Stats -->
-    <div class="ba-stats" *ngIf="!loadingApps">
-      <div class="ba-stat"><div class="ba-stat-val">{{appCounts.all}}</div><div class="ba-stat-lbl">Total</div></div>
-      <div class="ba-stat pend"><div class="ba-stat-val">{{appCounts.pending}}</div><div class="ba-stat-lbl">Pending</div></div>
-      <div class="ba-stat acc"><div class="ba-stat-val">{{appCounts.accepted}}</div><div class="ba-stat-lbl">Accepted</div></div>
-      <div class="ba-stat rej"><div class="ba-stat-val">{{appCounts.rejected}}</div><div class="ba-stat-lbl">Rejected</div></div>
+    <!-- Stats strip -->
+    <div class="ba-stats">
+      <div class="ba-stat"><div class="ba-stat-val">{{ appCounts.total }}</div><div class="ba-stat-lbl">Total</div></div>
+      <div class="ba-stat pend"><div class="ba-stat-val">{{ appCounts.pending }}</div><div class="ba-stat-lbl">Pending</div></div>
+      <div class="ba-stat acc"><div class="ba-stat-val">{{ appCounts.accepted }}</div><div class="ba-stat-lbl">Accepted</div></div>
+      <div class="ba-stat rej"><div class="ba-stat-val">{{ appCounts.rejected }}</div><div class="ba-stat-lbl">Rejected</div></div>
     </div>
 
     <!-- Filters -->
     <div class="ba-filters">
-      <div class="ba-filter-pills">
-        <button class="bfp"          [class.on]="filterStatus===''"         (click)="filterStatus='';        loadApplications()">All</button>
-        <button class="bfp pending"  [class.on]="filterStatus==='pending'"  (click)="filterStatus='pending'; loadApplications()">Pending</button>
-        <button class="bfp accepted" [class.on]="filterStatus==='accepted'" (click)="filterStatus='accepted';loadApplications()">Accepted</button>
-        <button class="bfp rejected" [class.on]="filterStatus==='rejected'" (click)="filterStatus='rejected';loadApplications()">Rejected</button>
-      </div>
-      <select [(ngModel)]="filterCampaign" (change)="loadApplications()" class="ba-csel">
-        <option value="">All Campaigns</option>
-        <option *ngFor="let c of campaigns" [value]="c._id">{{c.title}}</option>
-      </select>
+      <button class="bfp"          [class.on]="filterStatus===''"         (click)="filterStatus=''; loadApplications()">All</button>
+      <button class="bfp pending"  [class.on]="filterStatus==='pending'"  (click)="filterStatus='pending'; loadApplications()">Pending</button>
+      <button class="bfp accepted" [class.on]="filterStatus==='accepted'" (click)="filterStatus='accepted'; loadApplications()">Accepted</button>
+      <button class="bfp rejected" [class.on]="filterStatus==='rejected'" (click)="filterStatus='rejected'; loadApplications()">Rejected</button>
     </div>
 
-    <div class="ba-loading" *ngIf="loadingApps"><div class="ba-spin"></div> Loading…</div>
+    <div class="ba-loading" *ngIf="loadingApps"><div class="ba-spin"></div> Loading applications…</div>
+    <div class="ba-empty"   *ngIf="!loadingApps && allApplicants.length===0">No applications found.</div>
 
-    <div class="ba-empty" *ngIf="!loadingApps && applications.length === 0">
-      <div class="ba-ei"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg></div>
-      <h3>No applications yet</h3>
-      <p>{{filterStatus ? 'No '+filterStatus+' applications.' : 'When creators apply to your campaigns, they will appear here.'}}</p>
-      <button *ngIf="filterStatus" class="ba-link-btn" (click)="filterStatus='';loadApplications()">Show all</button>
-    </div>
+    <!-- Uses allApplicants (applications + accepted invitations merged) -->
+    <div class="ba-list" *ngIf="!loadingApps && allApplicants.length>0">
+      <div class="bac" *ngFor="let a of allApplicants; let i=index"
+           [style.animation-delay]="(i*0.04)+'s'"
+           [class.bac--pending]="a.status==='pending'"
+           [class.bac--accepted]="a.status==='accepted'"
+           [class.bac--rejected]="a.status==='rejected'">
 
-    <div class="ba-app-list" *ngIf="!loadingApps && applications.length > 0">
-      <div class="ba-app-card" *ngFor="let a of applications; let i=index" [style.animation-delay]="(i*0.04)+'s'">
-        <div class="bac-glow"></div>
+        <!-- Status stripe -->
+        <div class="bac-stripe" [ngStyle]="{'background': appStatusColor(a.status)}"></div>
 
-        <!-- Creator info -->
-        <div class="bac-top">
-          <div class="bac-creator">
-            <div class="bac-av">{{(a.creator?.firstName||'?')[0]|uppercase}}</div>
-            <div>
-              <div class="bac-name">{{a.creator?.firstName}} {{a.creator?.lastName}}</div>
-              <div class="bac-email">{{a.creator?.email}}</div>
-              <div class="bac-plat" *ngIf="a.creator?.platform">{{a.creator.platform}}</div>
-            </div>
-          </div>
-          <span class="bac-status"
-            [ngStyle]="{ color: appStatusColor(a.status), background: appStatusBg(a.status), 'border-color': appStatusColor(a.status)+'44' }">
-            {{a.status | titlecase}}
-          </span>
-        </div>
-
-        <!-- Campaign row -->
-        <div class="bac-campaign">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6"/></svg>
-          <span>{{a.campaign?.title || 'Campaign'}}</span>
-          <strong *ngIf="a.campaign?.budget">${{a.campaign.budget | number}}</strong>
-        </div>
-
-        <!-- Proposal -->
-        <div class="bac-proposal" *ngIf="a.proposalMessage">
-          <div class="bac-proposal-lbl">Proposal</div>
-          <p>{{a.proposalMessage | slice:0:220}}{{a.proposalMessage?.length > 220 ? '…' : ''}}</p>
-        </div>
-
-        <!-- Meta -->
-        <div class="bac-meta">
-          <span><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2"/></svg>Quote: <b>${{a.priceQuote | number}}</b></span>
-          <span><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>{{fmtDate(a.createdAt)}}</span>
-          <span *ngIf="a.respondedAt"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Responded {{fmtDate(a.respondedAt)}}</span>
-        </div>
-
-        <!-- Brand response -->
-        <div class="bac-brand-note" *ngIf="a.brandResponse && a.status !== 'pending'">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-          "{{a.brandResponse}}"
-        </div>
-
-        <!-- Accepted hint -->
-        <div class="bac-hint accepted-hint" *ngIf="a.status === 'accepted'">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          Creator can now upload collab content. Check the <button class="ba-link-btn" (click)="view='content-review';loadPosts()">Content Review</button> tab for submissions.
-        </div>
-
-        <!-- Actions -->
-        <div class="bac-actions" *ngIf="a.status === 'pending'">
-          <button class="bac-btn accept" (click)="openRespond(a, 'accept')">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-            Accept
-          </button>
-          <button class="bac-btn reject" (click)="openRespond(a, 'reject')">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-            Reject
-          </button>
-        </div>
-      </div>
-    </div>
-  </ng-container>
-
-  <!-- ════════════════════════════════════════════════════════════════
-       CONTENT REVIEW VIEW
-       ════════════════════════════════════════════════════════════════ -->
-  <ng-container *ngIf="view === 'content-review'">
-
-    <!-- Filter tabs -->
-    <div class="ba-filters">
-      <div class="ba-filter-pills">
-        <button class="bfp"           [class.on]="filterPostStatus===''"          (click)="filterPostStatus='';          loadPosts()">All</button>
-        <button class="bfp sky"       [class.on]="filterPostStatus==='submitted'"  (click)="filterPostStatus='submitted'; loadPosts()">Under Review</button>
-        <button class="bfp accepted"  [class.on]="filterPostStatus==='approved'"   (click)="filterPostStatus='approved';  loadPosts()">Approved</button>
-        <button class="bfp revision"  [class.on]="filterPostStatus==='revision_requested'" (click)="filterPostStatus='revision_requested';loadPosts()">Revision</button>
-        <button class="bfp rejected"  [class.on]="filterPostStatus==='rejected'"   (click)="filterPostStatus='rejected';  loadPosts()">Rejected</button>
-        <button class="bfp paid"      [class.on]="filterPostStatus==='paid'"       (click)="filterPostStatus='paid';      loadPosts()">Paid</button>
-      </div>
-    </div>
-
-    <div class="ba-loading" *ngIf="loadingPosts"><div class="ba-spin"></div> Loading content…</div>
-
-    <div class="ba-empty" *ngIf="!loadingPosts && posts.length === 0">
-      <div class="ba-ei"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4"/></svg></div>
-      <h3>No content submissions</h3>
-      <p>When creators upload their collab content, it will appear here for review.</p>
-    </div>
-
-    <div class="ba-post-grid" *ngIf="!loadingPosts && posts.length > 0">
-      <div class="ba-post-card" *ngFor="let p of posts; let i=index" [style.animation-delay]="(i*0.04)+'s'">
-
-        <!-- Status ribbon -->
-        <div class="bpc-ribbon" [class]="postStatusClass(p.status)">{{postStatusLabel(p.status)}}</div>
-
-        <!-- Media preview -->
-        <div class="bpc-media">
-          <img *ngIf="p.mediaUrls?.[0] && p.contentType==='image'" [src]="p.mediaUrls[0]" alt="" (error)="$any($event.target).style.display='none'">
-          <video *ngIf="p.mediaUrls?.[0] && p.contentType==='video'" [src]="p.mediaUrls[0]" preload="none"></video>
-          <div class="bpc-media-icon" *ngIf="!p.mediaUrls?.[0]">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-          </div>
-          <div class="bpc-type-badge">{{p.contentType}}</div>
-          <div class="bpc-count" *ngIf="p.mediaUrls?.length > 1">+{{p.mediaUrls.length-1}}</div>
-        </div>
-
-        <!-- Info -->
-        <div class="bpc-info">
+        <div class="bac-body">
           <!-- Creator -->
-          <div class="bpc-creator">
-            <div class="bpc-av">{{(p.creator?.firstName||'?')[0]|uppercase}}</div>
-            <div>
-              <div class="bpc-cname">{{p.creator?.firstName}} {{p.creator?.lastName}}</div>
-              <div class="bpc-plat">{{p.platform}}</div>
+          <div class="bac-creator">
+            <div class="bac-av">{{ (a.creator?.firstName||'?')[0] }}{{ (a.creator?.lastName||'?')[0] }}</div>
+            <div class="bac-creator-info">
+              <div class="bac-name">{{ a.creator?.firstName }} {{ a.creator?.lastName }}</div>
+              <div class="bac-email">{{ a.creator?.email }}</div>
+              <div class="bac-meta" *ngIf="a.creator?.platform">{{ a.creator.platform }}</div>
+              <!-- Badge for invitation-sourced entries -->
+              <span *ngIf="a._isInvitation"
+                style="display:inline-flex;align-items:center;gap:4px;margin-top:4px;font-size:.65rem;font-weight:700;color:#0D9488;background:rgba(13,148,136,.1);border:1px solid rgba(13,148,136,.25);border-radius:99px;padding:2px 8px">
+                ✉️ Accepted Invitation
+              </span>
             </div>
           </div>
 
-          <div class="bpc-title">{{p.title}}</div>
-          <p class="bpc-caption" *ngIf="p.caption">{{p.caption | slice:0:100}}{{p.caption?.length > 100 ? '…' : ''}}</p>
-
-          <!-- Hashtags -->
-          <div class="bpc-tags" *ngIf="p.hashtags?.length">
-            <span *ngFor="let h of p.hashtags.slice(0,4)">#{{h}}</span>
+          <!-- Campaign info -->
+          <div class="bac-campaign">
+            <div class="bac-camp-title">{{ a.campaign?.title || '—' }}</div>
+            <div class="bac-camp-meta">
+              <span *ngIf="a.campaign?.budget">Budget ₹{{ a.campaign.budget | number }}</span>
+              <span *ngIf="a.priceQuote"> · Quote ₹{{ a.priceQuote | number }}</span>
+              <span *ngIf="a.proposedAmount && !a.priceQuote"> · Amount ₹{{ a.proposedAmount | number }}</span>
+            </div>
+            <div class="bac-camp-date">
+              {{ a._isInvitation ? 'Invitation accepted' : 'Applied' }} {{ fmtDate(a.createdAt) }}
+            </div>
           </div>
 
-          <!-- Brand notes -->
-          <div class="bpc-notes" *ngIf="p.brandNotes && p.status !== 'submitted'">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            {{p.brandNotes}}
+          <!-- Proposal / invitation message -->
+          <div class="bac-proposal" *ngIf="a.proposalMessage || a.invitationMessage">
+            <div class="bac-proposal-lbl">{{ a._isInvitation ? 'Your message' : 'Proposal' }}</div>
+            <p class="bac-proposal-text">
+              {{ (a.proposalMessage || a.invitationMessage) | slice:0:140 }}
+              <ng-container *ngIf="(a.proposalMessage || a.invitationMessage)?.length > 140">…</ng-container>
+            </p>
           </div>
 
-          <!-- Paid row -->
-          <div class="bpc-paid" *ngIf="p.isPaid">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
-            Paid ${{p.paymentAmount | number}} · {{fmtDate(p.paidAt)}}
+          <!-- Already responded -->
+          <div class="bac-responded" *ngIf="a.respondedAt && !a._isInvitation">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            Responded {{ fmtDate(a.respondedAt) }}
           </div>
 
-          <div class="bpc-date">Submitted {{fmtDate(p.submittedAt)}}</div>
+          <!-- Accepted hint — nudge to send contract -->
+          <div class="bac-hint accepted-hint" *ngIf="a.status==='accepted'">
+            <svg fill="none" stroke="#34D399" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            {{ a._isInvitation ? 'Creator accepted your invitation' : 'Application accepted' }} — Send them a contract to proceed.
+          </div>
         </div>
 
         <!-- Actions -->
-        <div class="bpc-actions">
-          <button class="bpc-btn review" *ngIf="p.status === 'submitted'" (click)="openReview(p)">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-            Review Content
+        <div class="bac-actions">
+          <span class="bac-status-pill"
+                [ngStyle]="{'color': appStatusColor(a.status), 'background': appStatusBg(a.status), 'border':'1px solid '+appStatusColor(a.status)+'44'}">
+            {{ a.status | titlecase }}
+          </span>
+
+          <!-- Pending: accept / reject (not for already-accepted invitations) -->
+          <ng-container *ngIf="a.status==='pending' && !a._isInvitation">
+            <button class="bac-btn accept" (click)="openRespond(a,'accept')">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              Accept
+            </button>
+            <button class="bac-btn reject" (click)="openRespond(a,'reject')">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+              Reject
+            </button>
+          </ng-container>
+
+          <!-- Send Contract — shown for ALL accepted entries (application OR invitation) -->
+          <button class="bac-btn contract" *ngIf="a.status==='accepted'" (click)="openContractModal(a)">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Send Contract
           </button>
-          <button class="bpc-btn pay" *ngIf="p.status === 'approved' && !p.isPaid" (click)="payCreator(p)">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V7m0 1v8m0 0v1"/></svg>
-            Pay ${{p.paymentAmount | number}}
-          </button>
-          <button class="bpc-btn view" *ngIf="p.status !== 'submitted' && !(p.status==='approved' && !p.isPaid)" (click)="openReview(p)">View</button>
         </div>
       </div>
     </div>
   </ng-container>
 
-  <!-- ══ RESPOND MODAL ════════════════════════════════════════════════ -->
-  <div class="ba-overlay" *ngIf="showRespondModal" (click)="showRespondModal=false">
+  <!-- ══ CONTENT REVIEW ══════════════════════════════════════════════ -->
+  <ng-container *ngIf="view==='content-review'">
+    <div class="ba-filters">
+      <button class="bfp"          [class.on]="filterPostStatus===''"          (click)="filterPostStatus=''; loadPosts()">All</button>
+      <button class="bfp pending"  [class.on]="filterPostStatus==='submitted'" (click)="filterPostStatus='submitted'; loadPosts()">Pending Review</button>
+      <button class="bfp accepted" [class.on]="filterPostStatus==='approved'"  (click)="filterPostStatus='approved';  loadPosts()">Approved</button>
+      <button class="bfp rejected" [class.on]="filterPostStatus==='rejected'"  (click)="filterPostStatus='rejected';  loadPosts()">Rejected</button>
+      <button class="bfp"          [class.on]="filterPostStatus==='paid'"      (click)="filterPostStatus='paid';       loadPosts()">Paid</button>
+    </div>
+    <div class="ba-loading" *ngIf="loadingPosts"><div class="ba-spin"></div> Loading posts…</div>
+    <div class="ba-empty"   *ngIf="!loadingPosts && posts.length===0">No content submissions found.</div>
+
+    <div class="ba-list" *ngIf="!loadingPosts && posts.length>0">
+      <div class="bac bac-post" *ngFor="let p of posts; let i=index" [style.animation-delay]="(i*0.04)+'s'">
+        <div class="bac-stripe" [ngClass]="postStatusClass(p.status)"></div>
+        <div class="bac-body">
+          <div class="bac-creator">
+            <div class="bac-av" style="background:linear-gradient(135deg,#38BDF8,#0284C7)">{{ (p.creator?.firstName||'?')[0] }}</div>
+            <div class="bac-creator-info">
+              <div class="bac-name">{{ p.creator?.firstName }} {{ p.creator?.lastName }}</div>
+              <div class="bac-email">{{ p.title }}</div>
+            </div>
+          </div>
+          <div class="bac-thumbs" *ngIf="p.mediaUrls?.length">
+            <img  *ngIf="p.contentType!=='video' && p.mediaUrls[0]" [src]="getMediaUrl(p.mediaUrls[0])" class="bac-thumb" (error)="$any($event.target).style.display='none'">
+            <video *ngIf="p.contentType==='video' && p.mediaUrls[0]" [src]="getMediaUrl(p.mediaUrls[0])" class="bac-thumb" muted preload="metadata" (error)="$any($event.target).style.display='none'"></video>
+            <span *ngIf="p.mediaUrls.length>1" class="bac-thumb-more">+{{ p.mediaUrls.length-1 }}</span>
+          </div>
+          <div class="bac-responded" *ngIf="p.paymentAmount && p.status!=='paid'">₹{{ p.paymentAmount | number }} set</div>
+        </div>
+        <div class="bac-actions">
+          <span class="bac-status-pill sc-pill" [ngClass]="postStatusClass(p.status)">{{ postStatusLabel(p.status) }}</span>
+          <button class="bac-btn accept" *ngIf="p.status==='submitted'" (click)="openReview(p)">Review</button>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- ══ CONTRACTS ════════════════════════════════════════════════════ -->
+  <ng-container *ngIf="view==='contracts'">
+    <div class="ba-loading" *ngIf="loadingContracts"><div class="ba-spin"></div> Loading contracts…</div>
+    <div class="ba-empty"   *ngIf="!loadingContracts && contracts.length===0">
+      <p>No contracts yet. Accept an application and click "Send Contract".</p>
+    </div>
+
+    <div class="ba-list" *ngIf="!loadingContracts && contracts.length>0">
+      <div class="bac bac-contract" *ngFor="let c of contracts; let i=index" [style.animation-delay]="(i*0.04)+'s'">
+        <div class="bac-stripe" [ngStyle]="{'background': c.status==='signed'?'#34D399':c.status==='expired'?'#FB7185':'#FBBF24'}"></div>
+        <div class="bac-body">
+          <div class="bac-creator">
+            <div class="bac-av" style="background:linear-gradient(135deg,#34D399,#059669)">
+              {{ (c.creator?.firstName||'?')[0] }}
+            </div>
+            <div class="bac-creator-info">
+              <div class="bac-name">{{ c.creator?.firstName }} {{ c.creator?.lastName }}</div>
+              <div class="bac-email">{{ c.creator?.email }}</div>
+            </div>
+          </div>
+          <div class="bac-campaign">
+            <div class="bac-camp-title">{{ c.title }}</div>
+            <div class="bac-camp-date">Generated {{ fmtDate(c.createdAt) }}</div>
+            <div class="bac-camp-date" *ngIf="c.signedAt" style="color:var(--jade)">✓ Signed {{ fmtDate(c.signedAt) }}</div>
+            <!-- Show signed copy availability -->
+            <div *ngIf="c.signedFileUrl"
+                 style="margin-top:5px;font-size:.75rem;color:var(--acc);font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px"
+                 (click)="viewSignedCopy(c)">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" style="width:13px;height:13px">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+              </svg>
+              View Signed Copy
+            </div>
+          </div>
+        </div>
+        <div class="bac-actions">
+          <span class="bac-status-pill" [ngClass]="contractStatusClass(c.status)"
+                style="text-transform:capitalize">{{ c.status }}</span>
+          <button class="bac-btn contract" (click)="downloadContract(c)">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            Download PDF
+          </button>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- ══ RESPOND MODAL ═════════════════════════════════════════════════ -->
+  <div class="ba-backdrop" *ngIf="showRespondModal" (click)="showRespondModal=false">
     <div class="ba-modal" (click)="$event.stopPropagation()">
       <div class="ba-modal-head">
-        <div>
-          <div class="ba-modal-ey" [class.accept]="respondAction==='accept'" [class.reject]="respondAction==='reject'">
-            {{respondAction === 'accept' ? '✅ Accept Application' : '❌ Reject Application'}}
-          </div>
-          <div class="ba-modal-title">{{selApp?.creator?.firstName}} {{selApp?.creator?.lastName}}</div>
-          <div class="ba-modal-sub">for "{{selApp?.campaign?.title}}" · ${{selApp?.priceQuote | number}} quote</div>
+        <div class="ba-modal-ey" [class.accept]="respondAction==='accept'" [class.reject]="respondAction==='reject'">
+          {{ respondAction==='accept' ? '✅ Accept Application' : '❌ Reject Application' }}
         </div>
-        <button class="ba-modal-x" (click)="showRespondModal=false"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+        <button class="ba-modal-x" (click)="showRespondModal=false">✕</button>
       </div>
-      <div class="ba-info-box accept-info" *ngIf="respondAction === 'accept'">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        Accepting will notify the creator and unlock the <strong>Collab Posts</strong> feature so they can upload content for your campaign.
+      <div class="ba-info-box" *ngIf="respondAction==='accept'"
+           style="margin:0 22px 14px;background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.18);border-radius:10px;padding:12px 14px;font-size:.83rem;color:var(--jade);line-height:1.55">
+        <svg fill="none" stroke="#34D399" viewBox="0 0 24 24" stroke-width="2" style="width:16px;height:16px;flex-shrink:0;vertical-align:middle;margin-right:7px"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        Accepting will create a collaboration and notify the creator. You can then send a PDF contract.
       </div>
       <div class="ba-modal-field">
-        <label>{{respondAction === 'accept' ? 'Message to creator (optional)' : 'Reason for rejection (optional)'}}</label>
+        <label>{{ respondAction==='accept' ? 'Message to creator (optional)' : 'Reason for rejection (optional)' }}</label>
         <textarea [(ngModel)]="brandResponse" rows="3"
-          [placeholder]="respondAction === 'accept' ? 'e.g. Looking forward to working with you!' : 'e.g. Your niche does not match our brand at this time.'"></textarea>
+          [placeholder]="respondAction==='accept'
+            ? 'e.g. Looking forward to working with you!'
+            : 'e.g. Your niche does not match our current campaign.'">
+        </textarea>
       </div>
       <div class="ba-modal-foot">
         <button class="ba-btn-ghost" (click)="showRespondModal=false">Cancel</button>
-        <button class="ba-btn-confirm" [class.accept]="respondAction==='accept'" [class.reject]="respondAction==='reject'"
-          (click)="confirmRespond()" [disabled]="saving">
-          {{saving ? 'Processing…' : respondAction === 'accept' ? 'Confirm Accept' : 'Confirm Reject'}}
+        <button class="ba-btn-action" [class.accept]="respondAction==='accept'" [class.reject]="respondAction==='reject'"
+                (click)="submitResponse()" [disabled]="saving">
+          {{ saving ? 'Saving…' : (respondAction==='accept' ? 'Accept Application' : 'Reject Application') }}
         </button>
       </div>
     </div>
   </div>
 
-  <!-- ══ CONTENT REVIEW MODAL ════════════════════════════════════════ -->
-  <div class="ba-overlay" *ngIf="showReviewModal" (click)="showReviewModal=false">
-    <div class="ba-modal wide" (click)="$event.stopPropagation()">
+  <!-- ══ CONTRACT MODAL ════════════════════════════════════════════════ -->
+  <div class="ba-backdrop" *ngIf="showContractModal" (click)="showContractModal=false">
+    <div class="ba-modal ba-modal--contract" (click)="$event.stopPropagation()">
       <div class="ba-modal-head">
-        <div>
-          <div class="ba-modal-ey">Review Submitted Content</div>
-          <div class="ba-modal-title">{{selPost?.title}}</div>
-          <div class="ba-modal-sub">by {{selPost?.creator?.firstName}} {{selPost?.creator?.lastName}} · {{selPost?.platform}}</div>
-        </div>
-        <button class="ba-modal-x" (click)="showReviewModal=false"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+        <div class="ba-modal-ey accept">📄 Send Contract to Creator</div>
+        <button class="ba-modal-x" (click)="showContractModal=false">✕</button>
       </div>
-
-      <!-- Post preview -->
-      <div class="cr-preview">
-        <div class="cr-preview-media" *ngIf="selPost?.mediaUrls?.length">
-          <img *ngFor="let url of selPost?.mediaUrls?.slice(0,4)" [src]="url" alt="" (error)="$any($event.target).style.display='none'">
+      <div style="padding:14px 22px 0">
+        <div class="contract-preview-box">
+          <div class="cpb-row"><span class="cpb-lbl">Creator</span><span>{{ selApp?.creator?.firstName }} {{ selApp?.creator?.lastName }}</span></div>
+          <div class="cpb-row"><span class="cpb-lbl">Campaign</span><span>{{ selApp?.campaign?.title || '—' }}</span></div>
+          <div class="cpb-row" *ngIf="selApp?.priceQuote">
+            <span class="cpb-lbl">Agreed Amount</span>
+            <span style="color:var(--jade);font-weight:700">₹{{ selApp?.priceQuote | number }}</span>
+          </div>
+          <div class="cpb-row" *ngIf="selApp?.proposedAmount && !selApp?.priceQuote">
+            <span class="cpb-lbl">Proposed Amount</span>
+            <span style="color:var(--jade);font-weight:700">₹{{ selApp?.proposedAmount | number }}</span>
+          </div>
+          <div class="cpb-row" *ngIf="selApp?._isInvitation">
+            <span class="cpb-lbl">Type</span>
+            <span style="color:#0D9488;font-weight:600">✉️ Accepted Invitation</span>
+          </div>
         </div>
-        <p class="cr-preview-caption" *ngIf="selPost?.caption">{{selPost.caption}}</p>
-        <div class="cr-preview-tags" *ngIf="selPost?.hashtags?.length">
-          <span *ngFor="let h of selPost.hashtags">#{{h}}</span>
+        <div class="ba-modal-field">
+          <label>Custom Clauses (optional — one per line)</label>
+          <textarea [(ngModel)]="contractClauses" rows="4"
+            placeholder="1. Creator must post within 7 days of approval.&#10;2. Brand logo must be visible in all content.&#10;Leave blank to use standard CollabSpace terms.">
+          </textarea>
+        </div>
+        <div class="contract-note">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" style="width:14px;height:14px;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          A PDF contract will be generated and sent to the creator. They will sign it and upload the signed copy. You will be notified instantly via the Contracts tab.
         </div>
       </div>
+      <div class="ba-modal-foot">
+        <button class="ba-btn-ghost" (click)="showContractModal=false">Cancel</button>
+        <button class="ba-btn-action accept" (click)="generateContract()" [disabled]="generatingContract">
+          <svg *ngIf="!generatingContract" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <span *ngIf="generatingContract" class="ba-spin" style="width:14px;height:14px;border-width:2px"></span>
+          {{ generatingContract ? 'Generating PDF…' : 'Generate & Send Contract' }}
+        </button>
+      </div>
+    </div>
+  </div>
 
-      <!-- Action selector (only for submitted) -->
-      <ng-container *ngIf="selPost?.status === 'submitted'">
-        <div class="cr-action-label">Your Decision</div>
-        <div class="cr-action-tabs">
-          <button [class.active]="reviewForm.action==='approve'" (click)="reviewForm.action='approve'" class="cr-action-tab approve">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Approve
-          </button>
-          <button [class.active]="reviewForm.action==='request_revision'" (click)="reviewForm.action='request_revision'" class="cr-action-tab revision">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg> Request Revision
-          </button>
-          <button [class.active]="reviewForm.action==='reject'" (click)="reviewForm.action='reject'" class="cr-action-tab reject">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg> Reject
-          </button>
-        </div>
-
-        <div class="ba-modal-field" *ngIf="reviewForm.action === 'approve'">
-          <label>Payment Amount ($)</label>
-          <input type="number" [(ngModel)]="reviewForm.paymentAmount" placeholder="0" min="0">
-        </div>
-        <div class="ba-modal-field" *ngIf="reviewForm.action !== 'approve'">
-          <label>Notes for Creator</label>
-          <textarea [(ngModel)]="reviewForm.brandNotes" rows="3" placeholder="Explain what needs to change or why it was rejected…"></textarea>
-        </div>
-
-        <div class="ba-modal-foot">
-          <button class="ba-btn-ghost" (click)="showReviewModal=false">Cancel</button>
-          <button class="ba-btn-confirm"
-            [class.accept]="reviewForm.action==='approve'"
-            [class.reject]="reviewForm.action==='reject'"
-            [class.revision]="reviewForm.action==='request_revision'"
-            (click)="submitReview()" [disabled]="saving">
-            {{saving ? 'Processing…' : reviewForm.action === 'approve' ? 'Approve & Set Payment' : reviewForm.action === 'request_revision' ? 'Send Revision Request' : 'Reject Content'}}
-          </button>
-        </div>
-      </ng-container>
-
-      <div class="ba-modal-foot" *ngIf="selPost?.status !== 'submitted'">
-        <button class="ba-btn-ghost" (click)="showReviewModal=false">Close</button>
+  <!-- ══ REVIEW MODAL ══════════════════════════════════════════════════ -->
+  <div class="ba-backdrop" *ngIf="showReviewModal" (click)="showReviewModal=false">
+    <div class="ba-modal" (click)="$event.stopPropagation()">
+      <div class="ba-modal-head">
+        <div class="ba-modal-ey accept">Review Content</div>
+        <button class="ba-modal-x" (click)="showReviewModal=false">✕</button>
+      </div>
+      <div class="ba-modal-field">
+        <label>Decision</label>
+        <select class="ba-select" [(ngModel)]="reviewForm.action">
+          <option value="approve">✅ Approve</option>
+          <option value="request_revision">📝 Request Revision</option>
+          <option value="reject">❌ Reject</option>
+        </select>
+      </div>
+      <div class="ba-modal-field" *ngIf="reviewForm.action==='approve'">
+        <label>Payment Amount (₹)</label>
+        <input class="ba-input" type="number" [(ngModel)]="reviewForm.paymentAmount" placeholder="0">
+      </div>
+      <div class="ba-modal-field">
+        <label>Notes to creator</label>
+        <textarea class="ba-textarea" [(ngModel)]="reviewForm.brandNotes" rows="3" placeholder="Feedback…"></textarea>
+      </div>
+      <div class="ba-modal-foot">
+        <button class="ba-btn-ghost" (click)="showReviewModal=false">Cancel</button>
+        <button class="ba-btn-action" [class.accept]="reviewForm.action==='approve'" [class.reject]="reviewForm.action==='reject'"
+                (click)="submitReview()" [disabled]="saving">
+          {{ saving ? 'Saving…' : 'Submit Review' }}
+        </button>
       </div>
     </div>
   </div>
 
   <!-- Toast -->
-  <div class="ba-toast" *ngIf="toast" [class.err]="toast.type === 'err'">{{toast.msg}}</div>
+  <div class="ba-toast" *ngIf="toast" [class.ba-toast--err]="toast.type==='err'">{{ toast.msg }}</div>
 </div>

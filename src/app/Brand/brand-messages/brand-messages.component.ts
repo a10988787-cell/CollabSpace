@@ -1,22 +1,22 @@
-// src/app/Creator/creator-messages/creator-messages.component.ts
+// src/app/Brand/brand-messages/brand-messages.component.ts
 import {
   Component, OnInit, OnDestroy, AfterViewChecked,
   ElementRef, ViewChild, Inject, PLATFORM_ID
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { FormsModule }    from '@angular/forms';
-import { CreatorService } from '../../services/creator.service';
-import { AuthService }    from '../../services/auth.service';
-import { environment }    from '../../environment';
+import { FormsModule }  from '@angular/forms';
+import { BrandService } from '../../services/brand.service';
+import { AuthService }  from '../../services/auth.service';
+import { environment }  from '../../environment';
 
 @Component({
-  selector: 'app-creator-messages',
+  selector: 'app-brand-messages',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './creator-messages.component.html',
-  styleUrls: ['../creator-shared.css', './creator-messages.component.css'],
+  templateUrl: './brand-messages.component.html',
+  styleUrls: ['../../Creator/creator-shared.css'],
 })
-export class CreatorMessagesComponent implements OnInit, OnDestroy, AfterViewChecked {
+export class BrandMessagesComponent implements OnInit, OnDestroy, AfterViewChecked {
   @ViewChild('msgList') msgList!: ElementRef;
 
   conversations: any[] = [];
@@ -38,8 +38,8 @@ export class CreatorMessagesComponent implements OnInit, OnDestroy, AfterViewChe
   toast = { show: false, msg: '', type: 'success' };
 
   constructor(
-    private creator: CreatorService,
-    private auth:    AuthService,
+    private svc:  BrandService,
+    private auth: AuthService,
     @Inject(PLATFORM_ID) pid: object,
   ) { this.isBrowser = isPlatformBrowser(pid); }
 
@@ -54,16 +54,7 @@ export class CreatorMessagesComponent implements OnInit, OnDestroy, AfterViewChe
     clearInterval(this.pollTimer);
     clearTimeout(this.typingTimer);
   }
-scrollToBottom(): void {
-  try {
-    const container = document.querySelector('.messages-container');
-    if (container) {
-      container.scrollTop = container.scrollHeight;
-    }
-  } catch (err) {
-    console.error('Scroll error:', err);
-  }
-}
+
   ngAfterViewChecked(): void {
     if (this.shouldScroll) { this.scrollToBottom(); this.shouldScroll = false; }
   }
@@ -96,7 +87,6 @@ scrollToBottom(): void {
         this.loadConversations(false);
       });
 
-      // Replace optimistic message with server-confirmed one
       this.socket.on('message:sent', ({ tempId, message }: any) => {
         const idx = this.messages.findIndex(m => m._id === tempId);
         if (idx !== -1) this.messages[idx] = { ...message, _pending: false };
@@ -111,9 +101,9 @@ scrollToBottom(): void {
       });
       this.socket.on('typing:stop', () => { this.typingUser = ''; });
 
-      // Notify creator when brand sends a new contract
-      this.socket.on('contract:new', (data: any) => {
-        this.showToast(`📄 ${data.brandName} sent you a contract: "${data.title}"`, 'success');
+      // Real-time alert when creator signs a contract
+      this.socket.on('contract:signed', (data: any) => {
+        this.showToast(`✍️ ${data.creatorName} signed "${data.title}"!`, 'success');
       });
 
       this.socket.on('connect_error', () => this.startPolling());
@@ -128,10 +118,9 @@ scrollToBottom(): void {
     }, 5000);
   }
 
-  /* ── Conversations ──────────────────────────────────────────────── */
   loadConversations(showLoading = true): void {
     if (showLoading) this.loading = true;
-    this.creator.getConversations().subscribe({
+    this.svc.getConversations().subscribe({
       next: (r: any) => {
         this.conversations = r.conversations || [];
         this.loading = false;
@@ -142,21 +131,18 @@ scrollToBottom(): void {
     });
   }
 
-  openConversation(convo: any): void { this.selectConvo(convo); }
-
   selectConvo(convo: any): void {
     this.activeConvo = convo;
-    const otherId    = convo.participant?._id || convo.lastMessage?.sender?._id;
+    const otherId = convo.participant?._id;
     if (otherId) {
       this.loadMessages(otherId);
       this.socket?.emit('join:thread', this.threadId(otherId));
     }
   }
 
-  /* ── Messages ───────────────────────────────────────────────────── */
   loadMessages(userId: string, showLoading = true): void {
     if (showLoading) this.loadingMsgs = true;
-    this.creator.getMessages(userId).subscribe({
+    this.svc.getMessages(userId).subscribe({
       next: (r: any) => {
         this.messages     = r.messages || [];
         this.loadingMsgs  = false;
@@ -167,7 +153,6 @@ scrollToBottom(): void {
     });
   }
 
-  /* ── Send ───────────────────────────────────────────────────────── */
   send(): void {
     const content = this.newMessage.trim();
     if (!content || !this.activeConvo || this.sending) return;
@@ -192,17 +177,17 @@ scrollToBottom(): void {
       this.socket.emit('message:send', { receiverId, content, threadId, tempId });
       this.sending = false;
     } else {
-      this.creator.sendMessage({ receiverId, content }).subscribe({
+      this.svc.sendMessage({ receiverId, content }).subscribe({
         next: (r: any) => {
           this.sending = false;
           const idx = this.messages.findIndex(m => m._id === tempId);
           if (idx !== -1) this.messages[idx] = { ...r.message, _pending: false };
           this.loadConversations(false);
         },
-        error: (e: any) => {
+        error: () => {
           this.sending = false;
           this.messages = this.messages.filter(m => m._id !== tempId);
-          this.showToast(e?.friendlyMessage || 'Error sending message', 'error');
+          this.showToast('Message failed to send', 'error');
         },
       });
     }
@@ -218,33 +203,27 @@ scrollToBottom(): void {
     }, 1500);
   }
 
-  deleteMsg(id: string): void {
-    this.creator.deleteMessage(id).subscribe({
-      next: () => { this.messages = this.messages.filter(m => m._id !== id); },
-      error: () => {},
-    });
+  onEnter(e: KeyboardEvent): void {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.send(); }
   }
 
-  onEnter(event: KeyboardEvent): void {
-    if (event.shiftKey) return;
-    event.preventDefault();
-    this.send();
-  }
-
-  onFocus(event: Event): void {
-    (event.target as HTMLTextAreaElement).style.borderColor = 'rgba(139,92,246,.5)';
-  }
-  onBlur(event: Event): void {
-    (event.target as HTMLTextAreaElement).style.borderColor = '';
-  }
-
-  /* ── Helpers ────────────────────────────────────────────────────── */
   private threadId(otherId: string): string {
     return [this.currentUserId, otherId].sort().join('_');
   }
 
-  isMine(msg: any): boolean {
-    return (msg.sender?._id || msg.sender) === this.currentUserId;
+  isOwn(msg: any): boolean {
+    return (msg.sender?._id || msg.sender)?.toString() === this.currentUserId;
+  }
+
+  participantName(convo: any): string {
+    const p = convo?.participant;
+    if (!p) return 'Unknown';
+    return p.companyName || `${p.firstName || ''} ${p.lastName || ''}`.trim();
+  }
+
+  participantInitial(convo: any): string {
+    const n = this.participantName(convo);
+    return n ? n[0].toUpperCase() : '?';
   }
 
   timeAgo(d: string): string {
@@ -259,22 +238,24 @@ scrollToBottom(): void {
   }
 
   formatTime(d: string): string {
-    return new Date(d).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    if (!d) return '';
+    const dt  = new Date(d);
+    const now = new Date();
+    if (dt.toDateString() === now.toDateString())
+      return dt.toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' });
+    return dt.toLocaleDateString('en', { month: 'short', day: 'numeric' }) + ' ' +
+           dt.toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' });
   }
 
-  participantName(convo: any): string {
-    const p = convo?.participant;
-    if (!p) return 'Unknown';
-    return p.companyName || `${p.firstName || ''}${p.lastName ? ' ' + p.lastName : ''}`;
+  private scrollToBottom(): void {
+    try {
+      if (this.msgList?.nativeElement)
+        this.msgList.nativeElement.scrollTop = this.msgList.nativeElement.scrollHeight;
+    } catch (_) {}
   }
 
-  participantInitial(convo: any): string {
-    const name = this.participantName(convo);
-    return name ? name[0].toUpperCase() : '?';
-  }
-
-  showToast(msg: string, type: 'success' | 'error' = 'success'): void {
+  showToast(msg: string, type = 'success'): void {
     this.toast = { show: true, msg, type };
-    setTimeout(() => this.toast.show = false, 3500);
+    setTimeout(() => this.toast.show = false, 4000);
   }
 }

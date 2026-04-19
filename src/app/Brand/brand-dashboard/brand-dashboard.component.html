@@ -33,11 +33,21 @@
         <div class="sb-ic"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
         <span class="sb-nm">Collaborations</span>
       </a>
+       <a class="sb-ni" routerLink="/dashboard/brand/applications" routerLinkActive="sb-ni--on">
+        <div class="sb-ic"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2
+         M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg></div>
+        <span class="sb-nm">Applications</span>
+      </a>
       <a class="sb-ni" routerLink="/dashboard/brand/explore-creators" routerLinkActive="sb-ni--on">
         <div class="sb-ic"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></div>
         <span class="sb-nm">Explore Creators</span>
       </a>
-
+      <a class="sb-ni" routerLink="/dashboard/brand/messages" routerLinkActive="sb-ni--on">
+        <div class="sb-ic"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8
+         a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72
+         C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg></div>
+        <span class="sb-nm">Messages</span>
+      </a>
       <div class="sb-sep"></div>
       <div class="sb-sec">Finance</div>
       <a class="sb-ni" routerLink="/dashboard/brand/budget" routerLinkActive="sb-ni--on">
@@ -120,7 +130,7 @@
     </header>
 
     <!-- ── OVERVIEW  (shown only on /dashboard/brand) ───────────────── -->
-    <div *ngIf="isOverview" class="ov-wrap">
+    <!-- <div *ngIf="isOverview" class="ov-wrap">
       <div class="ov-page">
 
         <div class="ov-hd">
@@ -133,7 +143,7 @@
           </a>
         </div>
 
-        <!-- Quick actions -->
+        Quick actions
         <div class="ov-quick">
           <a routerLink="/dashboard/brand/campaigns" class="ov-quick-btn ov-quick-btn--amber">
             <span class="ov-quick-icon">📢</span>
@@ -153,7 +163,7 @@
           </a>
         </div>
 
-        <!-- Info message pointing to analytics for charts -->
+        Info message pointing to analytics for charts
         <div class="ov-info-card">
           <div class="ov-info-icon">📈</div>
           <div class="ov-info-text">
@@ -168,8 +178,46 @@
       </div>
     </div>
 
-    <!-- All child routes render here -->
+    All child routes render here
     <router-outlet></router-outlet>
 
+  </div> -->
+  <!-- ✅ Show dashboard ONLY on /dashboard/brand -->
+<div *ngIf="isOverview; else childRoutes" class="ov-wrap">
+  <!-- ===== DASHBOARD OVERVIEW CONTENT ===== -->
+  <div class="ov-page">
+
+    <div class="ov-hd">
+      <div>
+        <div class="ov-eyebrow">Welcome back, {{ user?.firstName }}!</div>
+        <div class="ov-title">Brand Overview</div>
+      </div>
+      <a routerLink="/dashboard/brand/analytics" class="btn-primary ov-analytics-btn">
+        View Analytics →
+      </a>
+    </div>
+
+    <!-- Quick actions -->
+    <div class="ov-quick">
+      <a routerLink="/dashboard/brand/campaigns" class="ov-quick-btn ov-quick-btn--amber">
+        📢 New Campaign
+      </a>
+      <a routerLink="/dashboard/brand/explore-creators" class="ov-quick-btn ov-quick-btn--violet">
+        🔍 Find Creators
+      </a>
+      <a routerLink="/dashboard/brand/collaborations" class="ov-quick-btn ov-quick-btn--jade">
+        🤝 Collaborations
+      </a>
+      <a routerLink="/dashboard/brand/analytics" class="ov-quick-btn ov-quick-btn--sky">
+        📊 Analytics
+      </a>
+    </div>
+
   </div>
+</div>
+
+<!-- ✅ Show child pages (applications, messages, etc.) -->
+<ng-template #childRoutes>
+  <router-outlet></router-outlet>
+</ng-template>
 </div>

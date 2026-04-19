@@ -173,7 +173,7 @@ router.delete('/budgets/:id',     ctrl.deleteBudget);
    EXCEL REPORT EXPORT
    GET /api/admin/reports/export?type=users|creators|brands|campaigns|payments|collabposts|collaborations
    ════════════════════════════════════════════════════════════════════════════ */
-router.get('/reports/export', ctrl.exportExcelReport);
+// router.get('/reports/export', ctrl.exportExcelReport);
 
 
 
@@ -210,6 +210,12 @@ router.get   ('/brand-profiles',        ctrl.listBrandProfiles);
 router.get   ('/brand-profiles/:id',    ctrl.getBrandProfile);
 router.put   ('/brand-profiles/:id',    ctrl.updateBrandProfile);
 router.delete('/brand-profiles/:id',    ctrl.deleteBrandProfile);
+router.get   ('/collab-posts',     ctrl.listCollabPosts);
+router.get   ('/collab-posts/:id', ctrl.getCollabPost);
+router.put   ('/collab-posts/:id', ctrl.updateCollabPost);
+router.delete('/collab-posts/:id', ctrl.deleteCollabPost);
 
-
+// EXCEL EXPORT
+// router.get('/export/excel', ctrl.exportExcel);
+router.get('/reports/export', ctrl.exportExcelReport);
 module.exports = router;

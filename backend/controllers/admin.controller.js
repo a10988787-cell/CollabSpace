@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 const bcrypt   = require('bcryptjs');
 const User     = require('../models/User');
 const Campaign = require('../models/Campaign');
-
+const xlsx = require('xlsx');
 const {
   AdminUser, Report, AdminNotification, Role,
   Setting, Category, AuditLog, Plan, FeatureFlag, ContentReview,
@@ -1047,61 +1047,113 @@ try {
   _BrandBudget = BM.Budget || BM.BrandBudget;
 } catch(_) {}
 
+// exports.listCollabPosts = async (req, res) => {
+//   try {
+//     if (!_CollabPost) return fail(res, 'CollabPost model not available', 503);
+//     const { page, limit, skip } = paginate(req.query);
+//     const { search = '', status = '' } = req.query;
+//     const q = { isDeleted: false };
+//     if (status) q.status = status;
+//     if (search) q.title = { $regex: search, $options: 'i' };
+//     const [data, total] = await Promise.all([
+//       _CollabPost.find(q)
+//         .populate('creator', 'firstName lastName email')
+//         .populate('brand',   'firstName lastName companyName')
+//         .populate('campaign','title')
+//         .sort({ createdAt: -1 }).skip(skip).limit(limit),
+//       _CollabPost.countDocuments(q),
+//     ]);
+//     ok(res, { data, total, page, pages: Math.ceil(total / limit) });
+//   } catch(e) { fail(res, e.message, 500); }
+// };
+
+// exports.getCollabPost = async (req, res) => {
+//   try {
+//     if (!_CollabPost) return fail(res, 'Model not available', 503);
+//     const d = await _CollabPost.findById(req.params.id)
+//       .populate('creator','firstName lastName email')
+//       .populate('brand','firstName lastName companyName')
+//       .populate('campaign','title budget');
+//     if (!d) return fail(res, 'Post not found', 404);
+//     ok(res, { data: d });
+//   } catch(e) { fail(res, e.message, 500); }
+// };
+
+// exports.updateCollabPost = async (req, res) => {
+//   try {
+//     if (!_CollabPost) return fail(res, 'Model not available', 503);
+//     const allowed = ['status','brandNotes','paymentAmount','isPaid'];
+//     const update  = {};
+//     allowed.forEach(k => { if (req.body[k] !== undefined) update[k] = req.body[k]; });
+//     const d = await _CollabPost.findByIdAndUpdate(req.params.id, update, { new: true });
+//     if (!d) return fail(res, 'Post not found', 404);
+//     await audit(req, 'collab_post.update', 'collab-posts', d._id, update);
+//     ok(res, { data: d });
+//   } catch(e) { fail(res, e.message, 500); }
+// };
+
+// exports.deleteCollabPost = async (req, res) => {
+//   try {
+//     if (!_CollabPost) return fail(res, 'Model not available', 503);
+//     const d = await _CollabPost.findByIdAndUpdate(req.params.id, { isDeleted: true }, { new: true });
+//     if (!d) return fail(res, 'Post not found', 404);
+//     await audit(req, 'collab_post.delete', 'collab-posts', req.params.id, {});
+//     ok(res, { message: 'Collab post removed' });
+//   } catch(e) { fail(res, e.message, 500); }
+// };
+/* 16. COLLAB POSTS CRUD  /api/admin/collab-posts */
+let CollabPost;
+try { ({ CollabPost } = require('../models/Creatormodels')); } catch (_) {}
+
 exports.listCollabPosts = async (req, res) => {
   try {
-    if (!_CollabPost) return fail(res, 'CollabPost model not available', 503);
-    const { page, limit, skip } = paginate(req.query);
-    const { search = '', status = '' } = req.query;
-    const q = { isDeleted: false };
-    if (status) q.status = status;
-    if (search) q.title = { $regex: search, $options: 'i' };
+    const { page=1, limit=20, status, search } = req.query;
+    const q = { isDeleted: { $ne: true } };
+    if (status && status !== 'all') q.status = status;
+    if (search) q.$or = [
+      { title:    { $regex: search, $options: 'i' } },
+      { caption:  { $regex: search, $options: 'i' } },
+      { platform: { $regex: search, $options: 'i' } },
+    ];
+    const skip = (Number(page)-1)*Number(limit);
     const [data, total] = await Promise.all([
-      _CollabPost.find(q)
-        .populate('creator', 'firstName lastName email')
-        .populate('brand',   'firstName lastName companyName')
-        .populate('campaign','title')
-        .sort({ createdAt: -1 }).skip(skip).limit(limit),
-      _CollabPost.countDocuments(q),
+      CollabPost.find(q)
+        .populate('creator','firstName lastName email')
+        .populate('brand','firstName lastName companyName')
+        .sort({ createdAt:-1 }).skip(skip).limit(Number(limit)),
+      CollabPost.countDocuments(q),
     ]);
-    ok(res, { data, total, page, pages: Math.ceil(total / limit) });
-  } catch(e) { fail(res, e.message, 500); }
+    ok(res, { data, total, page:Number(page), pages:Math.ceil(total/Number(limit)) });
+  } catch(e) { fail(res, e.message); }
 };
 
 exports.getCollabPost = async (req, res) => {
   try {
-    if (!_CollabPost) return fail(res, 'Model not available', 503);
-    const d = await _CollabPost.findById(req.params.id)
+    const d = await CollabPost.findById(req.params.id)
       .populate('creator','firstName lastName email')
-      .populate('brand','firstName lastName companyName')
-      .populate('campaign','title budget');
-    if (!d) return fail(res, 'Post not found', 404);
-    ok(res, { data: d });
-  } catch(e) { fail(res, e.message, 500); }
+      .populate('brand','firstName lastName companyName');
+    if (!d) return fail(res,'Not found',404);
+    ok(res,{ data:d });
+  } catch(e) { fail(res, e.message); }
 };
 
 exports.updateCollabPost = async (req, res) => {
   try {
-    if (!_CollabPost) return fail(res, 'Model not available', 503);
-    const allowed = ['status','brandNotes','paymentAmount','isPaid'];
-    const update  = {};
-    allowed.forEach(k => { if (req.body[k] !== undefined) update[k] = req.body[k]; });
-    const d = await _CollabPost.findByIdAndUpdate(req.params.id, update, { new: true });
-    if (!d) return fail(res, 'Post not found', 404);
-    await audit(req, 'collab_post.update', 'collab-posts', d._id, update);
-    ok(res, { data: d });
-  } catch(e) { fail(res, e.message, 500); }
+    const allowed = ['status','brandNotes','isPaid','paymentAmount'];
+    const update  = Object.fromEntries(Object.entries(req.body).filter(([k])=>allowed.includes(k)));
+    const d = await CollabPost.findByIdAndUpdate(req.params.id, update, { new:true });
+    if (!d) return fail(res,'Not found',404);
+    ok(res,{ data:d });
+  } catch(e) { fail(res, e.message); }
 };
 
 exports.deleteCollabPost = async (req, res) => {
   try {
-    if (!_CollabPost) return fail(res, 'Model not available', 503);
-    const d = await _CollabPost.findByIdAndUpdate(req.params.id, { isDeleted: true }, { new: true });
-    if (!d) return fail(res, 'Post not found', 404);
-    await audit(req, 'collab_post.delete', 'collab-posts', req.params.id, {});
-    ok(res, { message: 'Collab post removed' });
-  } catch(e) { fail(res, e.message, 500); }
+    const d = await CollabPost.findByIdAndUpdate(req.params.id,{ isDeleted:true },{ new:true });
+    if (!d) return fail(res,'Not found',404);
+    ok(res,{ message:'Deleted' });
+  } catch(e) { fail(res, e.message); }
 };
-
 // ════════════════════════════════════════════════════════════════════════════
 // ADMIN — COLLABORATIONS CRUD
 // ════════════════════════════════════════════════════════════════════════════
@@ -1594,4 +1646,98 @@ exports.deleteBrandProfile = async (req, res) => {
     await audit(req, 'brand_profile.deactivate', 'brand-profiles', req.params.id, {});
     ok(res, { message: 'Brand deactivated' });
   } catch(e) { fail(res, e.message, 500); }
+};
+// ═══════════════════════════════════════════════════════════════════
+// EXPORT EXCEL REPORT
+// ═══════════════════════════════════════════════════════════════════
+exports.exportExcelReport = async (req, res) => {
+  try {
+    const { type } = req.query;
+
+    let data = [];
+    let fileName = 'Report';
+
+    switch (type) {
+      case 'users':
+        data = await User.find().lean();
+        fileName = 'Users';
+        break;
+
+      case 'creators':
+        data = await User.find({ role: 'creator' }).lean();
+        fileName = 'Creators';
+        break;
+
+      case 'brands':
+        data = await User.find({ role: 'brand' }).lean();
+        fileName = 'Brands';
+        break;
+
+      case 'campaigns':
+        data = await Campaign.find().lean();
+        fileName = 'Campaigns';
+        break;
+
+      default:
+        return res.status(400).json({ message: 'Invalid report type' });
+    }
+
+    if (!data.length) {
+      return res.status(404).json({ message: 'No data found' });
+    }
+
+    // 🔥 CRITICAL FIX: sanitize Mongo data
+    const cleanData = data.map(item => {
+      const obj = {};
+
+      for (let key in item) {
+        let value = item[key];
+
+        // convert ObjectId → string
+        if (value && value._bsontype === 'ObjectID') {
+          value = value.toString();
+        }
+
+        // convert Date → readable string
+        if (value instanceof Date) {
+          value = value.toISOString();
+        }
+
+        // remove nested objects (xlsx crashes on deep objects)
+        if (typeof value === 'object' && value !== null) {
+          value = JSON.stringify(value);
+        }
+
+        obj[key] = value;
+      }
+
+      return obj;
+    });
+
+    const worksheet = xlsx.utils.json_to_sheet(cleanData);
+    const workbook = xlsx.utils.book_new();
+
+    xlsx.utils.book_append_sheet(workbook, worksheet, fileName);
+
+    const buffer = xlsx.write(workbook, {
+      type: 'buffer',
+      bookType: 'xlsx',
+    });
+
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename=${fileName}_${Date.now()}.xlsx`
+    );
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+
+    res.send(buffer);
+
+  } catch (error) {
+  console.error("🔥 EXPORT ERROR FULL:", error);
+  console.error("🔥 STACK:", error.stack);
+  res.status(500).json({ message: error.message });
+}
 };
